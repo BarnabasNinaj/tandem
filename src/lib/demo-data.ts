@@ -1,7 +1,7 @@
 import { buildMonthlyRecord } from './finance'
 import { DEFAULT_CATEGORIES, type MonthlyRecord } from '@/types/tandem'
 
-/** Two sample closed months (Sep + Oct 2026) for exploring Cockpit & Trajectory. */
+/** Two sample closed months (Sep + Oct 2026) for exploring Home & Trajectory. */
 export function buildDemoHistory(): Record<string, MonthlyRecord> {
   const cats = DEFAULT_CATEGORIES
 

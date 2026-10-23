@@ -100,7 +100,7 @@ export function Analytics() {
           <h1 className="font-[family-name:var(--font-display)] text-3xl font-semibold text-stone-900 dark:text-stone-50">
             Trajectory
           </h1>
-          <p className="text-sm text-stone-500">
+          <p className="text-sm text-stone-700 dark:text-stone-400">
             Historical trends · dates as MM/YYYY
           </p>
         </div>
@@ -113,7 +113,7 @@ export function Analytics() {
               className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                 range === r
                   ? 'bg-white text-stone-900 shadow-sm dark:bg-stone-700 dark:text-stone-50'
-                  : 'text-stone-500'
+                  : 'text-stone-700 dark:text-stone-400'
               }`}
             >
               {r}

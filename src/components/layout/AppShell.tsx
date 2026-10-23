@@ -1,7 +1,7 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import {
   BarChart3,
-  LayoutDashboard,
+  Home,
   Lock,
   Moon,
   RefreshCw,
@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils'
 import { useTandemStore } from '@/store/tandem-store'
 
 const NAV = [
-  { to: '/', label: 'Cockpit', icon: LayoutDashboard, end: true },
+  { to: '/', label: 'Home', icon: Home, end: true },
   { to: '/analytics', label: 'Trajectory', icon: BarChart3 },
   { to: '/settings', label: 'Settings', icon: Settings },
 ]
@@ -40,12 +40,10 @@ export function AppShell() {
         }}
       />
 
-      <header className="sticky top-0 z-40 border-b border-stone-200/80 bg-[var(--surface)]/85 backdrop-blur-md dark:border-stone-800">
+      <header className="sticky top-0 z-40 border-b border-stone-300 bg-[var(--surface)]/85 backdrop-blur-md dark:border-stone-800">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">
           <div className="flex items-center gap-6">
-            <span className="font-[family-name:var(--font-display)] text-xl font-semibold tracking-tight text-teal-900 dark:text-teal-300">
-              Tandem
-            </span>
+            <span className="logo-mark text-xl">Tandem</span>
             <nav className="hidden items-center gap-1 sm:flex">
               {NAV.map(({ to, label, icon: Icon, end }) => (
                 <NavLink
@@ -57,7 +55,7 @@ export function AppShell() {
                       'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
                       isActive
                         ? 'bg-teal-700/10 text-teal-900 dark:bg-teal-400/10 dark:text-teal-200'
-                        : 'text-stone-600 hover:bg-stone-100 dark:text-stone-400 dark:hover:bg-stone-800',
+                        : 'text-stone-700 hover:bg-stone-200/70 dark:text-stone-400 dark:hover:bg-stone-800',
                     )
                   }
                 >
@@ -69,7 +67,7 @@ export function AppShell() {
           </div>
           <div className="flex items-center gap-1">
             {lastSyncedAt && (
-              <span className="mr-2 hidden text-[11px] text-stone-400 md:inline">
+              <span className="mr-2 hidden text-[11px] text-stone-700 dark:text-stone-400 md:inline">
                 Synced {formatDateTimeDDMMYYYY(lastSyncedAt)}
               </span>
             )}
@@ -112,7 +110,7 @@ export function AppShell() {
         <Outlet />
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-stone-200 bg-[var(--surface)]/95 backdrop-blur-md dark:border-stone-800 sm:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-stone-300 bg-[var(--surface)]/95 backdrop-blur-md dark:border-stone-800 sm:hidden">
         {NAV.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
@@ -123,7 +121,7 @@ export function AppShell() {
                 'flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-medium',
                 isActive
                   ? 'text-teal-800 dark:text-teal-300'
-                  : 'text-stone-500',
+                  : 'text-stone-700 dark:text-stone-400',
               )
             }
           >

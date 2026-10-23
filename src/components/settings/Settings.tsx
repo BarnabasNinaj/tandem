@@ -7,6 +7,7 @@ import {
   Trash2,
   Upload,
 } from 'lucide-react'
+import { InviteQr } from '@/components/invite/InviteQr'
 import { Button } from '@/components/ui/button'
 import { Card, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -135,7 +136,7 @@ export function Settings() {
         <h1 className="font-[family-name:var(--font-display)] text-3xl font-semibold text-stone-900 dark:text-stone-50">
           Settings
         </h1>
-        <p className="text-sm text-stone-500">
+        <p className="text-sm text-stone-700 dark:text-stone-400">
           Last synced:{' '}
           {lastSyncedAt ? formatDateTimeDDMMYYYY(lastSyncedAt) : '—'}
         </p>
@@ -230,7 +231,7 @@ export function Settings() {
             />
           </Field>
         </div>
-        <p className="text-xs text-stone-500">
+        <p className="text-xs text-stone-700 dark:text-stone-400">
           Date format enforced: DD/MM/YYYY
         </p>
         <Button onClick={() => void saveSettings()}>Save & sync</Button>
@@ -317,6 +318,8 @@ export function Settings() {
         </Button>
       </Card>
 
+      <InviteQr config={gh} />
+
       <Card className="space-y-4">
         <CardTitle>Change master password</CardTitle>
         <Field label="Current password">
@@ -344,8 +347,8 @@ export function Settings() {
 
       <Card className="space-y-4">
         <CardTitle>Sample data</CardTitle>
-        <p className="text-sm text-stone-500">
-          Loads two demo months (09/2026 and 10/2026) so Cockpit and Trajectory
+        <p className="text-sm text-stone-700 dark:text-stone-400">
+          Loads two demo months (09/2026 and 10/2026) so Home and Trajectory
           have something to show. Overwrites those month keys if they already
           exist.
         </p>
@@ -370,7 +373,7 @@ export function Settings() {
 
       <Card className="space-y-4">
         <CardTitle>Backup (unencrypted JSON)</CardTitle>
-        <p className="text-sm text-stone-500">
+        <p className="text-sm text-stone-700 dark:text-stone-400">
           Emergency fallback only. Store exports offline and delete after
           restore.
         </p>

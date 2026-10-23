@@ -19,8 +19,10 @@ import {
   getSessionPassword,
   loadEncryptedDraft,
   loadGitHubConfig,
+  loadSessionVaultCache,
   saveEncryptedDraft,
   saveGitHubConfig,
+  saveSessionVaultCache,
   setSessionPassword,
   setSessionUnlocked,
 } from '@/lib/storage'
@@ -58,12 +60,8 @@ interface TandemStore {
   completeSetup: (opts: {
     github: GitHubConfig
     password: string
-    partnerAName: string
-    partnerBName: string
-    currencySymbol: string
-    currencyLocale: string
   }) => Promise<void>
-  unlock: (password: string) => Promise<void>
+  unlock: (password: string, opts?: { quiet?: boolean }) => Promise<void>
   lock: () => void
   pull: () => Promise<void>
   push: (message?: string) => Promise<void>
@@ -100,24 +98,23 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
       set({ phase: 'setup', github: null })
       return
     }
-    set({ github, phase: 'locked' })
+    set({ github })
+
+    // Same-tab refresh: restore session (password lives in sessionStorage).
+    // Only inactivity auto-lock / manual lock clears it.
+    const password = getSessionPassword()
+    if (password) {
+      await get().unlock(password, { quiet: true })
+      return
+    }
+
+    set({ phase: 'locked' })
   },
 
-  completeSetup: async ({
-    github,
-    password,
-    partnerAName,
-    partnerBName,
-    currencySymbol,
-    currencyLocale,
-  }) => {
+  completeSetup: async ({ github, password }) => {
     saveGitHubConfig(github)
-    const initial = createInitialState({
-      partnerAName,
-      partnerBName,
-      currencySymbol,
-      currencyLocale,
-    })
+    // Household details (names, currency) live in Settings after setup
+    const initial = createInitialState()
     setSessionPassword(password)
     setSessionUnlocked(true)
 
@@ -128,6 +125,7 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
       if (remote) {
         const envelope = parseEnvelope(remote.content)
         const decrypted = migrateState(await decryptEnvelope(envelope, password))
+        saveSessionVaultCache(remote.content, remote.sha)
         set({
           state: decrypted,
           remoteSha: remote.sha,
@@ -146,6 +144,7 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
         'chore: initialize Tandem vault',
         null,
       )
+      saveSessionVaultCache(content, sha)
       set({
         state: initial,
         remoteSha: sha,
@@ -164,50 +163,93 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
     }
   },
 
-  unlock: async (password: string) => {
+  unlock: async (password: string, opts?: { quiet?: boolean }) => {
     const { github } = get()
     if (!github) {
       set({ phase: 'setup' })
       return
     }
-    set({ phase: 'unlocking', error: null })
+    if (!opts?.quiet) set({ phase: 'unlocking', error: null })
+    else set({ error: null })
+
+    const applyVault = (
+      decrypted: TandemState,
+      content: string,
+      sha: string,
+    ) => {
+      setSessionPassword(password)
+      setSessionUnlocked(true)
+      saveSessionVaultCache(content, sha)
+      set({
+        state: decrypted,
+        remoteSha: sha,
+        phase: 'ready',
+        lastSyncedAt: new Date().toISOString(),
+      })
+    }
+
     try {
+      // Prefer session cache on quiet restore so refresh is instant / offline-tolerant
+      if (opts?.quiet) {
+        const cached = loadSessionVaultCache()
+        if (cached) {
+          try {
+            const decrypted = migrateState(
+              await decryptEnvelope(parseEnvelope(cached.content), password),
+            )
+            applyVault(decrypted, cached.content, cached.sha)
+            // Refresh from GitHub in the background (ignore network blips)
+            void (async () => {
+              try {
+                const remote = await fetchRemoteVault(github)
+                if (!remote) return
+                const fresh = migrateState(
+                  await decryptEnvelope(parseEnvelope(remote.content), password),
+                )
+                saveSessionVaultCache(remote.content, remote.sha)
+                set({
+                  state: fresh,
+                  remoteSha: remote.sha,
+                  lastSyncedAt: new Date().toISOString(),
+                })
+              } catch {
+                /* keep cached session */
+              }
+            })()
+            return
+          } catch {
+            /* bad cache or password — fall through to remote */
+          }
+        }
+      }
+
       const remote = await fetchRemoteVault(github)
       if (!remote) {
-        // First unlock after setup without remote — create empty
         const initial = createInitialState()
         const envelope = await encryptState(initial, password)
+        const content = JSON.stringify(envelope)
         const sha = await pushRemoteVault(
           github,
-          JSON.stringify(envelope),
+          content,
           'chore: initialize Tandem vault',
           null,
         )
-        setSessionPassword(password)
-        setSessionUnlocked(true)
-        set({
-          state: initial,
-          remoteSha: sha,
-          phase: 'ready',
-          lastSyncedAt: new Date().toISOString(),
-        })
+        applyVault(initial, content, sha)
         return
       }
       const envelope = parseEnvelope(remote.content)
       const decrypted = migrateState(await decryptEnvelope(envelope, password))
-      setSessionPassword(password)
-      setSessionUnlocked(true)
-      set({
-        state: decrypted,
-        remoteSha: remote.sha,
-        phase: 'ready',
-        lastSyncedAt: new Date().toISOString(),
-      })
+      applyVault(decrypted, remote.content, remote.sha)
     } catch (e) {
-      clearSessionSecrets()
+      const message = e instanceof Error ? e.message : 'Unlock failed'
+      const authFailure =
+        /invalid master password|corrupted vault|unrecognized encrypted/i.test(
+          message,
+        )
+      if (authFailure || !opts?.quiet) clearSessionSecrets()
       set({
         phase: 'locked',
-        error: e instanceof Error ? e.message : 'Unlock failed',
+        error: message,
       })
     }
   },
@@ -236,6 +278,7 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
       const decrypted = migrateState(
         await decryptEnvelope(parseEnvelope(remote.content), password),
       )
+      saveSessionVaultCache(remote.content, remote.sha)
       set({
         state: decrypted,
         remoteSha: remote.sha,
@@ -262,6 +305,7 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
       const content = JSON.stringify(envelope)
       try {
         const sha = await pushRemoteVault(github, content, message, remoteSha)
+        saveSessionVaultCache(content, sha)
         set({
           state: next,
           remoteSha: sha,

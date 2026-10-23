@@ -1,8 +1,8 @@
-import { PiggyBank, TrendingUp, Users, Wallet } from 'lucide-react'
-import { Card, CardTitle } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
+import { useEffect, useState } from 'react'
+import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { formatDateTimeDDMMYYYY, formatMonthKey } from '@/lib/dates'
+import { Progress } from '@/components/ui/progress'
+import { formatDateTimeDDMMYYYY, formatMonthKey, toMonthKey } from '@/lib/dates'
 import {
   averageMonthlyOutflow,
   emergencyMonthsCovered,
@@ -12,7 +12,7 @@ import {
   savingsRate,
 } from '@/lib/finance'
 import { formatMoney } from '@/lib/number'
-import { toMonthKey } from '@/lib/dates'
+import { cn } from '@/lib/utils'
 import { useTandemStore } from '@/store/tandem-store'
 
 export function Dashboard() {
@@ -24,6 +24,12 @@ export function Dashboard() {
   const { settings } = state
   const money = (n: number) =>
     formatMoney(n, settings.currencySymbol, settings.currencyLocale)
+
+  const [revealed, setRevealed] = useState(false)
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setRevealed(true))
+    return () => cancelAnimationFrame(id)
+  }, [])
 
   const netWorth = latest
     ? netWorthFromSnapshot(latest.portfolioSnapshot)
@@ -38,168 +44,239 @@ export function Dashboard() {
   const emTarget = settings.emergencyTargetMonths
   const emPct = emTarget > 0 ? (emMonths / emTarget) * 100 : 0
   const travelBal = latest?.portfolioSnapshot.travelFundBalance ?? 0
+  const allowance = latest?.computed.personalAllowancePerPartner ?? 0
+  const rate = latest ? savingsRate(latest) : null
 
   return (
-    <div className="space-y-6 animate-[fadeUp_0.4s_ease-out]">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="font-[family-name:var(--font-display)] text-3xl font-semibold tracking-tight text-stone-900 dark:text-stone-50">
-            Cockpit
-          </h1>
-          <p className="text-sm text-stone-500">
-            {latest
-              ? `${formatMonthKey(latest.monthKey)} · updated ${formatDateTimeDDMMYYYY(latest.updatedAt)}`
-              : 'No months closed yet'}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {!latest && (
-            <Button
-              variant="secondary"
-              disabled={syncing}
-              onClick={() => void loadDemoData()}
-            >
-              Load sample data
-            </Button>
-          )}
-          <Button
-            onClick={() =>
-              openWizard(
-                emptyDraft(toMonthKey(), settings.categories, latest),
-              )
-            }
-          >
-            End-of-Month Close
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Stat
-          icon={<Wallet className="h-4 w-4" />}
-          label="Net worth"
-          value={money(netWorth)}
+    <div className="space-y-14 pb-4">
+      {/* Hero — one composition */}
+      <section
+        className={cn(
+          'relative overflow-hidden rounded-3xl px-6 py-8 sm:px-10 sm:py-12 transition-all duration-700',
+          revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3',
+        )}
+        style={{
+          background:
+            'linear-gradient(145deg, #0f3d38 0%, #134e4a 42%, #1a5c56 70%, #2a6b52 100%)',
+        }}
+      >
+        <div
+          className="pointer-events-none absolute inset-0 opacity-40"
+          style={{
+            background:
+              'radial-gradient(ellipse 70% 80% at 90% 10%, rgba(153,246,228,0.25), transparent 55%)',
+          }}
         />
-        <Stat
-          icon={<TrendingUp className="h-4 w-4" />}
-          label="Inflows (latest)"
-          value={latest ? money(latest.computed.totalInflow) : '—'}
-        />
-        <Stat
-          icon={<PiggyBank className="h-4 w-4" />}
-          label="Outflows (latest)"
-          value={latest ? money(latest.computed.totalOutflow) : '—'}
-        />
-        <Stat
-          icon={<Users className="h-4 w-4" />}
-          label="Savings rate"
-          value={latest ? `${savingsRate(latest)}%` : '—'}
-        />
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="relative overflow-hidden border-teal-200/70 bg-gradient-to-br from-teal-50 to-white dark:border-teal-900 dark:from-teal-950/50 dark:to-stone-900">
-          <CardTitle className="text-teal-900 dark:text-teal-200">
-            Tandem split · 50/50
-          </CardTitle>
-          <p className="mt-3 font-[family-name:var(--font-display)] text-4xl font-semibold text-teal-950 dark:text-teal-50">
-            {latest
-              ? money(latest.computed.personalAllowancePerPartner)
-              : money(0)}
-          </p>
-          <p className="mt-2 text-sm text-teal-800/80 dark:text-teal-300/80">
-            Equal personal allowance for {settings.partnerAName} and{' '}
-            {settings.partnerBName}
-          </p>
-          {latest && (
-            <p className="mt-4 text-xs text-stone-500">
-              Discretionary surplus{' '}
-              {money(latest.computed.discretionarySurplus)}
+        <div className="relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-xl">
+            <p className="text-xs font-medium tracking-[0.2em] text-teal-200/80 uppercase">
+              Home
             </p>
-          )}
-        </Card>
+            <h1 className="mt-2 font-[family-name:var(--font-display)] text-4xl font-semibold tracking-tight text-teal-50 sm:text-5xl">
+              {settings.partnerAName} & {settings.partnerBName}
+            </h1>
+            <p className="mt-3 text-sm text-teal-100/75">
+              {latest
+                ? `Latest close ${formatMonthKey(latest.monthKey)} · ${formatDateTimeDDMMYYYY(latest.updatedAt)}`
+                : 'Your household ledger is ready — close a month or load samples.'}
+            </p>
 
-        <Card>
-          <CardTitle>Goal progress</CardTitle>
-          <div className="mt-5 space-y-5">
-            <div>
-              <div className="mb-1.5 flex justify-between text-sm">
-                <span className="text-stone-600 dark:text-stone-300">
-                  Emergency reserve
-                </span>
-                <span className="font-medium tabular-nums">
-                  {emMonths} / {emTarget} months
-                </span>
-              </div>
-              <Progress value={emPct} />
-              <p className="mt-1 text-xs text-stone-500">
-                Balance{' '}
-                {money(latest?.portfolioSnapshot.emergencyReserveBalance ?? 0)}
+            <div className="mt-8">
+              <p className="text-xs font-medium tracking-wide text-teal-200/70 uppercase">
+                Household net worth
+              </p>
+              <p
+                className={cn(
+                  'mt-1 font-[family-name:var(--font-display)] text-4xl font-semibold tabular-nums text-white sm:text-5xl transition-all duration-1000 delay-150',
+                  revealed ? 'opacity-100' : 'opacity-0',
+                )}
+              >
+                {money(netWorth)}
               </p>
             </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2 lg:flex-col lg:items-stretch">
+            {!latest && (
+              <Button
+                variant="secondary"
+                disabled={syncing}
+                className="bg-white/15 text-white hover:bg-white/25 border-0"
+                onClick={() => void loadDemoData()}
+              >
+                Load sample data
+              </Button>
+            )}
+            <Button
+              className="bg-teal-50 text-teal-950 hover:bg-white"
+              onClick={() =>
+                openWizard(
+                  emptyDraft(toMonthKey(), settings.categories, latest),
+                )
+              }
+            >
+              Close month
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Tandem split — primary household signal */}
+      <section
+        className={cn(
+          'transition-all duration-700 delay-100',
+          revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3',
+        )}
+      >
+        <p className="text-xs font-medium tracking-[0.18em] text-stone-700 dark:text-stone-400 uppercase">
+          This month’s split
+        </p>
+        <div className="mt-3 flex flex-col gap-6 border-t border-stone-300 pt-6 dark:border-stone-700 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="font-[family-name:var(--font-display)] text-5xl font-semibold tabular-nums tracking-tight text-stone-900 dark:text-stone-50 sm:text-6xl">
+              {money(allowance)}
+            </p>
+            <p className="mt-2 max-w-md text-base text-stone-600 dark:text-stone-400">
+              Equal personal allowance — 50/50 for each of you after shared
+              costs and reserves.
+            </p>
+          </div>
+          <div className="flex gap-8 text-sm">
             <div>
-              <div className="mb-1.5 flex justify-between text-sm">
-                <span className="text-stone-600 dark:text-stone-300">
-                  Travel sink fund
-                </span>
-                <span className="font-medium tabular-nums">
-                  {money(travelBal)}
-                </span>
-              </div>
-              <Progress
-                value={travelBal > 0 ? Math.min(100, (travelBal / 5000) * 100) : 0}
-              />
+              <p className="text-stone-700 dark:text-stone-400">{settings.partnerAName}</p>
+              <p className="font-semibold tabular-nums text-stone-900 dark:text-stone-100">
+                {money(allowance)}
+              </p>
+            </div>
+            <div className="w-px bg-stone-400 dark:bg-stone-600" />
+            <div>
+              <p className="text-stone-700 dark:text-stone-400">{settings.partnerBName}</p>
+              <p className="font-semibold tabular-nums text-stone-900 dark:text-stone-100">
+                {money(allowance)}
+              </p>
             </div>
           </div>
-        </Card>
-      </div>
+        </div>
+        {latest && (
+          <p className="mt-4 text-xs text-stone-700 dark:text-stone-400">
+            Surplus after expenses & allocations:{' '}
+            {money(latest.computed.discretionarySurplus)}
+          </p>
+        )}
+      </section>
 
+      {/* Month flow — single row, not a stat card grid */}
       {latest && (
-        <Card>
-          <CardTitle>Current month snapshot</CardTitle>
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            <Metric label="Total inflow" value={money(latest.computed.totalInflow)} />
-            <Metric label="Total outflow" value={money(latest.computed.totalOutflow)} />
-            <Metric
-              label="Liquid cash"
+        <section
+          className={cn(
+            'transition-all duration-700 delay-200',
+            revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3',
+          )}
+        >
+          <p className="text-xs font-medium tracking-[0.18em] text-stone-700 dark:text-stone-400 uppercase">
+            {formatMonthKey(latest.monthKey)} flow
+          </p>
+          <div className="mt-4 grid grid-cols-2 gap-y-6 border-t border-stone-300 pt-6 dark:border-stone-700 sm:grid-cols-4">
+            <FlowStat label="In" value={money(latest.computed.totalInflow)} />
+            <FlowStat label="Out" value={money(latest.computed.totalOutflow)} />
+            <FlowStat
+              label="Liquid"
               value={money(latest.portfolioSnapshot.liquidCashBalance)}
             />
+            <FlowStat
+              label="Saved"
+              value={rate !== null ? `${rate}%` : '—'}
+              accent
+            />
           </div>
-        </Card>
+        </section>
       )}
+
+      {/* Goals */}
+      <section
+        className={cn(
+          'transition-all duration-700 delay-300',
+          revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3',
+        )}
+      >
+        <p className="text-xs font-medium tracking-[0.18em] text-stone-700 dark:text-stone-400 uppercase">
+          Reserves
+        </p>
+        <div className="mt-4 space-y-8 border-t border-stone-300 pt-6 dark:border-stone-700">
+          <GoalRow
+            title="Emergency"
+            detail={`${emMonths} of ${emTarget} months covered`}
+            amount={money(
+              latest?.portfolioSnapshot.emergencyReserveBalance ?? 0,
+            )}
+            progress={emPct}
+          />
+          <GoalRow
+            title="Travel"
+            detail="Sink fund balance"
+            amount={money(travelBal)}
+            progress={
+              travelBal > 0 ? Math.min(100, (travelBal / 5000) * 100) : 0
+            }
+          />
+        </div>
+      </section>
     </div>
   )
 }
 
-function Stat({
-  icon,
+function FlowStat({
   label,
   value,
+  accent,
 }: {
-  icon: React.ReactNode
   label: string
   value: string
+  accent?: boolean
 }) {
   return (
-    <Card className="!p-4">
-      <div className="flex items-center gap-2 text-stone-500">
-        {icon}
-        <span className="text-xs font-medium tracking-wide uppercase">
-          {label}
-        </span>
-      </div>
-      <p className="mt-2 text-xl font-semibold tabular-nums tracking-tight text-stone-900 dark:text-stone-50">
+    <div>
+      <p className="text-xs tracking-wide text-stone-700 dark:text-stone-400 uppercase">{label}</p>
+      <p
+        className={cn(
+          'mt-1 text-xl font-semibold tabular-nums tracking-tight',
+          accent
+            ? 'text-teal-800 dark:text-teal-300'
+            : 'text-stone-900 dark:text-stone-50',
+        )}
+      >
         {value}
       </p>
-    </Card>
+    </div>
   )
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
+function GoalRow({
+  title,
+  detail,
+  amount,
+  progress,
+}: {
+  title: string
+  detail: string
+  amount: string
+  progress: number
+}) {
   return (
     <div>
-      <p className="text-xs text-stone-500 uppercase">{label}</p>
-      <p className="text-lg font-semibold tabular-nums">{value}</p>
+      <div className="mb-2 flex items-baseline justify-between gap-4">
+        <div>
+          <p className="font-medium text-stone-900 dark:text-stone-100">
+            {title}
+          </p>
+          <p className="text-sm text-stone-700 dark:text-stone-400">{detail}</p>
+        </div>
+        <p className="text-sm font-semibold tabular-nums text-stone-800 dark:text-stone-200">
+          {amount}
+        </p>
+      </div>
+      <Progress value={progress} className="h-1.5" />
     </div>
   )
 }

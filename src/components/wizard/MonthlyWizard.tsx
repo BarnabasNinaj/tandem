@@ -89,11 +89,11 @@ export function MonthlyWizard() {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-stone-950/50 p-0 backdrop-blur-sm sm:items-center sm:p-6">
       <div
-        className="flex max-h-[100dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-2xl border border-stone-200 bg-[var(--surface)] shadow-2xl animate-[fadeUp_0.35s_ease-out] dark:border-stone-700 sm:max-h-[90dvh] sm:rounded-2xl"
+        className="flex max-h-[100dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-2xl border border-stone-300 bg-[var(--surface)] shadow-2xl animate-[fadeUp_0.35s_ease-out] dark:border-stone-700 sm:max-h-[90dvh] sm:rounded-2xl"
         role="dialog"
         aria-labelledby="wizard-title"
       >
-        <header className="flex items-center justify-between border-b border-stone-200 px-5 py-4 dark:border-stone-700">
+        <header className="flex items-center justify-between border-b border-stone-300 px-5 py-4 dark:border-stone-700">
           <div>
             <h2
               id="wizard-title"
@@ -101,7 +101,7 @@ export function MonthlyWizard() {
             >
               End-of-Month Close
             </h2>
-            <p className="text-xs text-stone-500">
+            <p className="text-xs text-stone-700 dark:text-stone-400">
               Step {step + 1} of 3 · {STEP_LABELS[step]} ·{' '}
               {formatMonthKey(draft.monthKey)}
             </p>
@@ -319,7 +319,7 @@ export function MonthlyWizard() {
           )}
         </div>
 
-        <div className="border-t border-stone-200 bg-stone-50/80 px-5 py-4 dark:border-stone-700 dark:bg-stone-900/80">
+        <div className="border-t border-stone-300 bg-stone-50/80 px-5 py-4 dark:border-stone-700 dark:bg-stone-900/80">
           <div className="mb-4 rounded-xl border border-teal-200/80 bg-teal-50/90 p-4 dark:border-teal-900 dark:bg-teal-950/40">
             <p className="text-xs font-medium tracking-wide text-teal-800 uppercase dark:text-teal-300">
               Payout preview · 50/50

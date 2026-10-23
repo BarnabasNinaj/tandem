@@ -29,7 +29,7 @@ Deploy the `dist/` folder to Vercel (static) or any static host. No server requi
 
 ## First-run setup
 
-1. Create a **private** GitHub repo (e.g. `tandem`) with a README.
+1. Create a **private** GitHub repo (e.g. `tandem-data`) with a README for the encrypted vault.
 2. Create a Fine-Grained PAT with **Contents: Read and write** on that repo only.
 3. Open Tandem and complete the onboarding wizard.
 4. Unlock with your master password — the key never leaves the browser.

@@ -44,7 +44,7 @@ export function clearEncryptedDraft(): void {
   localStorage.removeItem(DRAFT_KEY)
 }
 
-/** Session-only unlock marker (never stores password). */
+/** Session-only unlock marker (never stores password in localStorage). */
 export function setSessionUnlocked(flag: boolean): void {
   if (flag) sessionStorage.setItem(SESSION_FLAG, '1')
   else sessionStorage.removeItem(SESSION_FLAG)
@@ -54,8 +54,10 @@ export function isSessionUnlocked(): boolean {
   return sessionStorage.getItem(SESSION_FLAG) === '1'
 }
 
-/** Password kept ONLY in sessionStorage under a non-obvious key — purged on lock. */
+/** Password kept ONLY in sessionStorage — purged on lock / tab close. */
 const PW_KEY = 'tandem.sk'
+/** Encrypted vault snapshot for same-tab refresh without re-login. */
+const VAULT_CACHE_KEY = 'tandem.vault.cache'
 
 export function setSessionPassword(password: string): void {
   sessionStorage.setItem(PW_KEY, password)
@@ -65,7 +67,24 @@ export function getSessionPassword(): string | null {
   return sessionStorage.getItem(PW_KEY)
 }
 
+export function saveSessionVaultCache(content: string, sha: string): void {
+  sessionStorage.setItem(VAULT_CACHE_KEY, JSON.stringify({ content, sha }))
+}
+
+export function loadSessionVaultCache(): { content: string; sha: string } | null {
+  try {
+    const raw = sessionStorage.getItem(VAULT_CACHE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as { content?: string; sha?: string }
+    if (!parsed.content || !parsed.sha) return null
+    return { content: parsed.content, sha: parsed.sha }
+  } catch {
+    return null
+  }
+}
+
 export function clearSessionSecrets(): void {
   sessionStorage.removeItem(PW_KEY)
   sessionStorage.removeItem(SESSION_FLAG)
+  sessionStorage.removeItem(VAULT_CACHE_KEY)
 }

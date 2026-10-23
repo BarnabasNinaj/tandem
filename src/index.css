@@ -1,20 +1,47 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fugaz+One&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
 @import 'tailwindcss';
 
 :root {
-  --font-display: 'Fraunces', Georgia, serif;
-  --font-body: 'Source Sans 3', system-ui, sans-serif;
-  --bg: #f4f7f6;
+  --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-logo: 'Fugaz One', system-ui, sans-serif;
+  /* Teal that reads on light surfaces (setup always light) */
+  --logo: #0f766e;
+  /* Slightly cooler off-white — less washed than mint-grey */
+  --bg: #eef1ef;
   --surface: #ffffff;
-  --border: #e7e5e4;
+  --border: #c4c0bb;
+  --text: #1c1917;
+  --text-muted: #3f3a36;
+  --text-faint: #57534e;
   color-scheme: light;
 }
 
 .dark {
   --bg: #0c1210;
   --surface: #141a18;
-  --border: #292524;
+  --border: #3f3a36;
+  --text: #f5f5f4;
+  --text-muted: #a8a29e;
+  --text-faint: #78716c;
+  /* Brighter teal on dark chrome — still not white/black */
+  --logo: #2dd4bf;
   color-scheme: dark;
+}
+
+.logo-mark {
+  font-family: var(--font-logo);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--logo);
+}
+
+/* Setup / lock keep a light canvas — force deep teal even if theme is dark */
+.logo-mark-on-light {
+  font-family: var(--font-logo);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: #0f766e;
 }
 
 html,
@@ -27,6 +54,7 @@ body {
   margin: 0;
   font-family: var(--font-body);
   background: var(--bg);
+  color: var(--text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -43,5 +71,5 @@ body {
 }
 
 ::selection {
-  background: rgba(15, 118, 110, 0.25);
+  background: rgba(15, 118, 110, 0.28);
 }

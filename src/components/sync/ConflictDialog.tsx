@@ -11,7 +11,7 @@ export function ConflictDialog() {
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-stone-950/60 p-4 backdrop-blur-sm">
       <div
-        className="w-full max-w-md rounded-2xl border border-stone-200 bg-white p-6 shadow-xl dark:border-stone-700 dark:bg-stone-900"
+        className="w-full max-w-md rounded-2xl border border-stone-300 bg-white p-6 shadow-xl dark:border-stone-700 dark:bg-stone-900"
         role="alertdialog"
         aria-labelledby="conflict-title"
       >

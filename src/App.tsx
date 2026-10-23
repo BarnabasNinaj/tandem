@@ -14,9 +14,7 @@ import { useTandemStore } from '@/store/tandem-store'
 function BootSplash() {
   return (
     <div className="flex min-h-dvh items-center justify-center bg-[var(--bg)]">
-      <p className="font-[family-name:var(--font-display)] text-3xl font-semibold text-teal-900 dark:text-teal-300">
-        Tandem
-      </p>
+      <p className="logo-mark text-3xl">Tandem</p>
     </div>
   )
 }

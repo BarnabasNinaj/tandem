@@ -32,19 +32,17 @@ export function LockScreen() {
       <div className="dark:pointer-events-none dark:absolute dark:inset-0 dark:block dark:bg-[radial-gradient(ellipse_70%_50%_at_50%_-5%,rgba(45,212,191,0.12),transparent),linear-gradient(165deg,#0c1210_0%,#141a18_50%,#1a2220_100%)]" />
 
       <div className="relative z-10 w-full max-w-md animate-[fadeUp_0.6s_ease-out]">
-        <p className="mb-2 font-[family-name:var(--font-display)] text-5xl font-semibold tracking-tight text-teal-900 dark:text-teal-300 sm:text-6xl">
-          Tandem
-        </p>
-        <p className="mb-10 max-w-sm text-base text-stone-600 dark:text-stone-400">
+        <p className="logo-mark-on-light mb-2 text-5xl sm:text-6xl">Tandem</p>
+        <p className="mb-10 max-w-sm text-base text-stone-700 dark:text-stone-400">
           Private, local-first household operating system. Your vault unlocks
           only in this browser.
         </p>
 
         <form
           onSubmit={onSubmit}
-          className="space-y-4 rounded-2xl border border-stone-200/70 bg-white/70 p-6 shadow-lg backdrop-blur-md dark:border-stone-700/60 dark:bg-stone-900/60"
+          className="space-y-4 rounded-2xl border border-stone-300 bg-white/70 p-6 shadow-lg backdrop-blur-md dark:border-stone-700/60 dark:bg-stone-900/60"
         >
-          <div className="flex items-center gap-2 text-stone-500 dark:text-stone-400">
+          <div className="flex items-center gap-2 text-stone-700 dark:text-stone-400">
             <Lock className="h-4 w-4" />
             <span className="text-xs font-medium tracking-wide uppercase">
               Vault locked
@@ -52,7 +50,7 @@ export function LockScreen() {
           </div>
 
           {github && (
-            <p className="text-xs text-stone-500">
+            <p className="text-xs text-stone-700 dark:text-stone-400">
               Syncing {github.username}/{github.repo}
             </p>
           )}

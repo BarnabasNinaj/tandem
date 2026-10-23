@@ -8,12 +8,13 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          'bg-teal-700 text-white hover:bg-teal-800 dark:bg-teal-600 dark:hover:bg-teal-500',
+          'bg-teal-800 text-white hover:bg-teal-900 dark:bg-teal-600 dark:hover:bg-teal-500',
         secondary:
-          'bg-stone-200 text-stone-900 hover:bg-stone-300 dark:bg-stone-800 dark:text-stone-100 dark:hover:bg-stone-700',
+          'bg-stone-200 text-stone-950 hover:bg-stone-300 dark:bg-stone-700 dark:text-stone-50 dark:hover:bg-stone-600',
         outline:
-          'border border-stone-300 bg-transparent hover:bg-stone-100 dark:border-stone-600 dark:hover:bg-stone-800',
-        ghost: 'hover:bg-stone-100 dark:hover:bg-stone-800',
+          'border border-stone-400 bg-transparent text-stone-900 hover:bg-stone-100 dark:border-stone-600 dark:text-stone-100 dark:hover:bg-stone-800',
+        ghost:
+          'text-stone-800 hover:bg-stone-200/80 dark:text-stone-200 dark:hover:bg-stone-800',
         danger: 'bg-red-700 text-white hover:bg-red-800',
       },
       size: {
