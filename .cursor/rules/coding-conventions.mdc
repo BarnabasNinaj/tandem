@@ -1,0 +1,16 @@
+---
+description: TypeScript/React conventions for Tandem src
+globs: src/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Coding conventions
+
+- Alias `@/` → `src/`. Prefer types from `types/tandem.ts` over ad-hoc duplicates.
+- Functional React + Zustand **selectors** (narrow slices). Match existing component style.
+- Pure logic in `lib/*`; side effects in store actions.
+- Lint: `npm run lint` (oxlint). Test: `npm test` (Vitest, `src/**/*.test.ts`). Build: `npm run build`.
+- **Test loop (required after code changes):** run `npm test` → tell the user pass/fail → on fail, fix → run `npm test` again → repeat until green (or report what’s still blocked). Same loop when adding/changing tests. Don’t treat “wrote tests once” as done without a green run reported to the user.
+- Keep the minimal lib suite green when changing finance, crypto, migration, device-invite, or related store/sync paths that those tests cover.
+- Don’t add dependencies for problems solvable with Web Crypto, fetch, or existing UI kit.
+- Keep PRs aligned with `docs/` and `AGENTS.md`; update docs when behavior changes.

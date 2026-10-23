@@ -1,0 +1,31 @@
+---
+description: Zustand store, GitHub SHA sync, conflicts
+globs: src/store/**/*,src/lib/github.ts,src/lib/storage.ts,src/components/sync/**/*
+alwaysApply: false
+---
+
+# Store & sync
+
+## Orchestration
+
+All unlock / pull / push / conflict / password / import flows go through `useTandemStore`. Preserve optimistic SHA locking in `pushRemoteVault`.
+
+## Conflicts
+
+On `GitHubConflictError`, set `conflict` and let `ConflictDialog` choose **pull** or **overwrite**. No silent merge of `history` months.
+
+## Vault file
+
+Path is always `tandem_data.json.enc` (`DATA_FILENAME`). Branch default `main`.
+
+## Session restore
+
+Quiet unlock may use session vault cache then background-fetch. Don’t break offline-tolerant refresh.
+
+## Settings caveat
+
+`updateState` is memory-only until `push`. Don’t assume category/household edits persist without sync. Background pull can overwrite unsynced edits after refresh.
+
+## Initial state
+
+`createInitialState()` defaults to **empty** history (C3A). Opt in with `withDemoData: true` or Settings → `loadDemoData`. Setup / empty-remote unlock must keep empty vaults.

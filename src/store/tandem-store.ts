@@ -114,7 +114,7 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
   completeSetup: async ({ github, password }) => {
     saveGitHubConfig(github)
     // Household details (names, currency) live in Settings after setup
-    const initial = createInitialState()
+    const initial = createInitialState({ withDemoData: false })
     setSessionPassword(password)
     setSessionUnlocked(true)
 
@@ -225,7 +225,7 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
 
       const remote = await fetchRemoteVault(github)
       if (!remote) {
-        const initial = createInitialState()
+        const initial = createInitialState({ withDemoData: false })
         const envelope = await encryptState(initial, password)
         const content = JSON.stringify(envelope)
         const sha = await pushRemoteVault(

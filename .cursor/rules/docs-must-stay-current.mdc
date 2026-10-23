@@ -1,0 +1,31 @@
+---
+description: Every code change that affects behavior must update docs in the same turn
+alwaysApply: true
+---
+
+# Docs must stay current
+
+Documentation is part of the deliverable, not a follow-up. **Do not ship code changes that leave `README.md`, `AGENTS.md`, or `docs/*` stale.**
+
+## When you change code, update docs in the same response
+
+| If you change… | Also update… |
+|----------------|--------------|
+| Architecture, phases, layering, stack boundaries | `docs/ARCHITECTURE.md`, `AGENTS.md` if map/non-negotiables shift |
+| Types, formulas, migrations, demo seeding | `docs/DATA-MODEL.md` |
+| Crypto, storage keys, invites, threat assumptions | `docs/SECURITY.md` |
+| Pull/push, SHA conflicts, session/local keys, commit messages | `docs/SYNC-AND-STORAGE.md` |
+| UX copy, screens, shortcuts, visual tokens | `docs/PRODUCT.md` |
+| Vercel/PWA/ports/Hobby deploy story | `docs/DEPLOYMENT.md` |
+| New risks, footguns, intentional behavior flips | `docs/AUDIT.md` (add/resolve finding) + relevant doc above |
+| Top-level setup story or two-repo framing | `README.md` |
+
+## Rules of engagement
+
+1. **Same turn:** doc edits land with the code edit, not “we can document later.”
+2. **Accuracy over volume:** rewrite the affected sections; don’t append contradictory notes.
+3. **Rules too:** if a convention changes, update the matching `.cursor/rules/*.mdc`.
+4. **Trivial-only exception:** pure typo/formatting/refactors with zero user-visible or API behavior change may skip docs — when unsure, update docs.
+5. **New modules/features:** add them to `AGENTS.md` map and the appropriate `docs/*` file before considering the task done.
+
+If a change would invalidate an audit finding (e.g. fix demo seeding on first vault), mark it resolved in `docs/AUDIT.md` and correct `DATA-MODEL` / related rules.

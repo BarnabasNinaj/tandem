@@ -1,0 +1,31 @@
+---
+description: Tandem product architecture — two repos, local-first, no backend
+alwaysApply: true
+---
+
+# Tandem architecture
+
+Local-first household finance **PWA for couples**. No app server. No SaaS DB.
+
+## Two repos
+
+| Repo | Role | Visibility |
+|------|------|------------|
+| **`tandem`** (this codebase) | Static app | May be public |
+| **Data repo** (e.g. `tandem-data`) | `tandem_data.json.enc` vault | **Always private** |
+
+Data repo **is** the sync backend. Never suggest making it public to fix Vercel. Public **`tandem`** for Hobby deploys is fine.
+
+## Stack facts
+
+- Phases: `booting` → `setup` | `locked` → `ready` (`App.tsx` + `tandem-store.ts`)
+- Decrypt in browser; GitHub stores ciphertext only
+- Path alias `@/` → `src/`
+- Dev server: port **5280** (strict)
+- Docs: `AGENTS.md` + `docs/*` — read before large changes
+
+## Do not
+
+- Add backends, Auth0, Firebase, Supabase, etc. unless user explicitly redesigns
+- Call GitHub from random components (use store; setup may `testGitHubConnection`)
+- Confuse app deploy with vault privacy

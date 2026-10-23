@@ -1,0 +1,32 @@
+---
+description: Month math, money rounding, vault schema
+globs: src/lib/finance.ts,src/lib/number.ts,src/lib/migration.ts,src/lib/demo-data.ts,src/types/tandem.ts,src/components/wizard/**/*,src/components/dashboard/**/*,src/components/analytics/**/*
+alwaysApply: false
+---
+
+# Finance & schema
+
+## Formulas (`finance.ts`)
+
+```
+totalInflow = sum(inflows)
+totalOutflow = sum(outflows)
+discretionarySurplus = totalInflow − totalOutflow − sum(allocations)
+personalAllowancePerPartner = discretionarySurplus / 2
+```
+
+Always build months with `buildMonthlyRecord` / `computeMonthly`. Use `round2` for money.
+
+- Net worth = sum of portfolio snapshot balances
+- Savings rate = (inflow − outflow) / inflow; allocations count as saved
+- Month keys: `YYYY-MM`
+
+## Schema changes
+
+1. Update `types/tandem.ts`
+2. Extend `migrateState` / `normalizeV1`
+3. Fail closed on unknown `version`
+
+## Demo data
+
+Synthetic only (`2026-09`, `2026-10`). Never replace with real household numbers in repo.

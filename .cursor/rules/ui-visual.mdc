@@ -1,0 +1,32 @@
+---
+description: Tandem UI — brand, dates, tone, components
+globs: src/components/**/*,src/index.css,src/App.tsx,index.html
+alwaysApply: false
+---
+
+# UI & product tone
+
+## Brand
+
+- Logo: `logo-mark` / Fugaz One; teal `#0f766e` (light) / brighter on dark
+- Body: Plus Jakarta Sans; CSS vars in `src/index.css` (`--bg`, `--surface`, `--logo`)
+- Setup/lock stay on light canvas (`.logo-mark-on-light`)
+
+Tone: private couple’s OS — not bank SaaS. Sync = “vault / GitHub”, not “our cloud.”
+
+## Dates & money
+
+- UI dates: **DD/MM/YYYY** via `src/lib/dates.ts`
+- Month labels: **MM/YYYY**
+- Money: `formatMoney` / `MoneyInput` / `parseLocaleNumber`
+
+## Structure
+
+- Primitives: `src/components/ui/*`
+- Nav: Home, Trajectory, Settings
+- Prefer existing Button/Card/Input patterns and stone/teal Tailwind usage
+- Motion: subtle (`fadeUp`, hero reveal) — not noisy
+
+## Shortcuts (preserve)
+
+- `Ctrl/Cmd+N` wizard · `Ctrl/Cmd+S` save month or push

@@ -1,0 +1,12 @@
+---
+description: Partner device invite QR / PAT handoff
+globs: src/lib/device-invite.ts,src/components/invite/**/*,src/components/setup/**/*
+alwaysApply: false
+---
+
+# Device invite
+
+- Payload: `tandem-device:` + base64url `{ v:1, u, r, p }` — **includes PAT**, never master password.
+- Setup invite path skips password confirm; partner types shared password separately.
+- UI must keep “don’t screenshot / leave on screen” warnings.
+- Do not put invite strings in URLs, logs, README examples, or commits.

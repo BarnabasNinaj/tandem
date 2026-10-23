@@ -65,6 +65,8 @@ export function createInitialState(partial?: {
       categories: [...DEFAULT_CATEGORIES],
       autoLockMinutes: 30,
     },
-    history: partial?.withDemoData === false ? {} : buildDemoHistory(),
+    // Production vaults start empty; demo months only via Settings → loadDemoData
+    // or explicit withDemoData: true (tests / intentional seed).
+    history: partial?.withDemoData === true ? buildDemoHistory() : {},
   }
 }
