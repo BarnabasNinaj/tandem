@@ -18,12 +18,11 @@ describe('round2', () => {
 })
 
 describe('computeMonthly', () => {
-  it('computes surplus and splits personal allowance', () => {
+  it('Z = X − Y; pocket = Z − allocations; equal splits both', () => {
     const computed = computeMonthly(
       {
         partnerASalary: 2000,
         partnerBIncome: 1000,
-        childSupport: 0,
         otherInflows: 0,
       },
       [
@@ -38,12 +37,51 @@ describe('computeMonthly', () => {
         travelFund: 100,
         investments: 300,
       },
+      'equal',
     )
 
     expect(computed.totalInflow).toBe(3000)
     expect(computed.totalOutflow).toBe(900)
+    expect(computed.leftoverAfterExpenses).toBe(2100)
     expect(computed.discretionarySurplus).toBe(1500)
-    expect(computed.personalAllowancePerPartner).toBe(750)
+    expect(computed.expenseSharePartnerA).toBe(450)
+    expect(computed.expenseSharePartnerB).toBe(450)
+    expect(computed.personalAllowancePartnerA).toBe(750)
+    expect(computed.personalAllowancePartnerB).toBe(750)
+    expect(computed.allowanceSplit).toBe('equal')
+  })
+
+  it('splits expenses and pocket by income (Other excluded from ratio)', () => {
+    // X=3500, Y=1400, Z=2100, alloc=600 → pocket=1500
+    // earned 2000:1000 → 2:1
+    const computed = computeMonthly(
+      {
+        partnerASalary: 2000,
+        partnerBIncome: 1000,
+        otherInflows: 500,
+      },
+      [
+        {
+          categoryId: 'housing',
+          categoryName: 'Housing',
+          amount: 1400,
+        },
+      ],
+      {
+        emergencyReserve: 200,
+        travelFund: 100,
+        investments: 300,
+      },
+      'income',
+    )
+
+    expect(computed.leftoverAfterExpenses).toBe(2100)
+    expect(computed.discretionarySurplus).toBe(1500)
+    expect(computed.expenseSharePartnerA).toBe(933.33)
+    expect(computed.expenseSharePartnerB).toBe(466.67)
+    expect(computed.personalAllowancePartnerA).toBe(1000)
+    expect(computed.personalAllowancePartnerB).toBe(500)
+    expect(computed.allowanceSplit).toBe('income')
   })
 })
 
@@ -54,7 +92,6 @@ describe('buildMonthlyRecord / savings / net worth', () => {
       inflows: {
         partnerASalary: 1000,
         partnerBIncome: 0,
-        childSupport: 0,
         otherInflows: 0,
       },
       outflows: [
@@ -77,8 +114,9 @@ describe('buildMonthlyRecord / savings / net worth', () => {
       },
     })
 
+    expect(record.computed.leftoverAfterExpenses).toBe(600)
     expect(record.computed.discretionarySurplus).toBe(500)
-    // (1000 - 400) / 1000 → allocations count as saved
+    // (1000 - 400) / 1000 → Z counts as saved
     expect(savingsRate(record)).toBe(60)
     expect(netWorthFromSnapshot(record.portfolioSnapshot)).toBe(4700)
   })

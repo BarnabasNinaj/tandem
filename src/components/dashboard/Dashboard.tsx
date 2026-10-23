@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react'
 import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { formatDateTimeDDMMYYYY, formatMonthKey, toMonthKey } from '@/lib/dates'
+import { formatDateDDMMYYYY, formatMonthKey, toMonthKey } from '@/lib/dates'
 import {
   averageMonthlyOutflow,
+  computeMonthly,
   emergencyMonthsCovered,
   emptyDraft,
   getLatestRecord,
@@ -22,8 +23,7 @@ export function Dashboard() {
   const syncing = useTandemStore((s) => s.syncing)
   const latest = getLatestRecord(state)
   const { settings } = state
-  const money = (n: number) =>
-    formatMoney(n, settings.currencySymbol, settings.currencyLocale)
+  const money = formatMoney
 
   const [revealed, setRevealed] = useState(false)
   useEffect(() => {
@@ -44,7 +44,17 @@ export function Dashboard() {
   const emTarget = settings.emergencyTargetMonths
   const emPct = emTarget > 0 ? (emMonths / emTarget) * 100 : 0
   const travelBal = latest?.portfolioSnapshot.travelFundBalance ?? 0
-  const allowance = latest?.computed.personalAllowancePerPartner ?? 0
+  const splitMode = settings.allowanceSplit
+  const allowanceComputed = latest
+    ? computeMonthly(
+        latest.inflows,
+        latest.outflows,
+        latest.allocations,
+        splitMode,
+      )
+    : null
+  const allowanceA = allowanceComputed?.personalAllowancePartnerA ?? 0
+  const allowanceB = allowanceComputed?.personalAllowancePartnerB ?? 0
   const rate = latest ? savingsRate(latest) : null
 
   return (
@@ -52,7 +62,7 @@ export function Dashboard() {
       {/* Hero — one composition */}
       <section
         className={cn(
-          'relative overflow-hidden rounded-3xl px-6 py-8 sm:px-10 sm:py-12 transition-all duration-700',
+          'relative overflow-hidden rounded-2xl transition-all duration-700',
           revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3',
         )}
         style={{
@@ -67,56 +77,67 @@ export function Dashboard() {
               'radial-gradient(ellipse 70% 80% at 90% 10%, rgba(153,246,228,0.25), transparent 55%)',
           }}
         />
-        <div className="relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-xl">
-            <p className="text-xs font-medium tracking-[0.2em] text-teal-200/80 uppercase">
-              Home
-            </p>
-            <h1 className="mt-2 font-[family-name:var(--font-display)] text-4xl font-semibold tracking-tight text-teal-50 sm:text-5xl">
-              {settings.partnerAName} & {settings.partnerBName}
+        <div className="relative flex flex-col sm:flex-row sm:items-center">
+          <div className="grid min-w-0 flex-1 grid-cols-1 items-center gap-3 px-5 py-3 sm:grid-cols-3 sm:gap-6 sm:px-6">
+            <h1 className="min-w-0 truncate justify-self-center text-center font-[family-name:var(--font-display)] text-lg font-semibold leading-none tracking-tight text-teal-50 sm:justify-self-start sm:text-left sm:text-xl">
+              BALU
             </h1>
-            <p className="mt-3 text-sm text-teal-100/75">
-              {latest
-                ? `Latest close ${formatMonthKey(latest.monthKey)} · ${formatDateTimeDDMMYYYY(latest.updatedAt)}`
-                : 'Your household ledger is ready — close a month or load samples.'}
-            </p>
 
-            <div className="mt-8">
-              <p className="text-xs font-medium tracking-wide text-teal-200/70 uppercase">
-                Household net worth
-              </p>
-              <p
-                className={cn(
-                  'mt-1 font-[family-name:var(--font-display)] text-4xl font-semibold tabular-nums text-white sm:text-5xl transition-all duration-1000 delay-150',
-                  revealed ? 'opacity-100' : 'opacity-0',
-                )}
+            {(
+              [
+                {
+                  label: 'Last updated',
+                  value: latest ? formatDateDDMMYYYY(latest.updatedAt) : '—',
+                },
+                {
+                  label: 'Net worth',
+                  value: money(netWorth),
+                },
+              ] as const
+            ).map(({ label, value }) => (
+              <div
+                key={label}
+                className="flex w-full flex-col items-end gap-1 text-right"
               >
-                {money(netWorth)}
-              </p>
-            </div>
+                <p className="text-[11px] font-medium leading-none tracking-wide text-teal-200/70 uppercase">
+                  {label}
+                </p>
+                <p
+                  className={cn(
+                    'font-[family-name:var(--font-display)] text-lg font-semibold leading-none tabular-nums text-white sm:text-xl transition-opacity duration-700 delay-100',
+                    revealed ? 'opacity-100' : 'opacity-0',
+                  )}
+                >
+                  {value}
+                </p>
+              </div>
+            ))}
           </div>
 
-          <div className="flex flex-wrap gap-2 lg:flex-col lg:items-stretch">
+          {/* Button area */}
+          <div className="flex shrink-0 items-center justify-center gap-2 border-t border-white/10 px-5 py-3 sm:justify-start sm:border-t-0 sm:border-l sm:border-white/15 sm:px-5">
             {!latest && (
               <Button
                 variant="secondary"
+                size="sm"
                 disabled={syncing}
                 className="bg-white/15 text-white hover:bg-white/25 border-0"
                 onClick={() => void loadDemoData()}
               >
-                Load sample data
+                Load samples
               </Button>
             )}
             <Button
-              className="bg-teal-50 text-teal-950 hover:bg-white"
+              size="sm"
+              className="bg-teal-50 text-teal-950 hover:bg-white sm:min-w-[8.5rem]"
               onClick={() =>
                 openWizard(
                   emptyDraft(toMonthKey(), settings.categories, latest),
                 )
               }
             >
-              Close month
-              <ArrowRight className="h-4 w-4" />
+              Track Data
+              <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </div>
         </div>
@@ -130,38 +151,58 @@ export function Dashboard() {
         )}
       >
         <p className="text-xs font-medium tracking-[0.18em] text-stone-700 dark:text-stone-400 uppercase">
-          This month’s split
+          This month’s pocket
         </p>
         <div className="mt-3 flex flex-col gap-6 border-t border-stone-300 pt-6 dark:border-stone-700 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="font-[family-name:var(--font-display)] text-5xl font-semibold tabular-nums tracking-tight text-stone-900 dark:text-stone-50 sm:text-6xl">
-              {money(allowance)}
-            </p>
+            {splitMode === 'equal' ? (
+              <p className="font-[family-name:var(--font-display)] text-5xl font-semibold tabular-nums tracking-tight text-stone-900 dark:text-stone-50 sm:text-6xl">
+                {money(allowanceA)}
+              </p>
+            ) : (
+              <p className="font-[family-name:var(--font-display)] text-3xl font-semibold tabular-nums tracking-tight text-stone-900 dark:text-stone-50 sm:text-4xl">
+                {money(allowanceA)}
+                <span className="mx-2 text-stone-400">/</span>
+                {money(allowanceB)}
+              </p>
+            )}
             <p className="mt-2 max-w-md text-base text-stone-600 dark:text-stone-400">
-              Equal personal allowance — 50/50 for each of you after shared
-              costs and reserves.
+              {splitMode === 'equal'
+                ? 'Pocket money after expenses and investments — split 50/50.'
+                : `Pocket money after expenses and investments — split by ${settings.partnerAName}/${settings.partnerBName} income (Other excluded from the ratio).`}
             </p>
           </div>
           <div className="flex gap-8 text-sm">
             <div>
               <p className="text-stone-700 dark:text-stone-400">{settings.partnerAName}</p>
               <p className="font-semibold tabular-nums text-stone-900 dark:text-stone-100">
-                {money(allowance)}
+                {money(allowanceA)}
               </p>
+              {allowanceComputed && (
+                <p className="mt-1 text-xs text-stone-500">
+                  Expenses {money(allowanceComputed.expenseSharePartnerA)}
+                </p>
+              )}
             </div>
             <div className="w-px bg-stone-400 dark:bg-stone-600" />
             <div>
               <p className="text-stone-700 dark:text-stone-400">{settings.partnerBName}</p>
               <p className="font-semibold tabular-nums text-stone-900 dark:text-stone-100">
-                {money(allowance)}
+                {money(allowanceB)}
               </p>
+              {allowanceComputed && (
+                <p className="mt-1 text-xs text-stone-500">
+                  Expenses {money(allowanceComputed.expenseSharePartnerB)}
+                </p>
+              )}
             </div>
           </div>
         </div>
-        {latest && (
+        {allowanceComputed && (
           <p className="mt-4 text-xs text-stone-700 dark:text-stone-400">
-            Surplus after expenses & allocations:{' '}
-            {money(latest.computed.discretionarySurplus)}
+            Left after expenses {money(allowanceComputed.leftoverAfterExpenses)}
+            {' · '}
+            Pocket pool {money(allowanceComputed.discretionarySurplus)}
           </p>
         )}
       </section>
@@ -178,8 +219,11 @@ export function Dashboard() {
             {formatMonthKey(latest.monthKey)} flow
           </p>
           <div className="mt-4 grid grid-cols-2 gap-y-6 border-t border-stone-300 pt-6 dark:border-stone-700 sm:grid-cols-4">
-            <FlowStat label="In" value={money(latest.computed.totalInflow)} />
-            <FlowStat label="Out" value={money(latest.computed.totalOutflow)} />
+            <FlowStat label="Income" value={money(latest.computed.totalInflow)} />
+            <FlowStat
+              label="Expenses"
+              value={money(latest.computed.totalOutflow)}
+            />
             <FlowStat
               label="Liquid"
               value={money(latest.portfolioSnapshot.liquidCashBalance)}

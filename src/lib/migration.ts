@@ -1,8 +1,23 @@
-import { DEFAULT_CATEGORIES, type TandemState } from '@/types/tandem'
+import {
+  DEFAULT_CATEGORIES,
+  type AllowanceSplit,
+  type MonthlyRecord,
+  type TandemState,
+} from '@/types/tandem'
 import { generateSalt } from './crypto'
 import { buildDemoHistory } from './demo-data'
+import { computeMonthly } from './finance'
+import { CURRENCY_LOCALE, CURRENCY_SYMBOL, round2 } from './number'
 
 type AnyState = Record<string, unknown>
+
+type LegacyInflows = {
+  partnerASalary?: number
+  partnerBIncome?: number
+  /** Removed — folded into otherInflows. */
+  childSupport?: number
+  otherInflows?: number
+}
 
 export function migrateState(raw: unknown): TandemState {
   if (!raw || typeof raw !== 'object') {
@@ -21,33 +36,98 @@ export function migrateState(raw: unknown): TandemState {
   throw new Error(`Unsupported vault version: ${String(version)}`)
 }
 
+/** Three inflow buckets only; legacy childSupport merges into other. */
+export function normalizeInflows(
+  raw: LegacyInflows | undefined,
+): MonthlyRecord['inflows'] {
+  const partnerASalary = round2(raw?.partnerASalary ?? 0)
+  const partnerBIncome = round2(raw?.partnerBIncome ?? 0)
+  const otherInflows = round2(
+    (raw?.otherInflows ?? 0) + (raw?.childSupport ?? 0),
+  )
+  return { partnerASalary, partnerBIncome, otherInflows }
+}
+
+function normalizeAllowanceSplit(raw: unknown): AllowanceSplit {
+  return raw === 'income' ? 'income' : 'equal'
+}
+
+function normalizeHistory(
+  history: Record<string, MonthlyRecord> | undefined,
+  allowanceSplit: AllowanceSplit,
+): Record<string, MonthlyRecord> {
+  if (!history) return {}
+  const next: Record<string, MonthlyRecord> = {}
+  for (const [key, record] of Object.entries(history)) {
+    const inflows = normalizeInflows(
+      record.inflows as LegacyInflows | undefined,
+    )
+    const outflows = record.outflows ?? []
+    const allocations = record.allocations ?? {
+      emergencyReserve: 0,
+      travelFund: 0,
+      investments: 0,
+    }
+    const split = normalizeAllowanceSplit(
+      record.computed?.allowanceSplit ?? allowanceSplit,
+    )
+    next[key] = {
+      ...record,
+      monthKey: record.monthKey || key,
+      inflows,
+      computed: computeMonthly(inflows, outflows, allocations, split),
+    }
+  }
+  return next
+}
+
+function partnerName(
+  value: string | undefined,
+  legacyDefault: string,
+  nextDefault: string,
+): string {
+  if (!value || value === legacyDefault) return nextDefault
+  return value
+}
+
 function normalizeV1(state: TandemState): TandemState {
+  const allowanceSplit = normalizeAllowanceSplit(
+    state.settings?.allowanceSplit,
+  )
   return {
     version: '1.0',
     updatedAt: state.updatedAt || new Date().toISOString(),
     salt: state.salt || generateSalt(),
     settings: {
-      currencySymbol: state.settings?.currencySymbol || '€',
-      currencyLocale: state.settings?.currencyLocale || 'sk-SK',
+      // Money is always EUR; ignore any legacy vault overrides.
+      currencySymbol: CURRENCY_SYMBOL,
+      currencyLocale: CURRENCY_LOCALE,
       dateFormat: 'DD/MM/YYYY',
       emergencyTargetMonths: state.settings?.emergencyTargetMonths ?? 6,
-      partnerAName: state.settings?.partnerAName || 'Partner A',
-      partnerBName: state.settings?.partnerBName || 'Partner B',
+      partnerAName: partnerName(
+        state.settings?.partnerAName,
+        'Partner A',
+        'Barney',
+      ),
+      partnerBName: partnerName(
+        state.settings?.partnerBName,
+        'Partner B',
+        'Lucka',
+      ),
+      allowanceSplit,
       categories:
         state.settings?.categories?.length > 0
           ? state.settings.categories
           : DEFAULT_CATEGORIES,
       autoLockMinutes: state.settings?.autoLockMinutes ?? 30,
     },
-    history: state.history || {},
+    history: normalizeHistory(state.history, allowanceSplit),
   }
 }
 
 export function createInitialState(partial?: {
   partnerAName?: string
   partnerBName?: string
-  currencySymbol?: string
-  currencyLocale?: string
   salt?: string
   withDemoData?: boolean
 }): TandemState {
@@ -56,16 +136,17 @@ export function createInitialState(partial?: {
     updatedAt: new Date().toISOString(),
     salt: partial?.salt || generateSalt(),
     settings: {
-      currencySymbol: partial?.currencySymbol || '€',
-      currencyLocale: partial?.currencyLocale || 'sk-SK',
+      currencySymbol: CURRENCY_SYMBOL,
+      currencyLocale: CURRENCY_LOCALE,
       dateFormat: 'DD/MM/YYYY',
       emergencyTargetMonths: 6,
-      partnerAName: partial?.partnerAName || 'Partner A',
-      partnerBName: partial?.partnerBName || 'Partner B',
+      partnerAName: partial?.partnerAName || 'Barney',
+      partnerBName: partial?.partnerBName || 'Lucka',
+      allowanceSplit: 'equal',
       categories: [...DEFAULT_CATEGORIES],
       autoLockMinutes: 30,
     },
-    // Production vaults start empty; demo months only via Settings → loadDemoData
+    // Production vaults start empty; H1 samples via Settings loadDemoData / clearDemoData
     // or explicit withDemoData: true (tests / intentional seed).
     history: partial?.withDemoData === true ? buildDemoHistory() : {},
   }

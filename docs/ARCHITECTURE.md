@@ -41,7 +41,7 @@ Defined in `src/store/tandem-store.ts` / gated in `src/App.tsx`:
 | Path | Screen |
 |------|--------|
 | `/` | Home (`Dashboard`) |
-| `/analytics` | Trajectory (`Analytics`) |
+| `/analytics` | Analytics (`Analytics`; `/breakdown` redirects) |
 | `/settings` | `Settings` |
 
 Global overlays in `AppShell`: `MonthlyWizard`, `ConflictDialog`.

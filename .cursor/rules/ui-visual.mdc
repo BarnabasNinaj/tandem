@@ -18,12 +18,14 @@ Tone: private couple’s OS — not bank SaaS. Sync = “vault / GitHub”, not 
 
 - UI dates: **DD/MM/YYYY** via `src/lib/dates.ts`
 - Month labels: **MM/YYYY**
-- Money: `formatMoney` / `MoneyInput` / `parseLocaleNumber`
+- Money: always euro — `formatMoney` / `MoneyInput` / `parseLocaleNumber` (no currency Settings)
 
 ## Structure
 
 - Primitives: `src/components/ui/*`
-- Nav: Home, Trajectory, Settings
+- Nav: Home, Analytics, Settings
+- Track Data steps: **Incomes**, **Expenses**, Allocations (not “Inflows/Outflows”)
+- Analytics charts: varied series hues (not all teal) so categories/income/expense read clearly
 - Prefer existing Button/Card/Input patterns and stone/teal Tailwind usage
 - Clickable controls: `cursor-pointer` on hover (Button base + nav / raw `<button>`s)
 - Motion: subtle (`fadeUp`, hero reveal) — not noisy

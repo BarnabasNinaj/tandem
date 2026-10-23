@@ -1,3 +1,9 @@
+/** Always EUR — not user-configurable. */
+export const CURRENCY_SYMBOL = '€'
+
+/** Fixed number grouping/decimal style (e.g. `1 234,56`). */
+export const CURRENCY_LOCALE = 'sk-SK'
+
 /** Round to 2 decimal places using EPSILON for floating-point safety. */
 export function round2(num: number): number {
   return Math.round((num + Number.EPSILON) * 100) / 100
@@ -30,18 +36,14 @@ export function parseLocaleNumber(raw: string): number {
   return Number.isFinite(value) ? round2(value) : 0
 }
 
-export function formatMoney(
-  amount: number,
-  currencySymbol: string,
-  locale: string,
-): string {
+export function formatMoney(amount: number): string {
   try {
-    const formatted = new Intl.NumberFormat(locale, {
+    const formatted = new Intl.NumberFormat(CURRENCY_LOCALE, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(amount)
-    return `${currencySymbol}${formatted}`
+    return `${CURRENCY_SYMBOL}${formatted}`
   } catch {
-    return `${currencySymbol}${round2(amount).toFixed(2)}`
+    return `${CURRENCY_SYMBOL}${round2(amount).toFixed(2)}`
   }
 }

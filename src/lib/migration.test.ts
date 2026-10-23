@@ -27,6 +27,62 @@ describe('migrateState', () => {
     expect(migrated.settings.currencySymbol).toBe('€')
     expect(migrated.settings.currencyLocale).toBe('sk-SK')
     expect(migrated.settings.autoLockMinutes).toBe(30)
+    expect(migrated.settings.partnerAName).toBe('Barney')
+    expect(migrated.settings.partnerBName).toBe('Lucka')
+    expect(migrated.settings.allowanceSplit).toBe('equal')
+  })
+
+  it('folds legacy childSupport into otherInflows', () => {
+    const migrated = migrateState({
+      version: '1.0',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+      salt: 'ab'.repeat(16),
+      settings: { partnerAName: 'Partner A', partnerBName: 'Partner B' },
+      history: {
+        '2026-01': {
+          monthKey: '2026-01',
+          updatedAt: '2026-01-31T00:00:00.000Z',
+          inflows: {
+            partnerASalary: 1000,
+            partnerBIncome: 500,
+            childSupport: 200,
+            otherInflows: 50,
+          },
+          outflows: [],
+          allocations: {
+            emergencyReserve: 0,
+            travelFund: 0,
+            investments: 0,
+          },
+          portfolioSnapshot: {
+            emergencyReserveBalance: 0,
+            travelFundBalance: 0,
+            externalInvestmentsBalance: 0,
+            liquidCashBalance: 0,
+          },
+          computed: {
+            totalInflow: 0,
+            totalOutflow: 0,
+            discretionarySurplus: 0,
+            personalAllowancePerPartner: 0,
+          },
+        },
+      },
+    })
+    expect(migrated.settings.partnerAName).toBe('Barney')
+    expect(migrated.settings.partnerBName).toBe('Lucka')
+    const jan = migrated.history['2026-01']!
+    expect(jan.inflows).toEqual({
+      partnerASalary: 1000,
+      partnerBIncome: 500,
+      otherInflows: 250,
+    })
+    expect(jan.computed.totalInflow).toBe(1750)
+    expect(jan.computed.leftoverAfterExpenses).toBe(1750)
+    expect(jan.computed.expenseSharePartnerA).toBe(0)
+    expect(
+      'childSupport' in (jan.inflows as Record<string, unknown>),
+    ).toBe(false)
   })
 
   it('rejects unsupported versions and non-objects', () => {
@@ -49,7 +105,13 @@ describe('createInitialState', () => {
 
   it('includes demo history only when withDemoData is true', () => {
     const state = createInitialState({ withDemoData: true })
-    expect(state.history['2026-09']).toBeDefined()
-    expect(state.history['2026-10']).toBeDefined()
+    expect(Object.keys(state.history).sort()).toEqual([
+      '2026-01',
+      '2026-02',
+      '2026-03',
+      '2026-04',
+      '2026-05',
+      '2026-06',
+    ])
   })
 })

@@ -9,16 +9,18 @@ alwaysApply: false
 ## Formulas (`finance.ts`)
 
 ```
-totalInflow = sum(inflows)
-totalOutflow = sum(outflows)
-discretionarySurplus = totalInflow − totalOutflow − sum(allocations)
-personalAllowancePerPartner = discretionarySurplus / 2
+X = incomes, Y = expenses, Z = X − Y
+pocket = Z − allocations
+// allowanceSplit splits Y and pocket: equal | income (∝ Barney:Lucka; Other excluded)
 ```
 
-Always build months with `buildMonthlyRecord` / `computeMonthly`. Use `round2` for money.
+Always build months with `buildMonthlyRecord(draft, split)` / `computeMonthly(..., split)`. Use `round2` for money.
+Money display is always EUR (`CURRENCY_SYMBOL` / `CURRENCY_LOCALE` in `number.ts`) — do not re-add currency Settings.
+UI: **Incomes** / **Expenses** (schema still `inflows` / `outflows`). Incomes are only three buckets: Barney / Lucka / Other. No `childSupport` field.
+Split toggle: Settings + Track Data bar (`settings.allowanceSplit`).
 
 - Net worth = sum of portfolio snapshot balances
-- Savings rate = (inflow − outflow) / inflow; allocations count as saved
+- Savings rate = (X − Y) / X; allocations come from Z
 - Month keys: `YYYY-MM`
 
 ## Schema changes
@@ -29,4 +31,4 @@ Always build months with `buildMonthlyRecord` / `computeMonthly`. Use `round2` f
 
 ## Demo data
 
-Synthetic only (`2026-09`, `2026-10`). Never replace with real household numbers in repo.
+Synthetic H1 2026 only (`2026-01`–`2026-06`). Load/clear via store; never replace with real household numbers in repo.

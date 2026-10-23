@@ -27,6 +27,10 @@ function AuthenticatedApp() {
       <Route element={<AppShell />}>
         <Route index element={<Dashboard />} />
         <Route path="analytics" element={<Analytics />} />
+        <Route
+          path="breakdown"
+          element={<Navigate to="/analytics" replace />}
+        />
         <Route path="settings" element={<Settings />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

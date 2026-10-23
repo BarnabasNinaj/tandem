@@ -10,12 +10,12 @@ Private household operating system for a couple — calm, local-first, not a ban
 |---------|---------|
 | Setup | Join via invite QR **or** manual GitHub + PAT + password |
 | Lock | Unlock with master password (no vault path shown) |
-| Home | Net worth hero, emergency runway, travel fund, allowance, savings rate, CTA to close month |
-| Trajectory | Charts over `history` (Recharts) |
-| Settings | Household, categories, GitHub, invite QR, password rotate, demo load, JSON backup |
-| End-of-Month wizard | 3 steps: Inflows → Outflows → Allocations (+ portfolio snapshot / notes) |
+| Home | Hero: **BALU** | **Last updated** | net worth | **Track Data**; then pocket split, flow, reserves |
+| Analytics | Charts over `history` (Recharts; distinct series colors — sky / green / orange + multi-hue pie) |
+| Settings | Household (names, emergency/auto-lock), categories, GitHub, invite QR, password rotate, H1 sample load/delete, JSON backup — not currency/locale |
+| Track Data wizard | Incomes → Expenses → Allocations; compact **Split** bar (expenses + pocket; **50/50** / **Income**) |
 
-Nav labels: **Home**, **Trajectory**, **Settings**. Brand mark: **Tandem** (`Fugaz One`, teal).
+Nav labels: **Home**, **Analytics**, **Settings**. Brand mark: **Tandem** (`Fugaz One`, teal).
 
 ## Visual system (`src/index.css`)
 
@@ -36,14 +36,14 @@ UI primitives: `src/components/ui/*` (button, input, card, label, money-input, p
 
 | Shortcut | Action |
 |----------|--------|
-| `Ctrl/Cmd + N` | Open End-of-Month wizard (draft from current month + last record) |
+| `Ctrl/Cmd + N` | Open Track Data wizard (draft from current month + last record) |
 | `Ctrl/Cmd + S` | If wizard open with draft → save month; else → push vault |
 
 ## Dates & money
 
 - Display dates: **DD/MM/YYYY** (and `DD/MM/YYYY HH:mm` for sync times)
 - Month labels: **MM/YYYY** from `YYYY-MM` keys
-- Money: `formatMoney` + locale; inputs via `MoneyInput` / `parseLocaleNumber` (`,` and `.`)
+- Money: always **euro** (`formatMoney` → `€` + `sk-SK` grouping); inputs via `MoneyInput` / `parseLocaleNumber` (`,` and `.`)
 
 ## Auto-lock
 
@@ -58,4 +58,4 @@ Idle timer from `settings.autoLockMinutes` (default 30). Events: mousemove, keyd
 
 ## Empty / demo states
 
-New vaults start with empty history. Home offers loading samples when empty; Settings can load/overwrite `2026-09` / `2026-10`. See [DATA-MODEL.md](./DATA-MODEL.md).
+New vaults start with empty history. Home offers loading samples when empty or **Track Data**; Settings can **load** or **delete** synthetic H1 2026 (`2026-01`–`2026-06`). See [DATA-MODEL.md](./DATA-MODEL.md).

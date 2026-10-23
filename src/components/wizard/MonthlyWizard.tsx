@@ -14,7 +14,7 @@ import {
 import { formatMoney } from '@/lib/number'
 import { useTandemStore } from '@/store/tandem-store'
 
-const STEP_LABELS = ['Inflows', 'Outflows', 'Allocations'] as const
+const STEP_LABELS = ['Incomes', 'Expenses', 'Allocations'] as const
 
 export function MonthlyWizard() {
   const open = useTandemStore((s) => s.wizardOpen)
@@ -25,6 +25,7 @@ export function MonthlyWizard() {
   const saveMonth = useTandemStore((s) => s.saveMonth)
   const autosaveDraft = useTandemStore((s) => s.autosaveDraft)
   const restoreDraft = useTandemStore((s) => s.restoreDraft)
+  const updateState = useTandemStore((s) => s.updateState)
   const syncing = useTandemStore((s) => s.syncing)
 
   const [step, setStep] = useState(0)
@@ -57,19 +58,32 @@ export function MonthlyWizard() {
     return () => clearInterval(id)
   }, [open, draft, autosaveDraft])
 
+  const allowanceSplit = state?.settings.allowanceSplit ?? 'equal'
+
   const computed = useMemo(
     () =>
       draft
-        ? computeMonthly(draft.inflows, draft.outflows, draft.allocations)
+        ? computeMonthly(
+            draft.inflows,
+            draft.outflows,
+            draft.allocations,
+            allowanceSplit,
+          )
         : null,
-    [draft],
+    [draft, allowanceSplit],
   )
 
   if (!open || !state || !draft || !computed) return null
 
   const { settings } = state
-  const money = (n: number) =>
-    formatMoney(n, settings.currencySymbol, settings.currencyLocale)
+  const money = formatMoney
+
+  const setAllowanceSplit = (mode: 'equal' | 'income') => {
+    updateState((s) => ({
+      ...s,
+      settings: { ...s.settings, allowanceSplit: mode },
+    }))
+  }
 
   const update = (patch: Partial<WizardDraft>) => {
     setWizardDraft({ ...draft, ...patch })
@@ -99,7 +113,7 @@ export function MonthlyWizard() {
               id="wizard-title"
               className="text-lg font-semibold text-stone-900 dark:text-stone-100"
             >
-              End-of-Month Close
+              Track Data
             </h2>
             <p className="text-xs text-stone-700 dark:text-stone-400">
               Step {step + 1} of 3 · {STEP_LABELS[step]} ·{' '}
@@ -147,13 +161,13 @@ export function MonthlyWizard() {
                   ))}
                 </select>
               </div>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 <Field
-                  label={`${settings.partnerAName} salary`}
-                  name="pa-salary"
+                  label={`${settings.partnerAName} Income`}
+                  name="pa-income"
                 >
                   <MoneyInput
-                    name="pa-salary"
+                    name="pa-income"
                     value={draft.inflows.partnerASalary}
                     onValueChange={(n) =>
                       update({
@@ -163,7 +177,7 @@ export function MonthlyWizard() {
                   />
                 </Field>
                 <Field
-                  label={`${settings.partnerBName} income`}
+                  label={`${settings.partnerBName} Income`}
                   name="pb-income"
                 >
                   <MoneyInput
@@ -176,18 +190,7 @@ export function MonthlyWizard() {
                     }
                   />
                 </Field>
-                <Field label="Child support" name="child">
-                  <MoneyInput
-                    name="child"
-                    value={draft.inflows.childSupport}
-                    onValueChange={(n) =>
-                      update({
-                        inflows: { ...draft.inflows, childSupport: n },
-                      })
-                    }
-                  />
-                </Field>
-                <Field label="Other inflows" name="other">
+                <Field label="Other Income" name="other">
                   <MoneyInput
                     name="other"
                     value={draft.inflows.otherInflows}
@@ -220,7 +223,7 @@ export function MonthlyWizard() {
                 </Field>
               ))}
               <p className="pt-2 text-right text-sm font-medium text-stone-700 dark:text-stone-200">
-                Total outflows: {money(computed.totalOutflow)}
+                Total expenses: {money(computed.totalOutflow)}
               </p>
             </div>
           )}
@@ -319,21 +322,65 @@ export function MonthlyWizard() {
           )}
         </div>
 
-        <div className="border-t border-stone-300 bg-stone-50/80 px-5 py-4 dark:border-stone-700 dark:bg-stone-900/80">
-          <div className="mb-4 rounded-xl border border-teal-200/80 bg-teal-50/90 p-4 dark:border-teal-900 dark:bg-teal-950/40">
-            <p className="text-xs font-medium tracking-wide text-teal-800 uppercase dark:text-teal-300">
-              Payout preview · 50/50
-            </p>
-            <p className="mt-1 font-[family-name:var(--font-display)] text-2xl font-semibold text-teal-950 dark:text-teal-100">
-              {money(computed.personalAllowancePerPartner)}
-              <span className="ml-2 text-sm font-normal text-teal-700 dark:text-teal-400">
-                each
-              </span>
-            </p>
-            <p className="mt-1 text-xs text-teal-800/80 dark:text-teal-400/80">
-              In {money(computed.totalInflow)} − Out {money(computed.totalOutflow)}{' '}
-              − Alloc → surplus {money(computed.discretionarySurplus)}
-            </p>
+        <div className="border-t border-stone-300 bg-stone-50/80 px-4 py-3 dark:border-stone-700 dark:bg-stone-900/80 sm:px-5">
+          <div className="mb-3 space-y-1.5 rounded-lg border border-teal-200/80 bg-teal-50/90 px-3 py-2 dark:border-teal-900 dark:bg-teal-950/40">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <p className="shrink-0 text-[10px] font-medium tracking-wide text-teal-800 uppercase dark:text-teal-300">
+                Split
+              </p>
+              <div className="flex shrink-0 gap-0.5 rounded-md bg-teal-900/10 p-0.5 dark:bg-teal-950/60">
+                {(
+                  [
+                    { id: 'equal', label: '50/50' },
+                    { id: 'income', label: 'Income' },
+                  ] as const
+                ).map(({ id, label }) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setAllowanceSplit(id)}
+                    className={`cursor-pointer rounded px-2 py-0.5 text-[10px] font-medium transition-colors ${
+                      allowanceSplit === id
+                        ? 'bg-white text-teal-950 shadow-sm dark:bg-teal-800 dark:text-teal-50'
+                        : 'text-teal-800/80 hover:text-teal-950 dark:text-teal-300'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <p className="min-w-0 flex-1 text-[11px] tabular-nums text-teal-800/75 dark:text-teal-400/75 sm:text-right">
+                Left after expenses {money(computed.leftoverAfterExpenses)}
+                <span className="mx-1 text-teal-600/40">·</span>
+                Pocket {money(computed.discretionarySurplus)}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-[11px] tabular-nums text-teal-900 dark:text-teal-100">
+              <p>
+                <span className="text-teal-700/80 dark:text-teal-400">
+                  Expenses{' '}
+                </span>
+                {settings.partnerAName} {money(computed.expenseSharePartnerA)}
+                <span className="mx-1 text-teal-600/40">·</span>
+                {settings.partnerBName} {money(computed.expenseSharePartnerB)}
+              </p>
+              <p>
+                <span className="text-teal-700/80 dark:text-teal-400">
+                  Pocket{' '}
+                </span>
+                {allowanceSplit === 'equal' ? (
+                  <>{money(computed.personalAllowancePartnerA)} each</>
+                ) : (
+                  <>
+                    {settings.partnerAName}{' '}
+                    {money(computed.personalAllowancePartnerA)}
+                    <span className="mx-1 text-teal-600/40">·</span>
+                    {settings.partnerBName}{' '}
+                    {money(computed.personalAllowancePartnerB)}
+                  </>
+                )}
+              </p>
+            </div>
           </div>
 
           <div className="flex justify-between gap-2">

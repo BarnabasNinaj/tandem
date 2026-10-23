@@ -11,7 +11,7 @@ import {
   pushRemoteVault,
   GitHubConflictError,
 } from '@/lib/github'
-import { buildDemoHistory } from '@/lib/demo-data'
+import { buildDemoHistory, stripDemoMonths } from '@/lib/demo-data'
 import { createInitialState, migrateState } from '@/lib/migration'
 import {
   clearEncryptedDraft,
@@ -77,6 +77,7 @@ interface TandemStore {
   exportJson: () => string
   importJson: (raw: string) => Promise<void>
   loadDemoData: () => Promise<void>
+  clearDemoData: () => Promise<void>
   updateGithub: (config: GitHubConfig) => void
 }
 
@@ -113,7 +114,7 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
 
   completeSetup: async ({ github, password }) => {
     saveGitHubConfig(github)
-    // Household details (names, currency) live in Settings after setup
+    // Household details (partner names, etc.) live in Settings after setup
     const initial = createInitialState({ withDemoData: false })
     setSessionPassword(password)
     setSessionUnlocked(true)
@@ -380,7 +381,8 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
   },
 
   saveMonth: async (draft) => {
-    const record = buildMonthlyRecord(draft)
+    const split = get().state?.settings.allowanceSplit ?? 'equal'
+    const record = buildMonthlyRecord(draft, split)
     get().updateState((s) => ({
       ...s,
       updatedAt: new Date().toISOString(),
@@ -388,7 +390,7 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
     }))
     clearEncryptedDraft()
     set({ wizardOpen: false, wizardDraft: null })
-    await get().push(`feat: close month ${record.monthKey}`)
+    await get().push(`feat: track data ${record.monthKey}`)
   },
 
   openWizard: (draft) => {
@@ -466,9 +468,19 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
     get().updateState((s) => ({
       ...s,
       updatedAt: new Date().toISOString(),
-      history: { ...s.history, ...demo },
+      // Drop legacy Sep/Oct samples, then merge H1 pack.
+      history: { ...stripDemoMonths(s.history), ...demo },
     }))
-    await get().push('chore: load sample months (2026-09, 2026-10)')
+    await get().push('chore: load sample months (H1 2026)')
+  },
+
+  clearDemoData: async () => {
+    get().updateState((s) => ({
+      ...s,
+      updatedAt: new Date().toISOString(),
+      history: stripDemoMonths(s.history),
+    }))
+    await get().push('chore: remove sample months')
   },
 
   updateGithub: (config) => {

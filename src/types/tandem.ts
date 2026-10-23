@@ -7,10 +7,10 @@ export interface CategoryExpense {
 export interface MonthlyRecord {
   monthKey: string
   updatedAt: string
+  /** Barney / Lucka / Other — only these three inflow buckets. */
   inflows: {
     partnerASalary: number
     partnerBIncome: number
-    childSupport: number
     otherInflows: number
   }
   outflows: CategoryExpense[]
@@ -26,13 +26,31 @@ export interface MonthlyRecord {
     liquidCashBalance: number
   }
   computed: {
+    /** X — total incomes */
     totalInflow: number
+    /** Y — total expenses */
     totalOutflow: number
+    /** Z = X − Y (left after expenses, before allocations) */
+    leftoverAfterExpenses: number
+    /**
+     * Pocket-money pool = Z − allocations.
+     * Field name kept for older docs/readers.
+     */
     discretionarySurplus: number
+    expenseSharePartnerA: number
+    expenseSharePartnerB: number
+    /** Equal half of the pocket pool (reference). */
     personalAllowancePerPartner: number
+    /** Pocket money for each partner after expense split + allocations. */
+    personalAllowancePartnerA: number
+    personalAllowancePartnerB: number
+    allowanceSplit: AllowanceSplit
   }
   notes?: string
 }
+
+/** Splits expenses (Y) and pocket money (Z − allocations): 50/50 or by income. */
+export type AllowanceSplit = 'equal' | 'income'
 
 export interface ExpenseCategory {
   id: string
@@ -41,12 +59,16 @@ export interface ExpenseCategory {
 }
 
 export interface TandemSettings {
+  /** Always `€` — kept in vault for schema stability; not user-editable. */
   currencySymbol: string
+  /** Always `sk-SK` number style — not user-editable. */
   currencyLocale: string
   dateFormat: 'DD/MM/YYYY'
   emergencyTargetMonths: number
   partnerAName: string
   partnerBName: string
+  /** Splits expenses + pocket: `equal` 50/50, or `income` Barney/Lucka ratio (Other excluded). */
+  allowanceSplit: AllowanceSplit
   categories: ExpenseCategory[]
   autoLockMinutes: number
 }

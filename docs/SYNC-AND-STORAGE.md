@@ -35,10 +35,11 @@ There is **no automatic merge** of `history` months. Last writer wins on overwri
 | `unlock` | Fetch (or session cache); decrypt; optional background refresh |
 | `pull` | Remote → decrypt → replace state |
 | `push` | Encrypt state → PUT; may set `conflict` |
-| `saveMonth` | Write history key → push with `feat: close month …` |
+| `saveMonth` | Write history key → push with `feat: track data …` |
 | `changePassword` | Re-encrypt → push |
 | `importJson` | Replace state → push |
-| `loadDemoData` | Merge demo months → push |
+| `loadDemoData` | Strip old samples, merge H1 2026 → push |
+| `clearDemoData` | Remove sample month keys → push |
 
 Quiet unlock (`boot` with session password): prefer `sessionStorage` vault cache, then refresh GitHub in background (network errors ignored).
 
@@ -48,10 +49,11 @@ Used as GitHub commit messages on the **data** repo, not this app repo:
 
 - `chore: initialize Tandem vault`
 - `chore: update Tandem vault`
-- `feat: close month YYYY-MM`
+- `feat: track data YYYY-MM`
 - `security: rotate master password`
 - `chore: import JSON backup`
-- `chore: load sample months (2026-09, 2026-10)`
+- `chore: load sample months (H1 2026)`
+- `chore: remove sample months`
 - `chore: update settings`
 - force path appends ` (force overwrite)`
 

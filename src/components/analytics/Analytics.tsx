@@ -23,15 +23,23 @@ import { useTandemStore } from '@/store/tandem-store'
 
 type Range = '3M' | '6M' | '1Y' | 'All'
 
+/** Distinct series hues — not a teal-only stack. */
+const CHART = {
+  netWorth: '#0369a1',
+  income: '#15803d',
+  expense: '#c2410c',
+} as const
+
+/** Category pie / legend — high contrast across hues. */
 const PIE_COLORS = [
-  '#0f766e',
-  '#115e59',
-  '#78716c',
-  '#a8a29e',
-  '#44403c',
-  '#14b8a6',
-  '#57534e',
-  '#0d9488',
+  '#0369a1', // sky
+  '#c2410c', // orange
+  '#ca8a04', // amber
+  '#be123c', // rose
+  '#4d7c0f', // olive
+  '#0f766e', // teal (brand accent, one slice)
+  '#7c3aed', // violet
+  '#57534e', // stone
 ]
 
 export function Analytics() {
@@ -40,9 +48,7 @@ export function Analytics() {
   const syncing = useTandemStore((s) => s.syncing)
   const [range, setRange] = useState<Range>('6M')
   const [loadingDemo, setLoadingDemo] = useState(false)
-  const { settings } = state
-  const money = (n: number) =>
-    formatMoney(n, settings.currencySymbol, settings.currencyLocale)
+  const money = formatMoney
 
   const onLoadDemo = async () => {
     setLoadingDemo(true)
@@ -98,7 +104,7 @@ export function Analytics() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-[family-name:var(--font-display)] text-3xl font-semibold text-stone-900 dark:text-stone-50">
-            Trajectory
+            Analytics
           </h1>
           <p className="text-sm text-stone-700 dark:text-stone-400">
             Historical trends · dates as MM/YYYY
@@ -135,7 +141,7 @@ export function Analytics() {
           >
             {loadingDemo || syncing
               ? 'Loading & syncing…'
-              : 'Load 2 months of sample data'}
+              : 'Load H1 sample data'}
           </Button>
         </Card>
       ) : (
@@ -147,8 +153,16 @@ export function Analytics() {
                 <AreaChart data={netWorthSeries}>
                   <defs>
                     <linearGradient id="nw" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#0f766e" stopOpacity={0.35} />
-                      <stop offset="100%" stopColor="#0f766e" stopOpacity={0} />
+                      <stop
+                        offset="0%"
+                        stopColor={CHART.netWorth}
+                        stopOpacity={0.4}
+                      />
+                      <stop
+                        offset="100%"
+                        stopColor={CHART.netWorth}
+                        stopOpacity={0}
+                      />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
@@ -166,7 +180,7 @@ export function Analytics() {
                   <Area
                     type="monotone"
                     dataKey="value"
-                    stroke="#0f766e"
+                    stroke={CHART.netWorth}
                     fill="url(#nw)"
                     strokeWidth={2}
                   />
@@ -188,8 +202,18 @@ export function Analytics() {
                     formatter={(v) => money(Number(v))}
                   />
                   <Legend />
-                  <Bar dataKey="income" name="Income" fill="#0f766e" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="expense" name="Expense" fill="#78716c" radius={[4, 4, 0, 0]} />
+                  <Bar
+                    dataKey="income"
+                    name="Income"
+                    fill={CHART.income}
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="expense"
+                    name="Expense"
+                    fill={CHART.expense}
+                    radius={[4, 4, 0, 0]}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>

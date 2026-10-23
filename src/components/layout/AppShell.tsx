@@ -18,7 +18,7 @@ import { useTandemStore } from '@/store/tandem-store'
 
 const NAV = [
   { to: '/', label: 'Home', icon: Home, end: true },
-  { to: '/analytics', label: 'Trajectory', icon: BarChart3 },
+  { to: '/analytics', label: 'Analytics', icon: BarChart3 },
   { to: '/settings', label: 'Settings', icon: Settings },
 ]
 

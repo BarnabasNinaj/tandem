@@ -1,5 +1,6 @@
 import { round2 } from './number'
 import type {
+  AllowanceSplit,
   CategoryExpense,
   MonthlyRecord,
   TandemSettings,
@@ -17,10 +18,7 @@ export interface WizardDraft {
 
 export function sumInflows(inflows: MonthlyRecord['inflows']): number {
   return round2(
-    inflows.partnerASalary +
-      inflows.partnerBIncome +
-      inflows.childSupport +
-      inflows.otherInflows,
+    inflows.partnerASalary + inflows.partnerBIncome + inflows.otherInflows,
   )
 }
 
@@ -38,29 +36,88 @@ export function sumAllocations(
   )
 }
 
+/**
+ * Split an amount by mode.
+ * `income` uses Barney:Lucka incomes only (Other excluded from the ratio).
+ */
+export function splitByMode(
+  amount: number,
+  inflows: MonthlyRecord['inflows'],
+  mode: AllowanceSplit,
+): { partnerA: number; partnerB: number } {
+  if (mode === 'equal') {
+    const each = round2(amount / 2)
+    return { partnerA: each, partnerB: each }
+  }
+  const a = inflows.partnerASalary
+  const b = inflows.partnerBIncome
+  const earned = a + b
+  if (earned <= 0) {
+    const each = round2(amount / 2)
+    return { partnerA: each, partnerB: each }
+  }
+  const partnerA = round2((amount * a) / earned)
+  const partnerB = round2(amount - partnerA)
+  return { partnerA, partnerB }
+}
+
+/** @deprecated use splitByMode — kept as alias for call sites/tests. */
+export function splitPersonalAllowances(
+  surplus: number,
+  inflows: MonthlyRecord['inflows'],
+  mode: AllowanceSplit,
+): { partnerA: number; partnerB: number } {
+  return splitByMode(surplus, inflows, mode)
+}
+
+/**
+ * Product math:
+ *   X = incomes, Y = expenses, Z = X − Y
+ *   Toggle splits Y (expense shares) and pocket = Z − allocations.
+ */
 export function computeMonthly(
   inflows: MonthlyRecord['inflows'],
   outflows: CategoryExpense[],
   allocations: MonthlyRecord['allocations'],
+  allowanceSplit: AllowanceSplit = 'equal',
 ): MonthlyRecord['computed'] {
   const totalInflow = sumInflows(inflows)
   const totalOutflow = sumOutflows(outflows)
+  const leftoverAfterExpenses = round2(totalInflow - totalOutflow)
   const offPlatform = sumAllocations(allocations)
-  const discretionarySurplus = round2(totalInflow - totalOutflow - offPlatform)
+  const discretionarySurplus = round2(leftoverAfterExpenses - offPlatform)
+
+  const expenseShares = splitByMode(totalOutflow, inflows, allowanceSplit)
+  const pocketShares = splitByMode(
+    discretionarySurplus,
+    inflows,
+    allowanceSplit,
+  )
   const personalAllowancePerPartner = round2(discretionarySurplus / 2)
+
   return {
     totalInflow,
     totalOutflow,
+    leftoverAfterExpenses,
     discretionarySurplus,
+    expenseSharePartnerA: expenseShares.partnerA,
+    expenseSharePartnerB: expenseShares.partnerB,
     personalAllowancePerPartner,
+    personalAllowancePartnerA: pocketShares.partnerA,
+    personalAllowancePartnerB: pocketShares.partnerB,
+    allowanceSplit,
   }
 }
 
-export function buildMonthlyRecord(draft: WizardDraft): MonthlyRecord {
+export function buildMonthlyRecord(
+  draft: WizardDraft,
+  allowanceSplit: AllowanceSplit = 'equal',
+): MonthlyRecord {
   const computed = computeMonthly(
     draft.inflows,
     draft.outflows,
     draft.allocations,
+    allowanceSplit,
   )
   return {
     monthKey: draft.monthKey,
@@ -68,7 +125,6 @@ export function buildMonthlyRecord(draft: WizardDraft): MonthlyRecord {
     inflows: {
       partnerASalary: round2(draft.inflows.partnerASalary),
       partnerBIncome: round2(draft.inflows.partnerBIncome),
-      childSupport: round2(draft.inflows.childSupport),
       otherInflows: round2(draft.inflows.otherInflows),
     },
     outflows: draft.outflows.map((o) => ({
@@ -108,7 +164,7 @@ export function netWorthFromSnapshot(
 
 export function savingsRate(record: MonthlyRecord): number {
   if (record.computed.totalInflow <= 0) return 0
-  // Net savings = inflow − outflows (allocations count as savings)
+  // Net savings = inflow − expenses (allocations count as saved; from Z)
   const netSaved = round2(
     record.computed.totalInflow - record.computed.totalOutflow,
   )
@@ -162,7 +218,6 @@ export function emptyDraft(
     inflows: {
       partnerASalary: previous?.inflows.partnerASalary ?? 0,
       partnerBIncome: previous?.inflows.partnerBIncome ?? 0,
-      childSupport: previous?.inflows.childSupport ?? 0,
       otherInflows: 0,
     },
     outflows: emptyOutflows(categories),

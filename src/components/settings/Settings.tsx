@@ -26,6 +26,7 @@ export function Settings() {
   const exportJson = useTandemStore((s) => s.exportJson)
   const importJson = useTandemStore((s) => s.importJson)
   const loadDemoData = useTandemStore((s) => s.loadDemoData)
+  const clearDemoData = useTandemStore((s) => s.clearDemoData)
   const syncing = useTandemStore((s) => s.syncing)
   const lastSyncedAt = useTandemStore((s) => s.lastSyncedAt)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -154,7 +155,7 @@ export function Settings() {
       <Card className="space-y-4">
         <CardTitle>Household</CardTitle>
         <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Partner A">
+          <Field label="Barney (partner A)">
             <Input
               value={state.settings.partnerAName}
               onChange={(e) =>
@@ -165,7 +166,7 @@ export function Settings() {
               }
             />
           </Field>
-          <Field label="Partner B">
+          <Field label="Lucka (partner B)">
             <Input
               value={state.settings.partnerBName}
               onChange={(e) =>
@@ -176,28 +177,39 @@ export function Settings() {
               }
             />
           </Field>
-          <Field label="Currency symbol">
-            <Input
-              value={state.settings.currencySymbol}
-              onChange={(e) =>
-                updateState((s) => ({
-                  ...s,
-                  settings: { ...s.settings, currencySymbol: e.target.value },
-                }))
-              }
-            />
-          </Field>
-          <Field label="Locale">
-            <Input
-              value={state.settings.currencyLocale}
-              onChange={(e) =>
-                updateState((s) => ({
-                  ...s,
-                  settings: { ...s.settings, currencyLocale: e.target.value },
-                }))
-              }
-            />
-          </Field>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label>Expense & pocket split</Label>
+            <div className="flex gap-1 rounded-lg bg-stone-100 p-1 dark:bg-stone-800">
+              {(
+                [
+                  { id: 'equal' as const, label: '50/50' },
+                  { id: 'income' as const, label: 'By income' },
+                ] as const
+              ).map(({ id, label }) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() =>
+                    updateState((s) => ({
+                      ...s,
+                      settings: { ...s.settings, allowanceSplit: id },
+                    }))
+                  }
+                  className={`cursor-pointer flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                    state.settings.allowanceSplit === id
+                      ? 'bg-white text-stone-900 shadow-sm dark:bg-stone-700 dark:text-stone-50'
+                      : 'text-stone-700 dark:text-stone-400'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-stone-700 dark:text-stone-400">
+              Splits monthly expenses and leftover pocket money. By income uses
+              Barney/Lucka only (Other adds to the leftover, not the ratio).
+            </p>
+          </div>
           <Field label="Emergency target (months)">
             <Input
               type="number"
@@ -232,7 +244,7 @@ export function Settings() {
           </Field>
         </div>
         <p className="text-xs text-stone-700 dark:text-stone-400">
-          Date format enforced: DD/MM/YYYY
+          Money is always euro (€). Dates: DD/MM/YYYY.
         </p>
         <Button onClick={() => void saveSettings()}>Save & sync</Button>
       </Card>
@@ -348,27 +360,61 @@ export function Settings() {
       <Card className="space-y-4">
         <CardTitle>Sample data</CardTitle>
         <p className="text-sm text-stone-700 dark:text-stone-400">
-          Loads two demo months (09/2026 and 10/2026) so Home and Trajectory
-          have something to show. Overwrites those month keys if they already
-          exist.
+          Load or remove a synthetic H1 2026 pack (01/2026–06/2026) so Home and
+          Analytics has something to show. Load overwrites those month keys;
+          delete removes only sample keys (including any leftover 09–10/2026
+          demos). Real months outside that set are left alone.
         </p>
-        <Button
-          type="button"
-          variant="secondary"
-          disabled={syncing}
-          onClick={() => {
-            void (async () => {
-              try {
-                await loadDemoData()
-                setMsg('Sample months loaded and synced.')
-              } catch (e) {
-                setErr(e instanceof Error ? e.message : 'Failed to load demo data')
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={syncing}
+            onClick={() => {
+              void (async () => {
+                try {
+                  await loadDemoData()
+                  setMsg('H1 2026 sample months loaded and synced.')
+                } catch (e) {
+                  setErr(
+                    e instanceof Error ? e.message : 'Failed to load demo data',
+                  )
+                }
+              })()
+            }}
+          >
+            Load H1 sample data
+          </Button>
+          <Button
+            type="button"
+            variant="danger"
+            disabled={syncing}
+            onClick={() => {
+              if (
+                !window.confirm(
+                  'Remove all sample months (H1 2026 and any old Sep/Oct demos)? Other months stay.',
+                )
+              ) {
+                return
               }
-            })()
-          }}
-        >
-          Load 2 months of sample data
-        </Button>
+              void (async () => {
+                try {
+                  await clearDemoData()
+                  setMsg('Sample months removed and synced.')
+                } catch (e) {
+                  setErr(
+                    e instanceof Error
+                      ? e.message
+                      : 'Failed to remove demo data',
+                  )
+                }
+              })()
+            }}
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete sample data
+          </Button>
+        </div>
       </Card>
 
       <Card className="space-y-4">

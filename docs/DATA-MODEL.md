@@ -26,18 +26,19 @@ Unrecognized `v` or missing fields → hard error (`parseEnvelope`).
 | `version` | `'1.0'` | Bump + migrate when schema changes |
 | `updatedAt` | ISO string | Vault-level timestamp |
 | `salt` | hex string | Stable per household; do not rotate casually |
-| `settings` | `TandemSettings` | Partners, currency, categories, auto-lock |
+| `settings` | `TandemSettings` | Partners, categories, auto-lock (money fixed EUR) |
 | `history` | `Record<monthKey, MonthlyRecord>` | Keys `YYYY-MM` |
 
 ### TandemSettings
 
 | Field | Default (new vault) |
 |-------|---------------------|
-| `currencySymbol` | `€` |
-| `currencyLocale` | `sk-SK` |
+| `currencySymbol` | always `€` (not Settings-editable; migration overwrites) |
+| `currencyLocale` | always `sk-SK` number style (not Settings-editable; for `Intl` grouping) |
 | `dateFormat` | always `DD/MM/YYYY` (enforced) |
 | `emergencyTargetMonths` | `6` |
-| `partnerAName` / `partnerBName` | `Partner A` / `Partner B` |
+| `partnerAName` / `partnerBName` | `Barney` / `Lucka` (legacy “Partner A/B” remapped on migrate) |
+| `allowanceSplit` | Splits **expenses** and **pocket**: `equal` or `income` (Barney/Lucka ratio; Other excluded) |
 | `categories` | `DEFAULT_CATEGORIES` |
 | `autoLockMinutes` | `30` |
 
@@ -45,9 +46,9 @@ Unrecognized `v` or missing fields → hard error (`parseEnvelope`).
 
 Built by `buildMonthlyRecord` in `finance.ts` (never hand-roll `computed`).
 
-**Inflows:** `partnerASalary`, `partnerBIncome`, `childSupport`, `otherInflows`
+**Incomes** (UI; stored as `inflows`, only three): `partnerASalary` (Barney), `partnerBIncome` (Lucka), `otherInflows` (Other). Legacy `childSupport` is folded into `otherInflows` on migrate.
 
-**Outflows:** `{ categoryId, categoryName, amount }[]`
+**Expenses** (UI; stored as `outflows`): `{ categoryId, categoryName, amount }[]`
 
 **Allocations (this month’s transfers off the spending pool):**  
 `emergencyReserve`, `travelFund`, `investments`
@@ -58,21 +59,29 @@ Built by `buildMonthlyRecord` in `finance.ts` (never hand-roll `computed`).
 **Computed (derived, stored for history):**
 
 ```
-totalInflow = sum(inflows)
-totalOutflow = sum(outflows)
-discretionarySurplus = totalInflow − totalOutflow − sum(allocations)
-personalAllowancePerPartner = discretionarySurplus / 2
+X = totalInflow = sum(incomes)
+Y = totalOutflow = sum(expenses)
+Z = leftoverAfterExpenses = X − Y
+pocket pool = discretionarySurplus = Z − sum(allocations)
+
+Toggle (allowanceSplit) splits Y and the pocket pool:
+  equal  → 50/50
+  income → ∝ partnerASalary : partnerBIncome (Other excluded from ratio)
+
+expenseSharePartnerA / B
+personalAllowancePartnerA / B   // pocket money
+personalAllowancePerPartner     // pocket/2 reference
 ```
 
 All money values rounded with `round2`.
 
 **Net worth (dashboard):** sum of portfolio snapshot balances (not a separate stored field).
 
-**Savings rate:** `(totalInflow − totalOutflow) / totalInflow * 100` — allocations count as saved.
+**Savings rate:** `(totalInflow − totalOutflow) / totalInflow * 100` — Z counts as saved (allocations come from Z).
 
 ## Wizard draft
 
-`WizardDraft` mirrors a month before close. Autosaved every 5s while the wizard is open as an encrypted blob in `localStorage` (`tandem.draft.enc`), using the vault salt + master password.
+`WizardDraft` mirrors a month while tracking. Autosaved every 5s while the wizard is open as an encrypted blob in `localStorage` (`tandem.draft.enc`), using the vault salt + master password.
 
 ## GitHubConfig (browser only — not in vault)
 
@@ -93,6 +102,6 @@ Unsupported `version` → throw (fail closed).
 
 ## Demo history
 
-`buildDemoHistory()` seeds months `2026-09` and `2026-10` with synthetic data.
+`buildDemoHistory()` seeds **H1 2026** (`2026-01` … `2026-06`) with synthetic data. Keys: `DEMO_MONTH_KEYS` in `demo-data.ts`. Legacy Sep/Oct (`2026-09`, `2026-10`) are stripped on load/clear via `stripDemoMonths`.
 
-**C3A (2026-10-23):** `createInitialState()` defaults to **empty** `history`. Demo months only when `withDemoData: true` or via Settings → “Load 2 months of sample data” (`loadDemoData`, merges/overwrites those keys and pushes). Setup / empty-remote unlock create empty vaults.
+**C3A (2026-10-23):** `createInitialState()` defaults to **empty** `history`. Demo only when `withDemoData: true` or Settings → Load H1 / Delete sample data (`loadDemoData` / `clearDemoData`, then push). Setup / empty-remote unlock create empty vaults.

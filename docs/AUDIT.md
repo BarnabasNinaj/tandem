@@ -142,7 +142,7 @@ Goal: catch vault/math regressions without a heavyweight QA program.
 | P2 | Invite path skips password confirm (correct — joining existing vault) |
 | P3 | Wizard autosave encrypted — good |
 | P4 | Auto-lock effect depends on whole `state` object — timer resets on any state update (may delay lock while actively editing; usually fine) |
-| P5 | Defaults `sk-SK` / `€` — intentional locale bias; document for contributors |
+| P5 | ~~Defaults `sk-SK` / `€` in Settings~~ → **fixed:** money always EUR; locale not user-facing (`CURRENCY_*` in `number.ts`) |
 
 ## Tooling findings
 

@@ -59,7 +59,7 @@ Partner devices: Settings → Add a device (QR embeds sync credentials, **not** 
 
 ## Shortcuts
 
-- `Ctrl/Cmd + N` — End-of-Month wizard
+- `Ctrl/Cmd + N` — Track Data wizard
 - `Ctrl/Cmd + S` — save month / push vault
 
 ## Conventions
