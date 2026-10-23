@@ -110,7 +110,7 @@ export function Analytics() {
               key={r}
               type="button"
               onClick={() => setRange(r)}
-              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`cursor-pointer rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                 range === r
                   ? 'bg-white text-stone-900 shadow-sm dark:bg-stone-700 dark:text-stone-50'
                   : 'text-stone-700 dark:text-stone-400'

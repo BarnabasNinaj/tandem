@@ -117,7 +117,7 @@ export function MonthlyWizard() {
               key={label}
               type="button"
               onClick={() => setStep(i)}
-              className={`flex-1 rounded-md py-1.5 text-xs font-medium transition-colors ${
+              className={`flex-1 cursor-pointer rounded-md py-1.5 text-xs font-medium transition-colors ${
                 i === step
                   ? 'bg-teal-700 text-white'
                   : 'bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-300'

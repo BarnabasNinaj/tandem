@@ -9,7 +9,6 @@ export function LockScreen() {
   const unlock = useTandemStore((s) => s.unlock)
   const phase = useTandemStore((s) => s.phase)
   const error = useTandemStore((s) => s.error)
-  const github = useTandemStore((s) => s.github)
   const [password, setPassword] = useState('')
 
   const onSubmit = (e: FormEvent) => {
@@ -49,14 +48,10 @@ export function LockScreen() {
             </span>
           </div>
 
-          {github && (
-            <p className="text-xs text-stone-700 dark:text-stone-400">
-              Syncing {github.username}/{github.repo}
-            </p>
-          )}
-
-          <div className="space-y-2">
-            <Label htmlFor="master-password">Master password</Label>
+          <div className="flex flex-col gap-2.5">
+            <Label htmlFor="master-password" className="block leading-none">
+              Master password
+            </Label>
             <Input
               id="master-password"
               type="password"

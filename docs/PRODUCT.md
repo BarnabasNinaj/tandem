@@ -9,7 +9,7 @@ Private household operating system for a couple — calm, local-first, not a ban
 | Surface | Purpose |
 |---------|---------|
 | Setup | Join via invite QR **or** manual GitHub + PAT + password |
-| Lock | Unlock with master password |
+| Lock | Unlock with master password (no vault path shown) |
 | Home | Net worth hero, emergency runway, travel fund, allowance, savings rate, CTA to close month |
 | Trajectory | Charts over `history` (Recharts) |
 | Settings | Household, categories, GitHub, invite QR, password rotate, demo load, JSON backup |
@@ -30,7 +30,7 @@ Dark theme via `.dark` on root (hook `use-theme`). Setup/lock use light canvas +
 
 Motion: `fadeUp` keyframes; Home hero reveal. Prefer subtle transitions over noisy animations.
 
-UI primitives: `src/components/ui/*` (button, input, card, label, money-input, progress).
+UI primitives: `src/components/ui/*` (button, input, card, label, money-input, progress). Clickable controls use `cursor-pointer` (hand) on hover, not the default arrow.
 
 ## Shortcuts (ready phase)
 

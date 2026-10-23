@@ -52,7 +52,7 @@ export function AppShell() {
                   end={end}
                   className={({ isActive }) =>
                     cn(
-                      'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
+                      'inline-flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
                       isActive
                         ? 'bg-teal-700/10 text-teal-900 dark:bg-teal-400/10 dark:text-teal-200'
                         : 'text-stone-700 hover:bg-stone-200/70 dark:text-stone-400 dark:hover:bg-stone-800',
@@ -118,7 +118,7 @@ export function AppShell() {
             end={end}
             className={({ isActive }) =>
               cn(
-                'flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-medium',
+                'flex flex-1 cursor-pointer flex-col items-center gap-0.5 py-2 text-[10px] font-medium',
                 isActive
                   ? 'text-teal-800 dark:text-teal-300'
                   : 'text-stone-700 dark:text-stone-400',

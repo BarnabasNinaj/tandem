@@ -25,6 +25,7 @@ Tone: private couple’s OS — not bank SaaS. Sync = “vault / GitHub”, not 
 - Primitives: `src/components/ui/*`
 - Nav: Home, Trajectory, Settings
 - Prefer existing Button/Card/Input patterns and stone/teal Tailwind usage
+- Clickable controls: `cursor-pointer` on hover (Button base + nav / raw `<button>`s)
 - Motion: subtle (`fadeUp`, hero reveal) — not noisy
 
 ## Shortcuts (preserve)
