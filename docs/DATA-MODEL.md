@@ -53,7 +53,7 @@ Built by `buildMonthlyRecord` in `finance.ts` (never hand-roll `computed`).
 
 **Expenses** (UI; stored as `outflows`): `{ categoryId, categoryName, amount }[]`
 
-**Card expenses (Track editor → Expenses):** card-first. Pick a **card** (clickable chips) → enter amounts for that card’s **bank** labels (shared by all cards of the bank; each mapped to a household category) → **Add to month** merges (adds) into `outflows`. Month category totals update below (read-only rollup). **New label** (+) writes `categoryMappings` on the bank immediately; amounts still need Add to month. Cards are not stored on the month — only rolled-up categories. UI: `CardExpenses.tsx`; merge/mappings: `src/lib/card-expenses.ts`. Investment transfers (if tracked) are expense categories via cards — there is no separate allocations / portfolio snapshot on the month.
+**Card expenses (Track editor → Expenses):** card-first. Pick a **card** (clickable chips) → enter amounts for that card’s **bank** labels (shared by all cards of the bank; each mapped to a household category) → **Add to month** merges (adds) into `outflows`. Month category totals update below (read-only rollup). **New label** (+) writes `categoryMappings` on the bank immediately. Typed sheet amounts are local until Add (or until **Save month**, which flushes any pending sheet into `outflows` so a covered Add button cannot drop spend). Switching the editor month clears the sheet. Cards are not stored on the month — only rolled-up categories. UI: `CardExpenses.tsx`; merge/mappings: `src/lib/card-expenses.ts`. Investment transfers (if tracked) are expense categories via cards — there is no separate allocations / portfolio snapshot on the month.
 
 **Computed (derived, stored for history):**
 

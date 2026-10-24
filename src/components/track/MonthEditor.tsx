@@ -1,12 +1,16 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { MoneyInput } from '@/components/ui/money-input'
 import { Select } from '@/components/ui/select'
-import { CardExpenses } from '@/components/track/CardExpenses'
+import {
+  CardExpenses,
+  type CardExpensesHandle,
+} from '@/components/track/CardExpenses'
 import { formatMonthKey, listRecentMonthKeys } from '@/lib/dates'
+import { registerCardSheetFlush } from '@/lib/card-sheet'
 import {
   computeMonthly,
   draftForMonth,
@@ -26,11 +30,17 @@ export function MonthEditor() {
   const syncing = useTandemStore((s) => s.syncing)
 
   const [saving, setSaving] = useState(false)
+  const cardExpensesRef = useRef<CardExpensesHandle>(null)
 
   useEffect(() => {
     const id = setInterval(() => void autosaveDraft(), 5000)
     return () => clearInterval(id)
   }, [autosaveDraft])
+
+  useEffect(() => {
+    registerCardSheetFlush(() => cardExpensesRef.current?.flush() ?? false)
+    return () => registerCardSheetFlush(null)
+  }, [])
 
   const allowanceSplit = state.settings.allowanceSplit
   const { settings } = state
@@ -53,9 +63,14 @@ export function MonthEditor() {
   }
 
   const onSave = async () => {
+    // Sheet amounts live in CardExpenses until Add — flush so Save still picks them up
+    // (sticky footer often covers Add to month). Zustand set is sync, then read latest.
+    cardExpensesRef.current?.flush()
+    const latest = useTandemStore.getState().wizardDraft
+    if (!latest) return
     setSaving(true)
     try {
-      await saveMonth(draft)
+      await saveMonth(latest)
     } finally {
       setSaving(false)
     }
@@ -66,13 +81,14 @@ export function MonthEditor() {
 
   const loadMonth = (key: string) => {
     if (key === draft.monthKey) return
+    // Discard unapplied sheet amounts for the previous month (not yet in outflows).
     setWizardDraft(draftForMonth(state.history, key, settings.categories))
   }
 
   const leftoverNegative = computed.leftoverAfterExpenses < 0
 
   return (
-    <div className="space-y-8 pb-36 animate-[fadeUp_0.35s_ease-out] sm:pb-36">
+    <div className="space-y-8 pb-[calc(11rem+4.5rem)] animate-[fadeUp_0.35s_ease-out] sm:pb-52">
       <header className="flex flex-wrap items-center gap-3">
         <Button
           variant="ghost"
@@ -164,6 +180,8 @@ export function MonthEditor() {
           Expenses
         </h2>
         <CardExpenses
+          key={draft.monthKey}
+          ref={cardExpensesRef}
           banks={settings.banks ?? []}
           cards={settings.cards ?? []}
           categories={settings.categories}
@@ -173,6 +191,8 @@ export function MonthEditor() {
           partnerBName={settings.partnerBName}
           onApply={({ outflows, mappings }) => {
             update({ outflows })
+            // Avoid dirtying vault settings when only outflows changed (Add to month).
+            if (mappings === settings.categoryMappings) return
             updateState((s) => ({
               ...s,
               settings: {

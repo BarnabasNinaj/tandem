@@ -1,4 +1,12 @@
-import { useEffect, useMemo, useState } from 'react'
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -47,28 +55,40 @@ function sortCards(
   })
 }
 
-export function CardExpenses({
-  banks,
-  cards,
-  categories,
-  mappings,
-  outflows,
-  partnerAName,
-  partnerBName,
-  onApply,
-}: {
-  banks: ExpenseBank[]
-  cards: ExpenseCard[]
-  categories: ExpenseCategory[]
-  mappings: BankCategoryMapping[]
-  outflows: CategoryExpense[]
-  partnerAName: string
-  partnerBName: string
-  onApply: (next: {
-    outflows: CategoryExpense[]
+export type CardExpensesHandle = {
+  /** Merge any typed sheet amounts into the month. Returns true if something was applied. */
+  flush: () => boolean
+  hasPending: () => boolean
+}
+
+export const CardExpenses = forwardRef<
+  CardExpensesHandle,
+  {
+    banks: ExpenseBank[]
+    cards: ExpenseCard[]
+    categories: ExpenseCategory[]
     mappings: BankCategoryMapping[]
-  }) => void
-}) {
+    outflows: CategoryExpense[]
+    partnerAName: string
+    partnerBName: string
+    onApply: (next: {
+      outflows: CategoryExpense[]
+      mappings: BankCategoryMapping[]
+    }) => void
+  }
+>(function CardExpenses(
+  {
+    banks,
+    cards,
+    categories,
+    mappings,
+    outflows,
+    partnerAName,
+    partnerBName,
+    onApply,
+  },
+  ref,
+) {
   const sortedCards = useMemo(
     () => sortCards(cards, banks),
     [cards, banks],
@@ -136,6 +156,17 @@ export function CardExpenses({
     setNewLabel('')
   }
 
+  const pendingLines = (): Array<{ categoryId: string; amount: number }> => {
+    const lines: Array<{ categoryId: string; amount: number }> = []
+    for (const m of bankMaps) {
+      const amount = amounts[m.key] ?? 0
+      if (amount !== 0) {
+        lines.push({ categoryId: m.categoryId, amount })
+      }
+    }
+    return lines
+  }
+
   /** Persist label → category on the bank immediately (not only on Add to month). */
   const addNewLabel = () => {
     if (!bankId || !newLabel.trim() || !newCategoryId) return
@@ -154,24 +185,34 @@ export function CardExpenses({
     setNewLabel('')
   }
 
-  const apply = () => {
-    if (!hasAmount || !bankId || !card) return
+  const apply = (): boolean => {
+    if (!hasAmount || !bankId || !card) return false
 
-    const lines: Array<{ categoryId: string; amount: number }> = []
-    for (const m of bankMaps) {
-      const amount = amounts[m.key] ?? 0
-      if (amount !== 0) {
-        lines.push({ categoryId: m.categoryId, amount })
-      }
-    }
-    if (lines.length === 0) return
+    const lines = pendingLines()
+    if (lines.length === 0) return false
 
     onApply({
       outflows: mergeCardLinesIntoOutflows(outflows, lines, categories),
       mappings,
     })
     clearAmounts()
+    return true
   }
+
+  const apiRef = useRef({
+    flush: (): boolean => false,
+    hasPending: (): boolean => false,
+  })
+  useLayoutEffect(() => {
+    apiRef.current = {
+      flush: () => apply(),
+      hasPending: () => hasAmount && pendingLines().length > 0,
+    }
+  })
+  useImperativeHandle(ref, () => ({
+    flush: () => apiRef.current.flush(),
+    hasPending: () => apiRef.current.hasPending(),
+  }))
 
   if (cards.length === 0 || banks.length === 0) {
     return (
@@ -243,7 +284,7 @@ export function CardExpenses({
           </p>
         ) : (
           <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {bankMaps.map((m, idx) => (
+            {bankMaps.map((m) => (
               <li
                 key={m.key}
                 className="flex min-w-0 items-center gap-2 rounded-md border border-stone-200/80 px-2.5 py-1.5 dark:border-stone-700/80"
@@ -259,7 +300,6 @@ export function CardExpenses({
                 <MoneyInput
                   id={`card-amt-${m.key}`}
                   name={`card-amt-${m.key}`}
-                  autoFocus={idx === 0}
                   value={amounts[m.key] ?? 0}
                   onValueChange={(n) =>
                     setAmounts((prev) => ({ ...prev, [m.key]: n }))
@@ -304,7 +344,7 @@ export function CardExpenses({
           </Button>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex scroll-mt-4 scroll-mb-40 flex-wrap items-center justify-between gap-2">
           <p className="text-sm tabular-nums text-stone-600 dark:text-stone-400">
             This card {formatMoney(sheetTotal)}
           </p>
@@ -312,7 +352,7 @@ export function CardExpenses({
             type="button"
             size="sm"
             disabled={!hasAmount}
-            onClick={apply}
+            onClick={() => apply()}
           >
             Add to month
           </Button>
@@ -346,4 +386,4 @@ export function CardExpenses({
       </div>
     </div>
   )
-}
+})

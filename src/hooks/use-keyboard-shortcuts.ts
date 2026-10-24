@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { flushCardSheetPending } from '@/lib/card-sheet'
 import { toMonthKey } from '@/lib/dates'
 import { draftForMonth } from '@/lib/finance'
 import { useTandemStore } from '@/store/tandem-store'
@@ -23,7 +24,9 @@ export function useKeyboardShortcuts() {
       if (e.key.toLowerCase() === 's') {
         e.preventDefault()
         if (wizardDraft) {
-          void saveMonth(wizardDraft)
+          flushCardSheetPending()
+          const latest = useTandemStore.getState().wizardDraft
+          if (latest) void saveMonth(latest)
         } else {
           void push()
         }

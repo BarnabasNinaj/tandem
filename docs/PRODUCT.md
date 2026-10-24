@@ -10,7 +10,7 @@ Private household operating system for a couple — calm, local-first, not a ban
 |---------|---------|
 | Setup | Join via invite QR **or** manual GitHub + PAT + password |
 | Lock | Unlock with master password (no vault path shown) |
-| Track | Hub: calendar-month CTA + tracked-month list (+ resume unsaved draft). Editor: inline month form (Incomes · **Expenses** card-first · optional **Notes**). Sticky footer: **Household** (expenses · left) · **partner A** · **partner B**; action row = split + **Cancel** / **Save month**. No modal wizard. |
+| Track | Hub: calendar-month CTA + tracked-month list (+ resume unsaved draft). Editor: inline month form (Incomes · **Expenses** card-first · optional **Notes**). Sticky footer: **Household** (expenses · left) · **partner A** · **partner B**; action row = split + **Cancel** / **Save month** (Save also flushes any unapplied card-sheet amounts). Editor bottom padding clears the sticky footer so **Add to month** stays clickable. No modal wizard. |
 | History | Charts over tracked months: category lines, income vs expense (solid actuals · sage/sand dashed projections), expense mix pie. Sticky range: 3M / 6M / 1Y / All. |
 | Incomes | Incomes only: compact metric strip + stacked bars + share pie + month table (partner A / partner B / Other). Same sticky range. **Edit** → Track editor for that month. |
 | Expenses | Expenses only: compact metric strip + stacked category bars + mix pie + month × category table. Same sticky range. **Edit** → Track editor for that month. |
