@@ -24,7 +24,7 @@ Quiet unlock may use session vault cache then background-fetch. Don’t break of
 
 ## Settings caveat
 
-`updateState` is memory-only until `push`. Don’t assume category/household edits persist without sync. Background pull can overwrite unsynced edits after refresh.
+`updateState` sets `localDirty` until successful `push` / pull apply. Pull (header sync) pushes first when dirty. Background unlock refresh must skip while `localDirty`. Prefer **Save & sync** after Settings edits; lock still drops unsynced memory.
 
 ## Initial state
 

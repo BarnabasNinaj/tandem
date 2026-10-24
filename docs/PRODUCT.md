@@ -10,12 +10,17 @@ Private household operating system for a couple — calm, local-first, not a ban
 |---------|---------|
 | Setup | Join via invite QR **or** manual GitHub + PAT + password |
 | Lock | Unlock with master password (no vault path shown) |
-| Home | Hero: **BALU** | **Last updated** | net worth | **Track Data**; then pocket split, flow, reserves |
-| Analytics | Charts over `history` (Recharts; distinct series colors — sky / green / orange + multi-hue pie) |
-| Settings | Household (names, emergency/auto-lock), categories, GitHub, invite QR, password rotate, H1 sample load/delete, JSON backup — not currency/locale |
-| Track Data wizard | Incomes → Expenses → Allocations; compact **Split** bar (expenses + pocket; **50/50** / **Income**) |
+| Home | Hero: net worth | **Last updated** | **Track Data**; then pocket split, flow, reserves |
+| History | Charts over tracked months: category lines, income vs expense (solid actuals · sage/sand dashed projections), net worth (+ dashed path), expense mix pie. Sticky range: 3M / 6M / 1Y / All. |
+| Incomes | Incomes only: compact metric strip + stacked bars + share pie + month table (partner A / partner B / Other). Same sticky range. |
+| Expenses | Expenses only: compact metric strip + stacked category bars + mix pie + month × category table. Same sticky range. |
+| Outlook | Forward look: compact metric strip + trailing averages → next 3 months; category baselines (avg / last / €/mo slope). Same sticky range. |
+| Settings | Sticky tabs: **Household** · **Categories** · **Cards** (Common / Barney / Lucka + label mappings) · **Sync** (GitHub, invite QR) · **Security** (password) · **Data** (samples, JSON backup) |
+| Track Data wizard | Month picker loads **saved** months for edit (or seeds a new one); Incomes → Expenses → Allocations; **Add from card**; **Edit** on Incomes/Expenses tables opens that month |
 
-Nav labels: **Home**, **Analytics**, **Settings**. Brand mark: **Tandem** (`Fugaz One`, teal).
+Nav: **Home**, **History**, **Incomes**, **Expenses**, **Outlook** (text); **Settings** as a header icon (with sync / theme / lock). **Tandem** logo mark links to Home. Legacy `/trends` & `/breakdown` → History; `/analytics` → Outlook. Brand mark: **Tandem** (`Fugaz One`, teal).
+
+UI copy never uses formula letters **X / Y / Z** — say income, expenses, left after expenses, pocket. Those letters stay in `finance.ts` / docs only.
 
 ## Visual system (`src/index.css`)
 
@@ -30,7 +35,7 @@ Dark theme via `.dark` on root (hook `use-theme`). Setup/lock use light canvas +
 
 Motion: `fadeUp` keyframes; Home hero reveal. Prefer subtle transitions over noisy animations.
 
-UI primitives: `src/components/ui/*` (button, input, card, label, money-input, progress). Clickable controls use `cursor-pointer` (hand) on hover, not the default arrow.
+UI primitives: `src/components/ui/*` (button, input, select, card, label, money-input, progress). Native `<select>` goes through `Select` (custom inset chevron, not the browser-flush arrow). Clickable controls use `cursor-pointer` (hand) on hover, not the default arrow.
 
 ## Shortcuts (ready phase)
 
@@ -41,7 +46,9 @@ UI primitives: `src/components/ui/*` (button, input, card, label, money-input, p
 
 ## Dates & money
 
-- Display dates: **DD/MM/YYYY** (and `DD/MM/YYYY HH:mm` for sync times)
+- Display dates: **DD/MM/YYYY** (**Last Synced** `DD/MM/YYYY HH:mm` on the pull-icon tooltip, not in the header)
+- Header icon tooltips: Settings, sync/pull (Last Synced; notes unsaved local edits), theme (Switch to light/dark), lock (Lock)
+- Settings **Save & sync** on Household / Categories / Cards; header sync pushes dirty local edits before pull
 - Month labels: **MM/YYYY** from `YYYY-MM` keys
 - Money: always **euro** (`formatMoney` → `€` + `sk-SK` grouping); inputs via `MoneyInput` / `parseLocaleNumber` (`,` and `.`)
 

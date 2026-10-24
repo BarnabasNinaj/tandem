@@ -1,6 +1,9 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import { Analytics } from '@/components/analytics/Analytics'
+import { ExpensesPage } from '@/components/analytics/ExpensesPage'
+import { HistoryPage } from '@/components/analytics/HistoryPage'
+import { IncomesPage } from '@/components/analytics/IncomesPage'
+import { OutlookPage } from '@/components/analytics/OutlookPage'
 import { Dashboard } from '@/components/dashboard/Dashboard'
 import { AppShell } from '@/components/layout/AppShell'
 import { LockScreen } from '@/components/lock/LockScreen'
@@ -26,11 +29,13 @@ function AuthenticatedApp() {
     <Routes>
       <Route element={<AppShell />}>
         <Route index element={<Dashboard />} />
-        <Route path="analytics" element={<Analytics />} />
-        <Route
-          path="breakdown"
-          element={<Navigate to="/analytics" replace />}
-        />
+        <Route path="history" element={<HistoryPage />} />
+        <Route path="incomes" element={<IncomesPage />} />
+        <Route path="expenses" element={<ExpensesPage />} />
+        <Route path="outlook" element={<OutlookPage />} />
+        <Route path="trends" element={<Navigate to="/history" replace />} />
+        <Route path="analytics" element={<Navigate to="/outlook" replace />} />
+        <Route path="breakdown" element={<Navigate to="/history" replace />} />
         <Route path="settings" element={<Settings />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

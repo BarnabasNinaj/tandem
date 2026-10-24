@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { toMonthKey } from '@/lib/dates'
-import { emptyDraft, getLatestRecord } from '@/lib/finance'
+import { draftForMonth } from '@/lib/finance'
 import { useTandemStore } from '@/store/tandem-store'
 
 export function useKeyboardShortcuts() {
@@ -30,8 +30,13 @@ export function useKeyboardShortcuts() {
 
       if (e.key.toLowerCase() === 'n') {
         e.preventDefault()
-        const latest = getLatestRecord(state)
-        openWizard(emptyDraft(toMonthKey(), state.settings.categories, latest))
+        openWizard(
+          draftForMonth(
+            state.history,
+            toMonthKey(),
+            state.settings.categories,
+          ),
+        )
       }
     }
 

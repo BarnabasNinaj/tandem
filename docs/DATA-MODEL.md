@@ -40,6 +40,8 @@ Unrecognized `v` or missing fields → hard error (`parseEnvelope`).
 | `partnerAName` / `partnerBName` | `Barney` / `Lucka` (legacy “Partner A/B” remapped on migrate) |
 | `allowanceSplit` | Splits **expenses** and **pocket**: `equal` or `income` (Barney/Lucka ratio; Other excluded) |
 | `categories` | `DEFAULT_CATEGORIES` |
+| `cards` | `[]` — `{ id, name, owner: partnerA\|partnerB\|common }` paste sources; `common` = household card |
+| `categoryMappings` | `[]` — `{ key, label, categoryId }` bank label → household category |
 | `autoLockMinutes` | `30` |
 
 ### MonthlyRecord
@@ -49,6 +51,8 @@ Built by `buildMonthlyRecord` in `finance.ts` (never hand-roll `computed`).
 **Incomes** (UI; stored as `inflows`, only three): `partnerASalary` (Barney), `partnerBIncome` (Lucka), `otherInflows` (Other). Legacy `childSupport` is folded into `otherInflows` on migrate.
 
 **Expenses** (UI; stored as `outflows`): `{ categoryId, categoryName, amount }[]`
+
+**Add from card (Track Data → Expenses):** paste monthly totals per bank label from one card → map labels via `settings.categoryMappings` → **merge** (add) into `outflows`. Cards themselves are not stored on the month — only the rolled-up categories. Parsing/merge: `src/lib/card-expenses.ts`.
 
 **Allocations (this month’s transfers off the spending pool):**  
 `emergencyReserve`, `travelFund`, `investments`
@@ -79,9 +83,27 @@ All money values rounded with `round2`.
 
 **Savings rate:** `(totalInflow − totalOutflow) / totalInflow * 100` — Z counts as saved (allocations come from Z).
 
+### Analytics (derived, not stored)
+
+`src/lib/analytics.ts` reads `history` only — no vault schema fields.
+
+| Signal | How |
+|--------|-----|
+| Range slice | Last 3 / 6 / 12 months or all |
+| Category average | Mean monthly spend (missing month = €0) |
+| Category trend | OLS slope €/month over the range |
+| Month outlook | Trailing means for income, expenses, pocket, savings rate → project next 3 calendar months |
+| Net-worth projection | Last snapshot NW + average leftover after expenses (Z) per projected month |
+
+Focus month defaults to the current calendar month (`toMonthKey()`). If that month is already in `history`, Outlook shows deltas vs the trailing average.
+
+UI slices of the same history (no extra stored fields): `/history` (mixed charts), `/incomes` (`incomeMonths` — three buckets only), `/expenses` (`expenseGrid` — category columns only), `/outlook` (baselines).
+
 ## Wizard draft
 
 `WizardDraft` mirrors a month while tracking. Autosaved every 5s while the wizard is open as an encrypted blob in `localStorage` (`tandem.draft.enc`), using the vault salt + master password.
+
+`draftForMonth(history, monthKey, categories)` loads an existing `MonthlyRecord` for edit, or `emptyDraft` seeded from the prior month. Saving overwrites `history[monthKey]`.
 
 ## GitHubConfig (browser only — not in vault)
 

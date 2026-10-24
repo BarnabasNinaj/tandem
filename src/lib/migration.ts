@@ -1,6 +1,9 @@
 import {
   DEFAULT_CATEGORIES,
   type AllowanceSplit,
+  type BankCategoryMapping,
+  type CardOwner,
+  type ExpenseCard,
   type MonthlyRecord,
   type TandemState,
 } from '@/types/tandem'
@@ -90,6 +93,56 @@ function partnerName(
   return value
 }
 
+function normalizeCardOwner(raw: unknown): CardOwner | null {
+  if (raw === 'partnerA' || raw === 'partnerB' || raw === 'common') return raw
+  return null
+}
+
+function normalizeCards(raw: unknown): ExpenseCard[] {
+  if (!Array.isArray(raw)) return []
+  return raw
+    .map((c) => {
+      if (!c || typeof c !== 'object') return null
+      const row = c as ExpenseCard
+      const owner = normalizeCardOwner(row.owner)
+      if (typeof row.id !== 'string' || typeof row.name !== 'string' || !owner) {
+        return null
+      }
+      return {
+        id: row.id,
+        name: row.name.trim() || 'Card',
+        owner,
+      } satisfies ExpenseCard
+    })
+    .filter((c): c is ExpenseCard => c !== null)
+}
+
+function normalizeCategoryMappings(raw: unknown): BankCategoryMapping[] {
+  if (!Array.isArray(raw)) return []
+  const seen = new Set<string>()
+  const out: BankCategoryMapping[] = []
+  for (const row of raw) {
+    if (!row || typeof row !== 'object') continue
+    const m = row as BankCategoryMapping
+    if (
+      typeof m.key !== 'string' ||
+      typeof m.label !== 'string' ||
+      typeof m.categoryId !== 'string'
+    ) {
+      continue
+    }
+    const key = m.key.trim().toLowerCase()
+    if (!key || seen.has(key)) continue
+    seen.add(key)
+    out.push({
+      key,
+      label: m.label.trim() || key,
+      categoryId: m.categoryId,
+    })
+  }
+  return out
+}
+
 function normalizeV1(state: TandemState): TandemState {
   const allowanceSplit = normalizeAllowanceSplit(
     state.settings?.allowanceSplit,
@@ -119,6 +172,10 @@ function normalizeV1(state: TandemState): TandemState {
         state.settings?.categories?.length > 0
           ? state.settings.categories
           : DEFAULT_CATEGORIES,
+      cards: normalizeCards(state.settings?.cards),
+      categoryMappings: normalizeCategoryMappings(
+        state.settings?.categoryMappings,
+      ),
       autoLockMinutes: state.settings?.autoLockMinutes ?? 30,
     },
     history: normalizeHistory(state.history, allowanceSplit),
@@ -144,6 +201,8 @@ export function createInitialState(partial?: {
       partnerBName: partial?.partnerBName || 'Lucka',
       allowanceSplit: 'equal',
       categories: [...DEFAULT_CATEGORIES],
+      cards: [],
+      categoryMappings: [],
       autoLockMinutes: 30,
     },
     // Production vaults start empty; H1 samples via Settings loadDemoData / clearDemoData

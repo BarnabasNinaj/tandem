@@ -4,11 +4,12 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { MoneyInput } from '@/components/ui/money-input'
+import { Select } from '@/components/ui/select'
+import { AddFromCard } from '@/components/wizard/AddFromCard'
 import { formatMonthKey, listRecentMonthKeys, toMonthKey } from '@/lib/dates'
 import {
   computeMonthly,
-  emptyDraft,
-  getLatestRecord,
+  draftForMonth,
   type WizardDraft,
 } from '@/lib/finance'
 import { formatMoney } from '@/lib/number'
@@ -30,6 +31,7 @@ export function MonthlyWizard() {
 
   const [step, setStep] = useState(0)
   const [saving, setSaving] = useState(false)
+  const [addFromCard, setAddFromCard] = useState(false)
 
   useEffect(() => {
     if (!open || !state) return
@@ -42,9 +44,12 @@ export function MonthlyWizard() {
         setWizardDraft(restored)
         return
       }
-      const latest = getLatestRecord(state)
       setWizardDraft(
-        emptyDraft(toMonthKey(), state.settings.categories, latest),
+        draftForMonth(
+          state.history,
+          toMonthKey(),
+          state.settings.categories,
+        ),
       )
     })()
     return () => {
@@ -99,6 +104,13 @@ export function MonthlyWizard() {
   }
 
   const monthOptions = listRecentMonthKeys(36)
+  const editingSaved = Boolean(state.history[draft.monthKey])
+
+  const loadMonth = (key: string) => {
+    if (key === draft.monthKey) return
+    setWizardDraft(draftForMonth(state.history, key, settings.categories))
+    setAddFromCard(false)
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-stone-950/50 p-0 backdrop-blur-sm sm:items-center sm:p-6">
@@ -107,8 +119,8 @@ export function MonthlyWizard() {
         role="dialog"
         aria-labelledby="wizard-title"
       >
-        <header className="flex items-center justify-between border-b border-stone-300 px-5 py-4 dark:border-stone-700">
-          <div>
+        <header className="flex items-center gap-3 border-b border-stone-300 px-5 py-3 dark:border-stone-700">
+          <div className="min-w-0 flex-1">
             <h2
               id="wizard-title"
               className="text-lg font-semibold text-stone-900 dark:text-stone-100"
@@ -116,21 +128,52 @@ export function MonthlyWizard() {
               Track Data
             </h2>
             <p className="text-xs text-stone-700 dark:text-stone-400">
-              Step {step + 1} of 3 · {STEP_LABELS[step]} ·{' '}
-              {formatMonthKey(draft.monthKey)}
+              Step {step + 1} of 3 · {STEP_LABELS[step]}
+              {editingSaved ? ' · editing saved' : ' · new month'}
             </p>
           </div>
-          <Button variant="ghost" size="icon" onClick={closeWizard} aria-label="Close">
-            <X className="h-5 w-5" />
+          <label className="sr-only" htmlFor="month">
+            Month
+          </label>
+          <Select
+            id="month"
+            wrapperClassName="shrink-0 w-auto"
+            title={
+              editingSaved
+                ? 'Editing saved month — save to overwrite'
+                : 'New month — pick a saved one to edit'
+            }
+            className="h-8 max-w-[9.5rem] rounded-md border-stone-300 pr-7 pl-2 text-xs text-stone-800 dark:text-stone-100"
+            value={draft.monthKey}
+            onChange={(e) => loadMonth(e.target.value)}
+          >
+            {monthOptions.map((k) => (
+              <option key={k} value={k}>
+                {formatMonthKey(k)}
+                {state.history[k] ? ' · saved' : ''}
+              </option>
+            ))}
+          </Select>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 shrink-0"
+            onClick={closeWizard}
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" />
           </Button>
         </header>
 
-        <div className="flex gap-1 px-5 pt-4">
+        <div className="flex gap-1 border-b border-stone-200 px-5 py-2.5 dark:border-stone-800">
           {STEP_LABELS.map((label, i) => (
             <button
               key={label}
               type="button"
-              onClick={() => setStep(i)}
+              onClick={() => {
+                setStep(i)
+                setAddFromCard(false)
+              }}
               className={`flex-1 cursor-pointer rounded-md py-1.5 text-xs font-medium transition-colors ${
                 i === step
                   ? 'bg-teal-700 text-white'
@@ -145,22 +188,6 @@ export function MonthlyWizard() {
         <div className="flex-1 overflow-y-auto px-5 py-4">
           {step === 0 && (
             <div className="space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="month">Month (MM/YYYY)</Label>
-                <select
-                  id="month"
-                  autoFocus
-                  className="flex h-10 w-full rounded-lg border border-stone-300 bg-white px-3 text-sm dark:border-stone-600 dark:bg-stone-900"
-                  value={draft.monthKey}
-                  onChange={(e) => update({ monthKey: e.target.value })}
-                >
-                  {monthOptions.map((k) => (
-                    <option key={k} value={k}>
-                      {formatMonthKey(k)}
-                    </option>
-                  ))}
-                </select>
-              </div>
               <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 <Field
                   label={`${settings.partnerAName} Income`}
@@ -168,6 +195,7 @@ export function MonthlyWizard() {
                 >
                   <MoneyInput
                     name="pa-income"
+                    autoFocus
                     value={draft.inflows.partnerASalary}
                     onValueChange={(n) =>
                       update({
@@ -207,24 +235,67 @@ export function MonthlyWizard() {
 
           {step === 1 && (
             <div className="space-y-3">
-              {draft.outflows.map((o, idx) => (
-                <Field key={o.categoryId} label={o.categoryName} name={o.categoryId}>
-                  <MoneyInput
-                    name={o.categoryId}
-                    autoFocus={idx === 0}
-                    value={o.amount}
-                    onValueChange={(n) => {
-                      const outflows = draft.outflows.map((x) =>
-                        x.categoryId === o.categoryId ? { ...x, amount: n } : x,
-                      )
-                      update({ outflows })
-                    }}
-                  />
-                </Field>
-              ))}
-              <p className="pt-2 text-right text-sm font-medium text-stone-700 dark:text-stone-200">
-                Total expenses: {money(computed.totalOutflow)}
-              </p>
+              {addFromCard ? (
+                <AddFromCard
+                  cards={settings.cards ?? []}
+                  categories={settings.categories}
+                  mappings={settings.categoryMappings ?? []}
+                  outflows={draft.outflows}
+                  partnerAName={settings.partnerAName}
+                  partnerBName={settings.partnerBName}
+                  onCancel={() => setAddFromCard(false)}
+                  onApply={({ outflows, mappings }) => {
+                    update({ outflows })
+                    updateState((s) => ({
+                      ...s,
+                      settings: {
+                        ...s.settings,
+                        categoryMappings: mappings,
+                      },
+                    }))
+                    setAddFromCard(false)
+                  }}
+                />
+              ) : (
+                <>
+                  <div className="flex justify-end">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setAddFromCard(true)}
+                    >
+                      Add from card
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                    {draft.outflows.map((o, idx) => (
+                      <Field
+                        key={o.categoryId}
+                        label={o.categoryName}
+                        name={o.categoryId}
+                      >
+                        <MoneyInput
+                          name={o.categoryId}
+                          autoFocus={idx === 0}
+                          value={o.amount}
+                          onValueChange={(n) => {
+                            const outflows = draft.outflows.map((x) =>
+                              x.categoryId === o.categoryId
+                                ? { ...x, amount: n }
+                                : x,
+                            )
+                            update({ outflows })
+                          }}
+                        />
+                      </Field>
+                    ))}
+                  </div>
+                  <p className="pt-2 text-right text-sm font-medium text-stone-700 dark:text-stone-200">
+                    Total expenses: {money(computed.totalOutflow)}
+                  </p>
+                </>
+              )}
             </div>
           )}
 

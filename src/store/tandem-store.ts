@@ -51,6 +51,8 @@ interface TandemStore {
   github: GitHubConfig | null
   remoteSha: string | null
   syncing: boolean
+  /** True after `updateState` until a successful push/pull/unlock apply. */
+  localDirty: boolean
   lastSyncedAt: string | null
   conflict: ConflictState | null
   wizardOpen: boolean
@@ -88,6 +90,7 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
   github: null,
   remoteSha: null,
   syncing: false,
+  localDirty: false,
   lastSyncedAt: null,
   conflict: null,
   wizardOpen: false,
@@ -185,6 +188,7 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
         state: decrypted,
         remoteSha: sha,
         phase: 'ready',
+        localDirty: false,
         lastSyncedAt: new Date().toISOString(),
       })
     }
@@ -199,11 +203,14 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
               await decryptEnvelope(parseEnvelope(cached.content), password),
             )
             applyVault(decrypted, cached.content, cached.sha)
-            // Refresh from GitHub in the background (ignore network blips)
+            // Refresh from GitHub in the background (ignore network blips).
+            // Never clobber unsynced local edits (cards, categories, etc.).
             void (async () => {
               try {
+                if (get().localDirty) return
                 const remote = await fetchRemoteVault(github)
                 if (!remote) return
+                if (get().localDirty) return
                 const fresh = migrateState(
                   await decryptEnvelope(parseEnvelope(remote.content), password),
                 )
@@ -211,6 +218,7 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
                 set({
                   state: fresh,
                   remoteSha: remote.sha,
+                  localDirty: false,
                   lastSyncedAt: new Date().toISOString(),
                 })
               } catch {
@@ -272,6 +280,12 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
     const { github } = get()
     const password = getSessionPassword()
     if (!github || !password) return
+    // Header “sync” is a pull — push unsaved local edits first so cards /
+    // categories / household tweaks are not wiped by an older remote vault.
+    if (get().localDirty) {
+      await get().push('chore: save local edits before pull')
+      if (get().conflict || get().error) return
+    }
     set({ syncing: true, error: null })
     try {
       const remote = await fetchRemoteVault(github)
@@ -284,6 +298,7 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
         state: decrypted,
         remoteSha: remote.sha,
         syncing: false,
+        localDirty: false,
         lastSyncedAt: new Date().toISOString(),
         conflict: null,
       })
@@ -311,6 +326,7 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
           state: next,
           remoteSha: sha,
           syncing: false,
+          localDirty: false,
           lastSyncedAt: new Date().toISOString(),
           conflict: null,
         })
@@ -363,6 +379,7 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
         state: decrypted,
         remoteSha: sha,
         syncing: false,
+        localDirty: false,
         conflict: null,
         lastSyncedAt: new Date().toISOString(),
       })
@@ -377,7 +394,7 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
   updateState: (updater) => {
     const { state } = get()
     if (!state) return
-    set({ state: updater(state) })
+    set({ state: updater(state), localDirty: true })
   },
 
   saveMonth: async (draft) => {
@@ -447,6 +464,7 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
     set({
       state: nextState,
       remoteSha: sha,
+      localDirty: false,
       lastSyncedAt: new Date().toISOString(),
     })
   },

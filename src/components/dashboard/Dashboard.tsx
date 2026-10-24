@@ -7,7 +7,7 @@ import {
   averageMonthlyOutflow,
   computeMonthly,
   emergencyMonthsCovered,
-  emptyDraft,
+  draftForMonth,
   getLatestRecord,
   netWorthFromSnapshot,
   savingsRate,
@@ -77,34 +77,30 @@ export function Dashboard() {
               'radial-gradient(ellipse 70% 80% at 90% 10%, rgba(153,246,228,0.25), transparent 55%)',
           }}
         />
-        <div className="relative flex flex-col sm:flex-row sm:items-center">
-          <div className="grid min-w-0 flex-1 grid-cols-1 items-center gap-3 px-5 py-3 sm:grid-cols-3 sm:gap-6 sm:px-6">
-            <h1 className="min-w-0 truncate justify-self-center text-center font-[family-name:var(--font-display)] text-lg font-semibold leading-none tracking-tight text-teal-50 sm:justify-self-start sm:text-left sm:text-xl">
-              BALU
-            </h1>
-
+        <div className="relative flex flex-col gap-3 px-5 py-3 md:flex-row md:items-center md:gap-0 md:px-0 md:py-0">
+          <div className="flex w-full min-w-0 flex-1 flex-col items-center gap-3 sm:flex-row sm:justify-center md:gap-8 md:px-6 md:py-3">
             {(
               [
                 {
-                  label: 'Last updated',
-                  value: latest ? formatDateDDMMYYYY(latest.updatedAt) : '—',
-                },
-                {
                   label: 'Net worth',
                   value: money(netWorth),
+                },
+                {
+                  label: 'Last updated',
+                  value: latest ? formatDateDDMMYYYY(latest.updatedAt) : '—',
                 },
               ] as const
             ).map(({ label, value }) => (
               <div
                 key={label}
-                className="flex w-full flex-col items-end gap-1 text-right"
+                className="flex items-baseline gap-2 whitespace-nowrap"
               >
                 <p className="text-[11px] font-medium leading-none tracking-wide text-teal-200/70 uppercase">
                   {label}
                 </p>
                 <p
                   className={cn(
-                    'font-[family-name:var(--font-display)] text-lg font-semibold leading-none tabular-nums text-white sm:text-xl transition-opacity duration-700 delay-100',
+                    'font-[family-name:var(--font-display)] text-lg font-semibold leading-none tabular-nums text-white md:text-xl transition-opacity duration-700 delay-100',
                     revealed ? 'opacity-100' : 'opacity-0',
                   )}
                 >
@@ -115,7 +111,7 @@ export function Dashboard() {
           </div>
 
           {/* Button area */}
-          <div className="flex shrink-0 items-center justify-center gap-2 border-t border-white/10 px-5 py-3 sm:justify-start sm:border-t-0 sm:border-l sm:border-white/15 sm:px-5">
+          <div className="flex shrink-0 items-center justify-center gap-2 border-t border-white/10 pt-3 md:justify-start md:border-t-0 md:border-l md:border-white/15 md:px-5 md:py-3">
             {!latest && (
               <Button
                 variant="secondary"
@@ -129,10 +125,14 @@ export function Dashboard() {
             )}
             <Button
               size="sm"
-              className="bg-teal-50 text-teal-950 hover:bg-white sm:min-w-[8.5rem]"
+              className="md:min-w-[8.5rem]"
               onClick={() =>
                 openWizard(
-                  emptyDraft(toMonthKey(), settings.categories, latest),
+                  draftForMonth(
+                    state.history,
+                    toMonthKey(),
+                    settings.categories,
+                  ),
                 )
               }
             >

@@ -33,9 +33,12 @@ Do not treat the data repo as “optional secrets.” It **is** the sync store.
 | GitHub vault I/O | `src/lib/github.ts` |
 | Browser keys | `src/lib/storage.ts` |
 | Month math | `src/lib/finance.ts` |
+| Analytics (averages, trends, outlook) | `src/lib/analytics.ts` |
+| Card paste → category merge | `src/lib/card-expenses.ts` |
 | Migrations | `src/lib/migration.ts` |
 | Device invite | `src/lib/device-invite.ts` |
-| Routes / phases | `src/App.tsx` |
+| Routes / phases | `src/App.tsx` (`/`, `/history`, `/incomes`, `/expenses`, `/outlook`, `/settings`) |
+| History / Incomes / Expenses / Outlook UI | `src/components/analytics/` |
 
 ## Commands
 

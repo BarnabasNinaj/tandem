@@ -41,7 +41,13 @@ Defined in `src/store/tandem-store.ts` / gated in `src/App.tsx`:
 | Path | Screen |
 |------|--------|
 | `/` | Home (`Dashboard`) |
-| `/analytics` | Analytics (`Analytics`; `/breakdown` redirects) |
+| `/history` | History (`HistoryPage` — history charts) |
+| `/incomes` | Incomes (`IncomesPage` — income buckets only) |
+| `/expenses` | Expenses (`ExpensesPage` — category spend only) |
+| `/outlook` | Outlook (`OutlookPage` — averages & projections) |
+| `/trends` | Redirect → `/history` |
+| `/analytics` | Redirect → `/outlook` |
+| `/breakdown` | Redirect → `/history` |
 | `/settings` | `Settings` |
 
 Global overlays in `AppShell`: `MonthlyWizard`, `ConflictDialog`.
@@ -53,6 +59,8 @@ components/*     →  UI only; select store slices
 hooks/*          →  auto-lock, shortcuts, theme
 store/*          →  boot, unlock, pull/push, wizard, import
 lib/finance      →  pure month math
+lib/analytics    →  range slices, income buckets, expense grid, category trends, outlook projections
+lib/card-expenses → paste card monthly totals, map labels, merge into outflows
 lib/crypto       →  Web Crypto envelope
 lib/github       →  Contents API
 lib/storage      →  localStorage / sessionStorage keys

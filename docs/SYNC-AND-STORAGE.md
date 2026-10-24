@@ -33,15 +33,15 @@ There is **no automatic merge** of `history` months. Last writer wins on overwri
 |--------|--------|
 | `completeSetup` | Save config; pull existing vault or create+push initial |
 | `unlock` | Fetch (or session cache); decrypt; optional background refresh |
-| `pull` | Remote → decrypt → replace state |
-| `push` | Encrypt state → PUT; may set `conflict` |
+| `pull` | If `localDirty`, push first; then remote → decrypt → replace state |
+| `push` | Encrypt state → PUT; clears `localDirty`; may set `conflict` |
 | `saveMonth` | Write history key → push with `feat: track data …` |
 | `changePassword` | Re-encrypt → push |
 | `importJson` | Replace state → push |
 | `loadDemoData` | Strip old samples, merge H1 2026 → push |
 | `clearDemoData` | Remove sample month keys → push |
 
-Quiet unlock (`boot` with session password): prefer `sessionStorage` vault cache, then refresh GitHub in background (network errors ignored).
+Quiet unlock (`boot` with session password): prefer `sessionStorage` vault cache, then refresh GitHub in background (network errors ignored). Background refresh **skips** if `localDirty` so unsynced settings are not wiped.
 
 ## Commit message conventions (vault repo)
 
@@ -69,6 +69,7 @@ Every 5 seconds while open: encrypt draft with password + state salt → `tandem
 
 ## Settings persistence nuance
 
-- Household / category edits call `updateState` (memory only) until **Save & sync** (`push`).
+- Household / categories / cards / mappings call `updateState` and set `localDirty` until **Save & sync** (`push`) or a successful pull that pushed first.
+- Header sync icon is a **pull**; if `localDirty`, it **pushes local edits first** so cards/categories are not replaced by an older remote vault.
 - GitHub credential **Update** writes `localStorage` immediately; next sync uses new PAT.
-- Leaving settings without Save & sync can lose in-memory settings on lock/refresh (session cache has last **pushed** ciphertext, not unsynced edits — after quiet unlock, background pull may also overwrite unsynced local edits). Prefer always syncing after edits.
+- Lock still drops memory — unsynced edits are lost on lock unless you Save & sync first.

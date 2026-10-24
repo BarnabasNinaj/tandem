@@ -13,6 +13,7 @@ alwaysApply: false
 - Setup/lock stay on light canvas (`.logo-mark-on-light`)
 
 Tone: private couple’s OS — not bank SaaS. Sync = “vault / GitHub”, not “our cloud.”
+Never show formula letters (X / Y / Z) in UI copy — use plain words (income, expenses, left after expenses, pocket).
 
 ## Dates & money
 
@@ -23,10 +24,13 @@ Tone: private couple’s OS — not bank SaaS. Sync = “vault / GitHub”, not 
 ## Structure
 
 - Primitives: `src/components/ui/*`
-- Nav: Home, Analytics, Settings
+- Nav: Home, History, Incomes, Expenses, Outlook (text); Settings as header icon with sync/theme/lock
+- Settings uses sticky sub-tabs: Household / Categories / Cards / Sync / Security / Data
 - Track Data steps: **Incomes**, **Expenses**, Allocations (not “Inflows/Outflows”)
-- Analytics charts: varied series hues (not all teal) so categories/income/expense read clearly
-- Prefer existing Button/Card/Input patterns and stone/teal Tailwind usage
+- History = charts over tracked months (varied series hues, not all teal); Outlook = planning (averages/projections)
+- History/Outlook range toggle sticks under the app header while scrolling
+- Prefer existing Button/Card/Input/Select patterns and stone/teal Tailwind usage
+- Dropdowns: always `Select` from `src/components/ui/select.tsx` (appearance-none + inset ChevronDown) — no raw browser `<select>`
 - Clickable controls: `cursor-pointer` on hover (Button base + nav / raw `<button>`s)
 - Motion: subtle (`fadeUp`, hero reveal) — not noisy
 

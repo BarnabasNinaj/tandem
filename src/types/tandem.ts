@@ -58,6 +58,31 @@ export interface ExpenseCategory {
   isDefault: boolean
 }
 
+/** Who the card belongs to — personal or the household common card. */
+export type CardOwner = 'partnerA' | 'partnerB' | 'common'
+
+/** Physical / virtual card used when pasting monthly category totals. */
+export interface ExpenseCard {
+  id: string
+  name: string
+  /**
+   * Personal cards vs household common card.
+   * Common *spend* can still be paid from personal cards — owner is the
+   * payment method you paste from, not “was this a shared expense?”.
+   */
+  owner: CardOwner
+}
+
+/**
+ * Remembers how a bank/card category label maps onto a Tandem category.
+ * Lookup is by `key` (normalized); `label` is the last-seen display form.
+ */
+export interface BankCategoryMapping {
+  key: string
+  label: string
+  categoryId: string
+}
+
 export interface TandemSettings {
   /** Always `€` — kept in vault for schema stability; not user-editable. */
   currencySymbol: string
@@ -70,6 +95,10 @@ export interface TandemSettings {
   /** Splits expenses + pocket: `equal` 50/50, or `income` Barney/Lucka ratio (Other excluded). */
   allowanceSplit: AllowanceSplit
   categories: ExpenseCategory[]
+  /** Cards used in Track Data → Add from card. */
+  cards: ExpenseCard[]
+  /** Bank/card label → Tandem category (shared household rules). */
+  categoryMappings: BankCategoryMapping[]
   autoLockMinutes: number
 }
 

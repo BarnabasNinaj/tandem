@@ -1,0 +1,420 @@
+import { formatMonthKey, toMonthKey } from './dates'
+import { round2 } from './number'
+import type { MonthlyRecord } from '@/types/tandem'
+
+export type AnalyticsRange = '3M' | '6M' | '1Y' | 'All'
+
+export function rangeLimit(range: AnalyticsRange, total: number): number {
+  if (range === 'All') return total
+  if (range === '3M') return 3
+  if (range === '6M') return 6
+  return 12
+}
+
+/** Chronological slice of history for the selected range. */
+export function sliceHistory(
+  history: Record<string, MonthlyRecord>,
+  range: AnalyticsRange,
+): MonthlyRecord[] {
+  const all = Object.values(history).sort((a, b) =>
+    a.monthKey.localeCompare(b.monthKey),
+  )
+  return all.slice(-rangeLimit(range, all.length))
+}
+
+/** Add `delta` calendar months to a `YYYY-MM` key. */
+export function shiftMonthKey(monthKey: string, delta: number): string {
+  const [ys, ms] = monthKey.split('-')
+  const y = Number(ys)
+  const m = Number(ms)
+  if (!y || !m) return monthKey
+  const d = new Date(y, m - 1 + delta, 1)
+  return toMonthKey(d)
+}
+
+/** Ordinary least-squares slope for equally spaced samples (Δ per step). */
+export function linearSlope(values: number[]): number {
+  const n = values.length
+  if (n < 2) return 0
+  let sumX = 0
+  let sumY = 0
+  let sumXY = 0
+  let sumXX = 0
+  for (let i = 0; i < n; i++) {
+    const x = i
+    const y = values[i]!
+    sumX += x
+    sumY += y
+    sumXY += x * y
+    sumXX += x * x
+  }
+  const denom = n * sumXX - sumX * sumX
+  if (denom === 0) return 0
+  return (n * sumXY - sumX * sumY) / denom
+}
+
+export interface CategoryStats {
+  categoryId: string
+  categoryName: string
+  /** Mean monthly spend across months in range (0 when absent). */
+  average: number
+  total: number
+  /** Months where the category appeared with any amount (incl. 0 rows). */
+  months: number
+  lastAmount: number
+  /** € change per month from linear fit; 0 if &lt; 2 points. */
+  slope: number
+}
+
+function outflowByCategory(record: MonthlyRecord): Map<string, number> {
+  const map = new Map<string, number>()
+  for (const o of record.outflows) {
+    const key = o.categoryId || o.categoryName
+    map.set(key, round2((map.get(key) ?? 0) + (o.amount || 0)))
+  }
+  return map
+}
+
+/** Per-category averages, last amount, and trend slope over the range. */
+export function categoryStats(records: MonthlyRecord[]): CategoryStats[] {
+  if (records.length === 0) return []
+
+  const meta = new Map<string, { categoryId: string; categoryName: string }>()
+  for (const r of records) {
+    for (const o of r.outflows) {
+      const key = o.categoryId || o.categoryName
+      meta.set(key, {
+        categoryId: o.categoryId,
+        categoryName: o.categoryName,
+      })
+    }
+  }
+
+  const n = records.length
+  const perMonth = records.map(outflowByCategory)
+
+  return Array.from(meta.entries())
+    .map(([key, m]) => {
+      const amounts = perMonth.map((map) => map.get(key) ?? 0)
+      const total = round2(amounts.reduce((s, a) => s + a, 0))
+      return {
+        categoryId: m.categoryId,
+        categoryName: m.categoryName,
+        average: round2(total / n),
+        total,
+        months: n,
+        lastAmount: amounts[n - 1] ?? 0,
+        slope: round2(linearSlope(amounts)),
+      }
+    })
+    .sort((a, b) => b.average - a.average)
+}
+
+/** Wide series for multi-line category chart: one row per month. */
+export function categoryTrendSeries(
+  records: MonthlyRecord[],
+  categoryNames: string[],
+): Array<Record<string, string | number>> {
+  return records.map((r) => {
+    const byName = new Map<string, number>()
+    for (const o of r.outflows) {
+      byName.set(
+        o.categoryName,
+        round2((byName.get(o.categoryName) ?? 0) + (o.amount || 0)),
+      )
+    }
+    const row: Record<string, string | number> = {
+      month: formatMonthKey(r.monthKey),
+      monthKey: r.monthKey,
+    }
+    for (const name of categoryNames) {
+      row[name] = byName.get(name) ?? 0
+    }
+    return row
+  })
+}
+
+export interface MonthOutlook {
+  sampleSize: number
+  avgIncome: number
+  avgExpense: number
+  avgPocket: number
+  avgLeftover: number
+  avgSavingsRate: number
+  /** Calendar month being planned (usually "now"). */
+  focusMonthKey: string
+  focusLabel: string
+  /** True when focus month already has a saved record. */
+  focusRecorded: boolean
+  focusIncome: number | null
+  focusExpense: number | null
+  focusIncomeDelta: number | null
+  focusExpenseDelta: number | null
+  /** Next months at trailing averages (forward look). */
+  projected: Array<{
+    monthKey: string
+    label: string
+    income: number
+    expense: number
+    pocket: number
+  }>
+}
+
+function mean(nums: number[]): number {
+  if (nums.length === 0) return 0
+  return round2(nums.reduce((s, n) => s + n, 0) / nums.length)
+}
+
+/**
+ * Forward-looking month plan from trailing history.
+ * Averages use all `records` (already range-sliced). Projections start after
+ * the latest recorded month (or focus month if empty history edge).
+ */
+export function buildMonthOutlook(
+  records: MonthlyRecord[],
+  opts?: { focusMonthKey?: string; projectMonths?: number },
+): MonthOutlook | null {
+  if (records.length === 0) return null
+
+  const focusMonthKey = opts?.focusMonthKey ?? toMonthKey()
+  const projectMonths = opts?.projectMonths ?? 3
+  const latestKey = records[records.length - 1]!.monthKey
+  const focus = records.find((r) => r.monthKey === focusMonthKey)
+
+  const avgIncome = mean(records.map((r) => r.computed.totalInflow))
+  const avgExpense = mean(records.map((r) => r.computed.totalOutflow))
+  const avgPocket = mean(records.map((r) => r.computed.discretionarySurplus))
+  const avgLeftover = mean(records.map((r) => r.computed.leftoverAfterExpenses))
+  const rates = records
+    .filter((r) => r.computed.totalInflow > 0)
+    .map((r) =>
+      round2(
+        ((r.computed.totalInflow - r.computed.totalOutflow) /
+          r.computed.totalInflow) *
+          100,
+      ),
+    )
+  const avgSavingsRate = mean(rates)
+
+  const focusIncome = focus ? focus.computed.totalInflow : null
+  const focusExpense = focus ? focus.computed.totalOutflow : null
+
+  const projected: MonthOutlook['projected'] = []
+  // Start projecting from the month after the latest data point
+  let cursor = latestKey
+  for (let i = 0; i < projectMonths; i++) {
+    cursor = shiftMonthKey(cursor, 1)
+    projected.push({
+      monthKey: cursor,
+      label: formatMonthKey(cursor),
+      income: avgIncome,
+      expense: avgExpense,
+      pocket: avgPocket,
+    })
+  }
+
+  return {
+    sampleSize: records.length,
+    avgIncome,
+    avgExpense,
+    avgPocket,
+    avgLeftover,
+    avgSavingsRate,
+    focusMonthKey,
+    focusLabel: formatMonthKey(focusMonthKey),
+    focusRecorded: Boolean(focus),
+    focusIncome,
+    focusExpense,
+    focusIncomeDelta:
+      focusIncome !== null ? round2(focusIncome - avgIncome) : null,
+    focusExpenseDelta:
+      focusExpense !== null ? round2(focusExpense - avgExpense) : null,
+    projected,
+  }
+}
+
+export interface FlowPoint {
+  month: string
+  monthKey: string
+  income: number | null
+  expense: number | null
+  projectedIncome?: number | null
+  projectedExpense?: number | null
+  kind: 'actual' | 'projected'
+}
+
+/** Income/expense bars plus trailing average projections. */
+export function incomeExpenseWithProjection(
+  records: MonthlyRecord[],
+  projectMonths = 3,
+): FlowPoint[] {
+  if (records.length === 0) return []
+  const avgIncome = mean(records.map((r) => r.computed.totalInflow))
+  const avgExpense = mean(records.map((r) => r.computed.totalOutflow))
+
+  const actual: FlowPoint[] = records.map((r) => ({
+    month: formatMonthKey(r.monthKey),
+    monthKey: r.monthKey,
+    income: r.computed.totalInflow,
+    expense: r.computed.totalOutflow,
+    projectedIncome: null,
+    projectedExpense: null,
+    kind: 'actual',
+  }))
+
+  // Bridge point: last actual also carries projected values for a continuous line
+  const last = actual[actual.length - 1]!
+  last.projectedIncome = last.income
+  last.projectedExpense = last.expense
+
+  let cursor = last.monthKey
+  for (let i = 0; i < projectMonths; i++) {
+    cursor = shiftMonthKey(cursor, 1)
+    actual.push({
+      month: formatMonthKey(cursor),
+      monthKey: cursor,
+      income: null,
+      expense: null,
+      projectedIncome: avgIncome,
+      projectedExpense: avgExpense,
+      kind: 'projected',
+    })
+  }
+  return actual
+}
+
+export interface NetWorthPoint {
+  month: string
+  monthKey: string
+  value: number | null
+  projected: number | null
+  kind: 'actual' | 'projected'
+}
+
+/**
+ * Net-worth series with forward path: last NW + avg monthly leftover (Z).
+ */
+export function netWorthWithProjection(
+  records: MonthlyRecord[],
+  netWorthOf: (r: MonthlyRecord) => number,
+  projectMonths = 3,
+): NetWorthPoint[] {
+  if (records.length === 0) return []
+  const avgZ = mean(records.map((r) => r.computed.leftoverAfterExpenses))
+
+  const actual: NetWorthPoint[] = records.map((r) => ({
+    month: formatMonthKey(r.monthKey),
+    monthKey: r.monthKey,
+    value: netWorthOf(r),
+    projected: null,
+    kind: 'actual',
+  }))
+
+  const last = actual[actual.length - 1]!
+  last.projected = last.value
+
+  let cursor = last.monthKey
+  let nw = last.value ?? 0
+  for (let i = 0; i < projectMonths; i++) {
+    cursor = shiftMonthKey(cursor, 1)
+    nw = round2(nw + avgZ)
+    actual.push({
+      month: formatMonthKey(cursor),
+      monthKey: cursor,
+      value: null,
+      projected: nw,
+      kind: 'projected',
+    })
+  }
+  return actual
+}
+
+export interface IncomeMonth {
+  monthKey: string
+  label: string
+  partnerA: number
+  partnerB: number
+  other: number
+  total: number
+}
+
+/** Income buckets only — Barney / Lucka / Other plus the month total. */
+export function incomeMonths(records: MonthlyRecord[]): IncomeMonth[] {
+  return records.map((r) => ({
+    monthKey: r.monthKey,
+    label: formatMonthKey(r.monthKey),
+    partnerA: r.inflows.partnerASalary,
+    partnerB: r.inflows.partnerBIncome,
+    other: r.inflows.otherInflows,
+    total: r.computed.totalInflow,
+  }))
+}
+
+export interface IncomeSummary {
+  partnerA: number
+  partnerB: number
+  other: number
+  total: number
+  avgPartnerA: number
+  avgPartnerB: number
+  avgOther: number
+  avgTotal: number
+}
+
+export function summarizeIncomes(rows: IncomeMonth[]): IncomeSummary | null {
+  if (rows.length === 0) return null
+  const partnerA = round2(rows.reduce((s, r) => s + r.partnerA, 0))
+  const partnerB = round2(rows.reduce((s, r) => s + r.partnerB, 0))
+  const other = round2(rows.reduce((s, r) => s + r.other, 0))
+  const total = round2(rows.reduce((s, r) => s + r.total, 0))
+  const n = rows.length
+  return {
+    partnerA,
+    partnerB,
+    other,
+    total,
+    avgPartnerA: round2(partnerA / n),
+    avgPartnerB: round2(partnerB / n),
+    avgOther: round2(other / n),
+    avgTotal: round2(total / n),
+  }
+}
+
+export interface ExpenseGrid {
+  categories: Array<{ id: string; name: string; total: number }>
+  rows: Array<{
+    monthKey: string
+    label: string
+    byCategory: Record<string, number>
+    total: number
+  }>
+}
+
+/** Expenses only: one row per month, one column per category that appears. */
+export function expenseGrid(records: MonthlyRecord[]): ExpenseGrid {
+  const totals = new Map<string, { name: string; total: number }>()
+  const rows = records.map((r) => {
+    const byCategory: Record<string, number> = {}
+    for (const o of r.outflows) {
+      const id = o.categoryId || o.categoryName
+      byCategory[id] = round2((byCategory[id] ?? 0) + (o.amount || 0))
+      const prev = totals.get(id)
+      totals.set(id, {
+        name: o.categoryName,
+        total: round2((prev?.total ?? 0) + (o.amount || 0)),
+      })
+    }
+    return {
+      monthKey: r.monthKey,
+      label: formatMonthKey(r.monthKey),
+      byCategory,
+      total: r.computed.totalOutflow,
+    }
+  })
+
+  const categories = Array.from(totals.entries())
+    .map(([id, meta]) => ({ id, name: meta.name, total: meta.total }))
+    .sort((a, b) => b.total - a.total)
+
+  return { categories, rows }
+}

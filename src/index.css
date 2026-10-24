@@ -73,3 +73,17 @@ body {
 ::selection {
   background: rgba(15, 118, 110, 0.28);
 }
+
+/* Recharts paints a white focus ring on click — kill it. */
+.recharts-wrapper,
+.recharts-wrapper *:focus,
+.recharts-surface:focus,
+.recharts-sector:focus,
+.recharts-layer:focus,
+.recharts-pie-sector:focus {
+  outline: none !important;
+}
+
+.recharts-sector {
+  stroke: none;
+}

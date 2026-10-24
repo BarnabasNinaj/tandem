@@ -22,9 +22,9 @@ The design matches the product claim: **static PWA + encrypted GitHub vault**, c
 
 Was: `createInitialState()` seeded demo months by default. **Now:** empty history by default; `completeSetup` / empty-remote unlock pass `withDemoData: false`; samples only via Settings or `withDemoData: true`.
 
-#### C2 — Unsynced Settings can vanish (Medium)
+#### C2 — Unsynced Settings can vanish (Medium) — **mitigated (C2A)**
 
-Category/household fields call `updateState` only. Persistence is explicit `push` (“Save & sync”). Lock drops memory; quiet unlock restores **last pushed** ciphertext; background GitHub refresh can overwrite unsynced edits. Impact: silent loss of names/categories/auto-lock. **Fix:** dirty banner, warn on lock/navigate, or autosync; optionally refuse pull while dirty.
+Was: pull / background refresh could wipe in-memory Settings (cards, categories, etc.). **Now:** `localDirty` after `updateState`; pull pushes local first when dirty; quiet-unlock background refresh skips while dirty; Categories/Cards tabs have **Save & sync**. **Still open:** lock without Save & sync still drops unsynced memory — dirty banner on lock would close the rest.
 
 #### C1 — Conflicts are pull or overwrite (Medium)
 
@@ -53,7 +53,7 @@ Finance math, crypto round-trip, migrations, and invite codec have no unit cover
 
 ### Next
 
-1. C2 — dirty Settings UX or autosync.
+1. C2 — dirty banner / warn on lock (pull overwrite mitigated in C2A).
 2. C1 — richer conflict dialog (month keys / timestamps).
 3. T1 — unit tests for finance, crypto, migrate, invite.
 4. S1/S8 — self-host fonts; optional CSP headers on Vercel.
@@ -128,7 +128,7 @@ Goal: catch vault/math regressions without a heavyweight QA program.
 | ID | Severity | Finding |
 |----|----------|---------|
 | C1 | Medium | No merge of month histories — overwrite discards remote |
-| C2 | Medium | Unsynced Settings edits can be lost on lock or overwritten by background pull after refresh |
+| C2 | Medium | Unsynced Settings lost on pull/background refresh — **mitigated (C2A)** (`localDirty`, push-before-pull); lock without Save still drops memory |
 | C3 | Low | ~~defaults to demo months~~ → **C3A done:** empty history by default; demo via Settings / `withDemoData: true` |
 | C4 | Low | GitHub `atob` decode path vs `btoa(unescape(encodeURIComponent))` encode — OK for ASCII JSON envelope; watch if envelope ever gains non-Latin1 outside JSON.stringify norms |
 | C5 | Info | Retries don’t handle secondary rate-limit UX beyond generic errors |

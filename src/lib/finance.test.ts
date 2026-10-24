@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import {
   buildMonthlyRecord,
   computeMonthly,
+  draftForMonth,
+  draftFromRecord,
   emptyDraft,
   netWorthFromSnapshot,
   savingsRate,
@@ -132,5 +134,48 @@ describe('buildMonthlyRecord / savings / net worth', () => {
     expect(draft.inflows.partnerASalary).toBe(2800)
     expect(draft.portfolioSnapshot.liquidCashBalance).toBe(1234)
     expect(draft.outflows).toHaveLength(DEFAULT_CATEGORIES.length)
+  })
+})
+
+describe('draftFromRecord / draftForMonth', () => {
+  it('reloads a saved month for editing', () => {
+    const saved = buildMonthlyRecord({
+      ...emptyDraft('2026-03', DEFAULT_CATEGORIES),
+      inflows: {
+        partnerASalary: 2800,
+        partnerBIncome: 2100,
+        otherInflows: 50,
+      },
+      outflows: DEFAULT_CATEGORIES.map((c) => ({
+        categoryId: c.id,
+        categoryName: c.name,
+        amount: c.id === 'groceries' ? 400 : 0,
+      })),
+    })
+    const draft = draftFromRecord(saved, DEFAULT_CATEGORIES)
+    expect(draft.monthKey).toBe('2026-03')
+    expect(draft.inflows.partnerASalary).toBe(2800)
+    expect(draft.outflows.find((o) => o.categoryId === 'groceries')?.amount).toBe(
+      400,
+    )
+  })
+
+  it('draftForMonth loads existing or seeds a new month', () => {
+    const saved = buildMonthlyRecord({
+      ...emptyDraft('2026-03', DEFAULT_CATEGORIES),
+      inflows: {
+        partnerASalary: 2800,
+        partnerBIncome: 1000,
+        otherInflows: 0,
+      },
+    })
+    const history = { '2026-03': saved }
+    expect(draftForMonth(history, '2026-03', DEFAULT_CATEGORIES).inflows.partnerASalary).toBe(
+      2800,
+    )
+    const next = draftForMonth(history, '2026-04', DEFAULT_CATEGORIES)
+    expect(next.monthKey).toBe('2026-04')
+    expect(next.inflows.partnerASalary).toBe(2800)
+    expect(next.outflows.every((o) => o.amount === 0)).toBe(true)
   })
 })

@@ -236,3 +236,40 @@ export function emptyDraft(
         },
   }
 }
+
+/** Open an already-saved month for edit (aligns outflows to current categories). */
+export function draftFromRecord(
+  record: MonthlyRecord,
+  categories: TandemSettings['categories'],
+): WizardDraft {
+  const byId = new Map(record.outflows.map((o) => [o.categoryId, o.amount]))
+  return {
+    monthKey: record.monthKey,
+    inflows: { ...record.inflows },
+    outflows: categories.map((c) => ({
+      categoryId: c.id,
+      categoryName: c.name,
+      amount: byId.get(c.id) ?? 0,
+    })),
+    allocations: { ...record.allocations },
+    portfolioSnapshot: { ...record.portfolioSnapshot },
+    notes: record.notes,
+  }
+}
+
+/**
+ * Draft for a month key: load saved record if present, otherwise empty
+ * (seeded from the latest prior month when available).
+ */
+export function draftForMonth(
+  history: Record<string, MonthlyRecord>,
+  monthKey: string,
+  categories: TandemSettings['categories'],
+): WizardDraft {
+  const existing = history[monthKey]
+  if (existing) return draftFromRecord(existing, categories)
+  const prior = Object.values(history)
+    .filter((r) => r.monthKey < monthKey)
+    .sort((a, b) => b.monthKey.localeCompare(a.monthKey))[0]
+  return emptyDraft(monthKey, categories, prior)
+}

@@ -1,12 +1,15 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import {
   BarChart3,
+  Compass,
   Home,
   Lock,
   Moon,
+  Receipt,
   RefreshCw,
   Settings,
   Sun,
+  Wallet,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { MonthlyWizard } from '@/components/wizard/MonthlyWizard'
@@ -18,14 +21,17 @@ import { useTandemStore } from '@/store/tandem-store'
 
 const NAV = [
   { to: '/', label: 'Home', icon: Home, end: true },
-  { to: '/analytics', label: 'Analytics', icon: BarChart3 },
-  { to: '/settings', label: 'Settings', icon: Settings },
+  { to: '/history', label: 'History', icon: BarChart3 },
+  { to: '/incomes', label: 'Incomes', icon: Wallet },
+  { to: '/expenses', label: 'Expenses', icon: Receipt },
+  { to: '/outlook', label: 'Outlook', icon: Compass },
 ]
 
 export function AppShell() {
   const lock = useTandemStore((s) => s.lock)
   const pull = useTandemStore((s) => s.pull)
   const syncing = useTandemStore((s) => s.syncing)
+  const localDirty = useTandemStore((s) => s.localDirty)
   const lastSyncedAt = useTandemStore((s) => s.lastSyncedAt)
   const error = useTandemStore((s) => s.error)
   const { theme, toggle } = useTheme()
@@ -43,40 +49,76 @@ export function AppShell() {
       <header className="sticky top-0 z-40 border-b border-stone-300 bg-[var(--surface)]/85 backdrop-blur-md dark:border-stone-800">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">
           <div className="flex items-center gap-6">
-            <span className="logo-mark text-xl">Tandem</span>
+            <NavLink
+              to="/"
+              end
+              className="logo-mark cursor-pointer text-xl"
+              title="Home"
+              aria-label="Home"
+            >
+              Tandem
+            </NavLink>
             <nav className="hidden items-center gap-1 sm:flex">
-              {NAV.map(({ to, label, icon: Icon, end }) => (
+              {NAV.map(({ to, label, end }) => (
                 <NavLink
                   key={to}
                   to={to}
                   end={end}
                   className={({ isActive }) =>
                     cn(
-                      'inline-flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
+                      'inline-flex cursor-pointer items-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors',
                       isActive
                         ? 'bg-teal-700/10 text-teal-900 dark:bg-teal-400/10 dark:text-teal-200'
                         : 'text-stone-700 hover:bg-stone-200/70 dark:text-stone-400 dark:hover:bg-stone-800',
                     )
                   }
                 >
-                  <Icon className="h-4 w-4" />
                   {label}
                 </NavLink>
               ))}
             </nav>
           </div>
           <div className="flex items-center gap-1">
-            {lastSyncedAt && (
-              <span className="mr-2 hidden text-[11px] text-stone-700 dark:text-stone-400 md:inline">
-                Synced {formatDateTimeDDMMYYYY(lastSyncedAt)}
-              </span>
-            )}
+            <NavLink
+              to="/settings"
+              title="Settings"
+              aria-label="Settings"
+              className={({ isActive }) =>
+                cn(
+                  'inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg transition-colors',
+                  isActive
+                    ? 'bg-teal-700/10 text-teal-900 dark:bg-teal-400/10 dark:text-teal-200'
+                    : 'text-stone-700 hover:bg-stone-200/70 dark:text-stone-400 dark:hover:bg-stone-800',
+                )
+              }
+            >
+              <Settings className="h-4 w-4" />
+            </NavLink>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => void pull()}
               disabled={syncing}
-              aria-label="Pull from GitHub"
+              title={
+                syncing
+                  ? 'Syncing…'
+                  : localDirty
+                    ? lastSyncedAt
+                      ? `Unsaved local edits — will push then pull. Last Synced ${formatDateTimeDDMMYYYY(lastSyncedAt)}`
+                      : 'Unsaved local edits — will push then pull'
+                    : lastSyncedAt
+                      ? `Last Synced ${formatDateTimeDDMMYYYY(lastSyncedAt)}`
+                      : 'Pull from GitHub'
+              }
+              aria-label={
+                syncing
+                  ? 'Syncing'
+                  : localDirty
+                    ? 'Sync vault. Unsaved local edits will be pushed first'
+                    : lastSyncedAt
+                      ? `Pull from GitHub. Last Synced ${formatDateTimeDDMMYYYY(lastSyncedAt)}`
+                      : 'Pull from GitHub'
+              }
             >
               <RefreshCw
                 className={cn('h-4 w-4', syncing && 'animate-spin')}
@@ -86,7 +128,10 @@ export function AppShell() {
               variant="ghost"
               size="icon"
               onClick={toggle}
-              aria-label="Toggle theme"
+              title={theme === 'dark' ? 'Switch to light' : 'Switch to dark'}
+              aria-label={
+                theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
+              }
             >
               {theme === 'dark' ? (
                 <Sun className="h-4 w-4" />
@@ -94,7 +139,13 @@ export function AppShell() {
                 <Moon className="h-4 w-4" />
               )}
             </Button>
-            <Button variant="ghost" size="icon" onClick={lock} aria-label="Lock">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={lock}
+              title="Lock"
+              aria-label="Lock vault"
+            >
               <Lock className="h-4 w-4" />
             </Button>
           </div>
