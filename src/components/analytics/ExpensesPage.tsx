@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Bar,
   BarChart,
@@ -28,8 +29,9 @@ import { formatMoney, round2 } from '@/lib/number'
 import { useTandemStore } from '@/store/tandem-store'
 
 export function ExpensesPage() {
+  const navigate = useNavigate()
   const state = useTandemStore((s) => s.state)!
-  const openWizard = useTandemStore((s) => s.openWizard)
+  const startTracking = useTandemStore((s) => s.startTracking)
   const [range, setRange] = useState<AnalyticsRange>('6M')
   const money = formatMoney
 
@@ -199,15 +201,16 @@ export function ExpensesPage() {
                             variant="ghost"
                             size="sm"
                             className="h-7 px-2 text-xs"
-                            onClick={() =>
-                              openWizard(
+                            onClick={() => {
+                              startTracking(
                                 draftForMonth(
                                   state.history,
                                   r.monthKey,
                                   state.settings.categories,
                                 ),
                               )
-                            }
+                              navigate('/')
+                            }}
                           >
                             Edit
                           </Button>

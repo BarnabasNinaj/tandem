@@ -59,8 +59,8 @@ Partner devices: Settings → Add a device (QR embeds sync credentials, **not** 
 
 ## Shortcuts
 
-- `Ctrl/Cmd + N` — Track Data wizard
-- `Ctrl/Cmd + S` — save month / push vault
+- `Ctrl/Cmd + N` — start tracking current month on Track
+- `Ctrl/Cmd + S` — save month (if editing) / push vault
 
 ## Conventions
 

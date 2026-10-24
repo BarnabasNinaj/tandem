@@ -40,7 +40,8 @@ Do not treat the data repo as “optional secrets.” It **is** the sync store.
 | Device invite | `src/lib/device-invite.ts` |
 | Auth canvas (boot/setup/lock) | `src/components/lock/AuthShell.tsx` + `public/auth-shell.css` |
 | Self-hosted fonts | `public/fonts/` + `src/lib/fonts.css` |
-| Routes / phases | `src/App.tsx` (`/`, `/history`, `/incomes`, `/expenses`, `/outlook`, `/settings`) |
+| Routes / phases | `src/App.tsx` (`/` Track, `/history`, `/incomes`, `/expenses`, `/outlook`, `/settings`) |
+| Track (month entry) | `src/components/track/TrackPage.tsx` + `MonthEditor.tsx` (`AddFromCard` in `wizard/`) |
 | History / Incomes / Expenses / Outlook UI | `src/components/analytics/` |
 
 ## Commands

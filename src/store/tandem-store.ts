@@ -55,7 +55,7 @@ interface TandemStore {
   localDirty: boolean
   lastSyncedAt: string | null
   conflict: ConflictState | null
-  wizardOpen: boolean
+  /** Active month form on Track; null = hub. */
   wizardDraft: WizardDraft | null
 
   boot: () => Promise<void>
@@ -70,8 +70,8 @@ interface TandemStore {
   resolveConflict: (action: 'pull' | 'overwrite') => Promise<void>
   updateState: (updater: (s: TandemState) => TandemState) => void
   saveMonth: (draft: WizardDraft) => Promise<void>
-  openWizard: (draft?: WizardDraft) => void
-  closeWizard: () => void
+  startTracking: (draft: WizardDraft) => void
+  cancelTracking: () => void
   setWizardDraft: (draft: WizardDraft) => void
   autosaveDraft: () => Promise<void>
   restoreDraft: () => Promise<WizardDraft | null>
@@ -111,7 +111,6 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
   localDirty: false,
   lastSyncedAt: null,
   conflict: null,
-  wizardOpen: false,
   wizardDraft: null,
 
   boot: async () => {
@@ -287,7 +286,6 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
     set({
       state: null,
       phase: 'locked',
-      wizardOpen: false,
       wizardDraft: null,
       conflict: null,
       error: null,
@@ -424,16 +422,16 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
       history: { ...s.history, [record.monthKey]: record },
     }))
     clearEncryptedDraft()
-    set({ wizardOpen: false, wizardDraft: null })
+    set({ wizardDraft: null })
     await get().push(`feat: track data ${record.monthKey}`)
   },
 
-  openWizard: (draft) => {
-    set({ wizardOpen: true, wizardDraft: draft ?? null })
+  startTracking: (draft) => {
+    set({ wizardDraft: draft })
   },
 
-  closeWizard: () => {
-    set({ wizardOpen: false })
+  cancelTracking: () => {
+    set({ wizardDraft: null })
   },
 
   setWizardDraft: (draft) => {

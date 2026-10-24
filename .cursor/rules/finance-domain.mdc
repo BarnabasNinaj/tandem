@@ -1,6 +1,6 @@
 ---
 description: Month math, money rounding, vault schema
-globs: src/lib/finance.ts,src/lib/number.ts,src/lib/migration.ts,src/lib/demo-data.ts,src/types/tandem.ts,src/components/wizard/**/*,src/components/dashboard/**/*,src/components/analytics/**/*
+globs: src/lib/finance.ts,src/lib/number.ts,src/lib/migration.ts,src/lib/demo-data.ts,src/types/tandem.ts,src/components/wizard/**/*,src/components/track/**/*,src/components/analytics/**/*
 alwaysApply: false
 ---
 
@@ -17,9 +17,9 @@ pocket = Z − allocations
 Always build months with `buildMonthlyRecord(draft, split)` / `computeMonthly(..., split)`. Use `round2` for money.
 Money display is always EUR (`CURRENCY_SYMBOL` / `CURRENCY_LOCALE` in `number.ts`) — do not re-add currency Settings.
 UI: **Incomes** / **Expenses** (schema still `inflows` / `outflows`). Incomes are only three buckets: Barney / Lucka / Other. No `childSupport` field.
-Split toggle: Settings + Track Data bar (`settings.allowanceSplit`).
+Split toggle: Settings + Track editor bar (`settings.allowanceSplit`).
 
-Banks live in `settings.banks`; cards in `settings.cards` (`bankId` required). Card `owner`: `partnerA` | `partnerB` | `common`. Labels → categories are `settings.categoryMappings` scoped by `bankId` (shared across cards of that bank). Track Data → **Add from card** enters amounts per bank label and merges into `outflows` via `card-expenses.ts`.
+Banks live in `settings.banks`; cards in `settings.cards` (`bankId` required). Card `owner`: `partnerA` | `partnerB` | `common`. Labels → categories are `settings.categoryMappings` scoped by `bankId` (shared across cards of that bank). Track editor → **Add from card** enters amounts per bank label and merges into `outflows` via `card-expenses.ts`.
 
 - Net worth = sum of portfolio snapshot balances
 - Savings rate = (X − Y) / X; allocations come from Z

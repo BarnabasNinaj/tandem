@@ -40,7 +40,7 @@ type MonthSpec = {
 }
 
 /**
- * Synthetic H1 2026 closes for exploring Home, History, Incomes, Expenses & Outlook.
+ * Synthetic H1 2026 closes for exploring Track, History, Incomes, Expenses & Outlook.
  * Numbers are fictional — never real household data.
  */
 const H1_SPECS: MonthSpec[] = [

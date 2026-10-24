@@ -53,7 +53,7 @@ Built by `buildMonthlyRecord` in `finance.ts` (never hand-roll `computed`).
 
 **Expenses** (UI; stored as `outflows`): `{ categoryId, categoryName, amount }[]`
 
-**Add from card (Track Data → Expenses):** pick a card → enter amounts for that **bank’s** remembered labels (each mapped to a household category) → **merge** (add) into `outflows`. New labels can be added inline and are saved on the bank. Cards themselves are not stored on the month — only the rolled-up categories. Merge/mappings: `src/lib/card-expenses.ts`.
+**Add from card (Track editor → Expenses):** pick a card → enter amounts for that **bank’s** remembered labels (each mapped to a household category) → **merge** (add) into `outflows`. New labels can be added inline and are saved on the bank. Cards themselves are not stored on the month — only the rolled-up categories. Merge/mappings: `src/lib/card-expenses.ts`.
 
 **Allocations (this month’s transfers off the spending pool):**  
 `emergencyReserve`, `travelFund`, `investments`
@@ -80,7 +80,7 @@ personalAllowancePerPartner     // pocket/2 reference
 
 All money values rounded with `round2`.
 
-**Net worth (dashboard):** sum of portfolio snapshot balances (not a separate stored field).
+**Net worth:** sum of portfolio snapshot balances (not a separate stored field); shown on History charts.
 
 **Savings rate:** `(totalInflow − totalOutflow) / totalInflow * 100` — Z counts as saved (allocations come from Z).
 
@@ -100,11 +100,11 @@ Focus month defaults to the current calendar month (`toMonthKey()`). If that mon
 
 UI slices of the same history (no extra stored fields): `/history` (mixed charts), `/incomes` (`incomeMonths` — three buckets only), `/expenses` (`expenseGrid` — category columns only), `/outlook` (baselines).
 
-## Wizard draft
+## Track draft
 
-`WizardDraft` mirrors a month while tracking. Autosaved every 5s while the wizard is open as an encrypted blob in `localStorage` (`tandem.draft.enc`), using the vault salt + master password.
+`WizardDraft` (name kept in `finance.ts`) mirrors a month while editing on Track. Autosaved every 5s while the editor is active as an encrypted blob in `localStorage` (`tandem.draft.enc`), using the vault salt + master password. Track hub can **Resume** a leftover draft after Cancel.
 
-`draftForMonth(history, monthKey, categories)` loads an existing `MonthlyRecord` for edit, or `emptyDraft` seeded from the prior month. Saving overwrites `history[monthKey]`.
+`draftForMonth(history, monthKey, categories)` loads an existing `MonthlyRecord` for edit, or `emptyDraft` seeded from the prior month. Saving overwrites `history[monthKey]` and clears the encrypted draft.
 
 ## GitHubConfig (browser only — not in vault)
 

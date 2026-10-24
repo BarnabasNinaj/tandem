@@ -41,7 +41,7 @@ Password change re-encrypts full state with new password and pushes (`security: 
 |-----|--------|----------|
 | `tandem.github` | localStorage | username, repo, PAT |
 | `tandem.theme` | localStorage | `light` \| `dark` |
-| `tandem.draft.enc` | localStorage | Encrypted wizard draft |
+| `tandem.draft.enc` | localStorage | Encrypted Track month draft |
 | `tandem.sk` | sessionStorage | Master password |
 | `tandem.unlocked` | sessionStorage | Flag |
 | `tandem.vault.cache` | sessionStorage | Last encrypted vault + SHA |

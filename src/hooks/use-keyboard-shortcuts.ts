@@ -1,14 +1,15 @@
 import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { toMonthKey } from '@/lib/dates'
 import { draftForMonth } from '@/lib/finance'
 import { useTandemStore } from '@/store/tandem-store'
 
 export function useKeyboardShortcuts() {
+  const navigate = useNavigate()
   const phase = useTandemStore((s) => s.phase)
   const state = useTandemStore((s) => s.state)
-  const openWizard = useTandemStore((s) => s.openWizard)
+  const startTracking = useTandemStore((s) => s.startTracking)
   const push = useTandemStore((s) => s.push)
-  const wizardOpen = useTandemStore((s) => s.wizardOpen)
   const wizardDraft = useTandemStore((s) => s.wizardDraft)
   const saveMonth = useTandemStore((s) => s.saveMonth)
 
@@ -21,7 +22,7 @@ export function useKeyboardShortcuts() {
 
       if (e.key.toLowerCase() === 's') {
         e.preventDefault()
-        if (wizardOpen && wizardDraft) {
+        if (wizardDraft) {
           void saveMonth(wizardDraft)
         } else {
           void push()
@@ -30,17 +31,26 @@ export function useKeyboardShortcuts() {
 
       if (e.key.toLowerCase() === 'n') {
         e.preventDefault()
-        openWizard(
+        startTracking(
           draftForMonth(
             state.history,
             toMonthKey(),
             state.settings.categories,
           ),
         )
+        navigate('/')
       }
     }
 
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [phase, state, openWizard, push, wizardOpen, wizardDraft, saveMonth])
+  }, [
+    phase,
+    state,
+    startTracking,
+    push,
+    wizardDraft,
+    saveMonth,
+    navigate,
+  ])
 }

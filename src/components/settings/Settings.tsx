@@ -984,7 +984,7 @@ export function Settings() {
       <Card className="space-y-4">
         <CardTitle>Sample data</CardTitle>
         <p className="text-sm text-stone-700 dark:text-stone-400">
-          Load or remove a synthetic H1 2026 pack (01/2026–06/2026) so Home and
+          Load or remove a synthetic H1 2026 pack (01/2026–06/2026) so Track,
           History, Incomes, Expenses, and Outlook have something to show. Load overwrites those month keys;
           delete removes only sample keys (including any leftover 09–10/2026
           demos). Real months outside that set are left alone.

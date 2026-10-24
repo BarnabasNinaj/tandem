@@ -138,7 +138,7 @@ Goal: catch vault/math regressions without a heavyweight QA program.
 
 | ID | Notes |
 |----|--------|
-| P1 | Strong brand/visual tokens; Home as one composition |
+| P1 | Strong brand/visual tokens; Track as month entry (overview Home removed — review lives on History / Incomes / Expenses / Outlook) |
 | P2 | Invite path skips password confirm (correct — joining existing vault) |
 | P3 | Wizard autosave encrypted — good |
 | P4 | Auto-lock effect depends on whole `state` object — timer resets on any state update (may delay lock while actively editing; usually fine) |

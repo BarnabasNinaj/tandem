@@ -63,9 +63,9 @@ Format: `tandem-device:` + base64url(JSON `{ v:1, u, r, p }`).
 
 Setup: scan QR or paste → fills GitHub fields → partner enters **shared master password** separately.
 
-## Wizard autosave
+## Track draft autosave
 
-Every 5 seconds while open: encrypt draft with password + state salt → `tandem.draft.enc`. Cleared on successful `saveMonth` and on `lock`.
+Every 5 seconds while the Track month editor is active: encrypt draft with password + state salt → `tandem.draft.enc`. Cleared on successful `saveMonth` and on `lock`. Cancel returns to the hub without clearing the encrypted blob (Resume on hub).
 
 ## Settings persistence nuance
 

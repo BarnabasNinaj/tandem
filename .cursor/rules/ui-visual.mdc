@@ -25,9 +25,10 @@ Never show formula letters (X / Y / Z) in UI copy — use plain words (income, e
 ## Structure
 
 - Primitives: `src/components/ui/*`
-- Nav: Home, History, Incomes, Expenses, Outlook (text); Settings as header icon with sync/theme/lock
+- Nav: Track, History, Incomes, Expenses, Outlook (text); Settings as header icon with sync/theme/lock
+- Track (`/`) = hub + inline month editor (`MonthEditor`); no modal wizard; no pocket/net-worth overview
 - Settings uses sticky sub-tabs: Household / Categories / Banks / Vault / Security / Data
-- Track Data steps: **Incomes**, **Expenses**, Allocations (not “Inflows/Outflows”)
+- Track editor sections: **Incomes**, **Expenses**, Allocations (not “Inflows/Outflows”)
 - History = charts over tracked months (varied series hues, not all teal); Outlook = planning (averages/projections)
 - History/Outlook range toggle sticks under the app header while scrolling
 - Prefer existing Button/Card/Input/Select patterns and stone/teal Tailwind usage
@@ -37,4 +38,4 @@ Never show formula letters (X / Y / Z) in UI copy — use plain words (income, e
 
 ## Shortcuts (preserve)
 
-- `Ctrl/Cmd+N` wizard · `Ctrl/Cmd+S` save month or push
+- `Ctrl/Cmd+N` start tracking current month on Track · `Ctrl/Cmd+S` save month or push

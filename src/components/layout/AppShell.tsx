@@ -2,9 +2,9 @@ import { NavLink, Outlet } from 'react-router-dom'
 import {
   BarChart3,
   Compass,
-  Home,
   Lock,
   Moon,
+  PenLine,
   Receipt,
   RefreshCw,
   Settings,
@@ -12,7 +12,6 @@ import {
   Wallet,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { MonthlyWizard } from '@/components/wizard/MonthlyWizard'
 import { ConflictDialog } from '@/components/sync/ConflictDialog'
 import { useTheme } from '@/hooks/use-theme'
 import { formatDateTimeDDMMYYYY } from '@/lib/dates'
@@ -20,7 +19,7 @@ import { cn } from '@/lib/utils'
 import { useTandemStore } from '@/store/tandem-store'
 
 const NAV = [
-  { to: '/', label: 'Home', icon: Home, end: true },
+  { to: '/', label: 'Track', icon: PenLine, end: true },
   { to: '/history', label: 'History', icon: BarChart3 },
   { to: '/incomes', label: 'Incomes', icon: Wallet },
   { to: '/expenses', label: 'Expenses', icon: Receipt },
@@ -53,8 +52,8 @@ export function AppShell() {
               to="/"
               end
               className="logo-mark cursor-pointer text-xl"
-              title="Home"
-              aria-label="Home"
+              title="Track"
+              aria-label="Track"
             >
               Tandem
             </NavLink>
@@ -182,7 +181,6 @@ export function AppShell() {
         ))}
       </nav>
 
-      <MonthlyWizard />
       <ConflictDialog />
     </div>
   )

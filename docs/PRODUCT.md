@@ -10,15 +10,14 @@ Private household operating system for a couple — calm, local-first, not a ban
 |---------|---------|
 | Setup | Join via invite QR **or** manual GitHub + PAT + password |
 | Lock | Unlock with master password (no vault path shown) |
-| Home | Hero: net worth | **Last updated** | **Track Data**; then pocket split, flow, reserves |
+| Track | Hub: calendar-month CTA + tracked-month list (+ resume unsaved draft). Editor: inline month form (Incomes · Expenses · Allocations / portfolio / notes) with sticky pocket summary + **Save month**. No modal wizard. |
 | History | Charts over tracked months: category lines, income vs expense (solid actuals · sage/sand dashed projections), net worth (+ dashed path), expense mix pie. Sticky range: 3M / 6M / 1Y / All. |
-| Incomes | Incomes only: compact metric strip + stacked bars + share pie + month table (partner A / partner B / Other). Same sticky range. |
-| Expenses | Expenses only: compact metric strip + stacked category bars + mix pie + month × category table. Same sticky range. |
+| Incomes | Incomes only: compact metric strip + stacked bars + share pie + month table (partner A / partner B / Other). Same sticky range. **Edit** → Track editor for that month. |
+| Expenses | Expenses only: compact metric strip + stacked category bars + mix pie + month × category table. Same sticky range. **Edit** → Track editor for that month. |
 | Outlook | Forward look: compact metric strip + trailing averages → next 3 months; category baselines (avg / last / €/mo slope). Same sticky range. |
 | Settings | Sticky tabs: **Household** · **Categories** · **Banks** (compact: per bank labels + cards with owner) · **Vault** (GitHub data repo, invite QR) · **Security** (password) · **Data** (samples, JSON backup) |
-| Track Data wizard | Month picker loads **saved** months for edit (or seeds a new one); Incomes → Expenses → Allocations; **Add from card** (bank-label amounts → merge into categories); **Edit** on Incomes/Expenses tables opens that month |
 
-Nav: **Home**, **History**, **Incomes**, **Expenses**, **Outlook** (text); **Settings** as a header icon (with sync / theme / lock). **Tandem** logo mark links to Home. Legacy `/trends` & `/breakdown` → History; `/analytics` → Outlook. Brand mark: **Tandem** (`Fugaz One`, teal).
+Nav: **Track**, **History**, **Incomes**, **Expenses**, **Outlook** (text); **Settings** as a header icon (with sync / theme / lock). **Tandem** logo mark links to Track (`/`). Legacy `/trends` & `/breakdown` → History; `/analytics` → Outlook. Brand mark: **Tandem** (`Fugaz One`, teal). Loop: **track** → **review** (History / Incomes / Expenses) → **look ahead** (Outlook).
 
 UI copy never uses formula letters **X / Y / Z** — say income, expenses, left after expenses, pocket. Those letters stay in `finance.ts` / docs only.
 
@@ -39,7 +38,7 @@ Partner hexes also live in `src/lib/partners.ts` (`PARTNER_COLOR`) for charts. D
 
 Dark theme via `.dark` on root (inline boot script in `index.html` + hook `use-theme`). Setup/lock share `AuthShell` + `public/auth-shell.css` (same classes as the pre-React static lock shell — avoids layout jump on refresh). Boot: locked vault paints that full unlock shell into `#root`; React replaces it in place. Focus uses `preventScroll`. Quiet session restore stays blank until `ready`. Fonts self-hosted (`public/fonts/`, Fugaz + Jakarta preloaded).
 
-Motion: `fadeUp` on in-app surfaces (Home hero, analytics); auth gate mounts without entrance animation. Prefer subtle transitions over noisy animations.
+Motion: `fadeUp` on in-app surfaces (Track, analytics); auth gate mounts without entrance animation. Prefer subtle transitions over noisy animations.
 
 UI primitives: `src/components/ui/*` (button, input, select, card, label, money-input, progress). Native `<select>` goes through `Select` (custom inset chevron, not the browser-flush arrow). Clickable controls use `cursor-pointer` (hand) on hover, not the default arrow.
 
@@ -47,8 +46,8 @@ UI primitives: `src/components/ui/*` (button, input, select, card, label, money-
 
 | Shortcut | Action |
 |----------|--------|
-| `Ctrl/Cmd + N` | Open Track Data wizard (draft from current month + last record) |
-| `Ctrl/Cmd + S` | If wizard open with draft → save month; else → push vault |
+| `Ctrl/Cmd + N` | Start tracking current month on Track (draft from last record) |
+| `Ctrl/Cmd + S` | If Track editor active → save month; else → push vault |
 
 ## Dates & money
 
@@ -71,4 +70,4 @@ Idle timer from `settings.autoLockMinutes` (default 30). Events: mousemove, keyd
 
 ## Empty / demo states
 
-New vaults start with empty history. Home offers loading samples when empty or **Track Data**; Settings can **load** or **delete** synthetic H1 2026 (`2026-01`–`2026-06`). See [DATA-MODEL.md](./DATA-MODEL.md).
+New vaults start with empty history. Track hub offers loading samples when empty or **Track month**; Settings can **load** or **delete** synthetic H1 2026 (`2026-01`–`2026-06`). See [DATA-MODEL.md](./DATA-MODEL.md).

@@ -42,7 +42,7 @@ Defined in `src/store/tandem-store.ts` / gated in `src/App.tsx`:
 
 | Path | Screen |
 |------|--------|
-| `/` | Home (`Dashboard`) |
+| `/` | Track (`TrackPage` hub ↔ `MonthEditor` when a draft is active) |
 | `/history` | History (`HistoryPage` — history charts) |
 | `/incomes` | Incomes (`IncomesPage` — income buckets only) |
 | `/expenses` | Expenses (`ExpensesPage` — category spend only) |
@@ -52,14 +52,14 @@ Defined in `src/store/tandem-store.ts` / gated in `src/App.tsx`:
 | `/breakdown` | Redirect → `/history` |
 | `/settings` | `Settings` |
 
-Global overlays in `AppShell`: `MonthlyWizard`, `ConflictDialog`.
+Global overlays in `AppShell`: `ConflictDialog` only. Month entry lives on Track (`MonthEditor`), not a modal.
 
 ## Layering
 
 ```
 components/*     →  UI only; select store slices
 hooks/*          →  auto-lock, shortcuts, theme
-store/*          →  boot, unlock, pull/push, wizard, import
+store/*          →  boot, unlock, pull/push, track draft, import
 lib/finance      →  pure month math
 lib/analytics    →  range slices, income buckets, expense grid, category trends, outlook projections
 lib/card-expenses → bank-scoped label mappings + merge amounts into outflows
