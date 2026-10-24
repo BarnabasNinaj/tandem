@@ -21,7 +21,14 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
+      // Registered manually in main.tsx via virtual:pwa-register
+      injectRegister: false,
+      includeAssets: [
+        'favicon.svg',
+        'apple-touch-icon.png',
+        'auth-shell.css',
+        'fonts/*.woff2',
+      ],
       manifest: {
         name: 'Tandem — Household Operating System',
         short_name: 'Tandem',
@@ -52,8 +59,21 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        navigateFallback: '/index.html',
+        // Hashed JS/CSS/fonts only — never precache index.html (stale shell flash).
+        globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],
+        cleanupOutdatedCaches: true,
+        // Disable default NavigationRoute so NetworkFirst below can own navigations.
+        navigateFallback: undefined,
+        runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'tandem-html',
+              networkTimeoutSeconds: 3,
+            },
+          },
+        ],
       },
     }),
   ],
@@ -63,4 +83,3 @@ export default defineConfig({
     },
   },
 })
-

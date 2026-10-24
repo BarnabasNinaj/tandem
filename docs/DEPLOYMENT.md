@@ -21,9 +21,13 @@ No Vercel env vars are required for core function. Secrets are entered at runtim
 
 ### PWA
 
-`vite-plugin-pwa` with `registerType: 'autoUpdate'`, Workbox `navigateFallback: '/index.html'`. Icons under `public/` (`pwa-192.png`, `pwa-512.png`, etc.).
+`vite-plugin-pwa` with `registerType: 'autoUpdate'`, registered from `main.tsx` via `virtual:pwa-register` (`immediate: true`).
 
-After deploy, users may need a refresh to pick up a new service worker.
+- Precache: hashed JS/CSS/fonts/icons only — **not** `index.html` (avoids serving a stale shell after deploy).
+- Navigations: Workbox **NetworkFirst** (`tandem-html` cache, 3s timeout) so online loads get the current HTML → current hashed bundles.
+- Stale chunk after deploy: `vite:preloadError` triggers one guarded reload.
+
+Icons under `public/` (`pwa-192.png`, `pwa-512.png`, etc.). Logo/body fonts are self-hosted under `public/fonts/` (preloaded Fugaz One).
 
 ### Local
 

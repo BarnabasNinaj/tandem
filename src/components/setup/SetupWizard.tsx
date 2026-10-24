@@ -1,6 +1,7 @@
 import { useCallback, useState, type FormEvent } from 'react'
 import { ArrowRight, Check, CheckCircle2, Loader2, QrCode } from 'lucide-react'
 import { QrScanner } from '@/components/invite/QrScanner'
+import { AuthShell } from '@/components/lock/AuthShell'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -94,25 +95,15 @@ export function SetupWizard() {
     }
   }
 
-  return (
-    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden px-4 py-10">
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            'radial-gradient(ellipse 70% 50% at 20% 0%, rgba(15,118,110,0.18), transparent), linear-gradient(180deg, #f4f7f6, #e4ebe8)',
-        }}
-      />
-      <div className="relative z-10 w-full max-w-md">
-        <p className="logo-mark-on-light mb-1 text-4xl">Tandem</p>
-        <p className="mb-8 text-stone-700">
-          {mode === 'choose'
-            ? 'Join with a partner invite, or set up sync yourself.'
-            : fromInvite
-              ? 'Invite applied — enter the shared master password.'
-              : 'Connect your private vault, then set a master password.'}
-        </p>
+  const tagline =
+    mode === 'choose'
+      ? 'Join with a partner invite, or set up sync yourself.'
+      : fromInvite
+        ? 'Invite applied — enter the shared master password.'
+        : 'Connect your private vault, then set a master password.'
 
+  return (
+    <AuthShell tagline={tagline}>
         <div className="rounded-2xl border border-stone-300 bg-white p-6 shadow-lg">
           {mode === 'choose' && (
             <div className="space-y-3">
@@ -359,7 +350,6 @@ export function SetupWizard() {
             </p>
           )}
         </div>
-      </div>
-    </div>
+    </AuthShell>
   )
 }

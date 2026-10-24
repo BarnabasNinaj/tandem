@@ -83,11 +83,29 @@ interface TandemStore {
   updateGithub: (config: GitHubConfig) => void
 }
 
+/** Sync gate so the first React paint is already setup/lock — not a second splash. */
+function resolveInitialGate(): {
+  phase: AppPhase
+  github: GitHubConfig | null
+} {
+  const github = loadGitHubConfig()
+  if (!github?.username || !github?.repo || !github?.pat) {
+    return { phase: 'setup', github: null }
+  }
+  // Session password ⇒ quiet unlock still needs async work; stay blank (no logo splash).
+  if (getSessionPassword()) {
+    return { phase: 'booting', github }
+  }
+  return { phase: 'locked', github }
+}
+
+const initialGate = resolveInitialGate()
+
 export const useTandemStore = create<TandemStore>((set, get) => ({
-  phase: 'booting',
+  phase: initialGate.phase,
   error: null,
   state: null,
-  github: null,
+  github: initialGate.github,
   remoteSha: null,
   syncing: false,
   localDirty: false,
@@ -97,22 +115,22 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
   wizardDraft: null,
 
   boot: async () => {
-    const github = loadGitHubConfig()
-    if (!github?.username || !github?.repo || !github?.pat) {
-      set({ phase: 'setup', github: null })
-      return
-    }
-    set({ github })
+    // setup / locked were resolved synchronously — nothing to do.
+    if (get().phase !== 'booting') return
 
     // Same-tab refresh: restore session (password lives in sessionStorage).
-    // Only inactivity auto-lock / manual lock clears it.
     const password = getSessionPassword()
     if (password) {
       await get().unlock(password, { quiet: true })
       return
     }
 
-    set({ phase: 'locked' })
+    const github = get().github ?? loadGitHubConfig()
+    if (!github?.username || !github?.repo || !github?.pat) {
+      set({ phase: 'setup', github: null })
+      return
+    }
+    set({ phase: 'locked', github })
   },
 
   completeSetup: async ({ github, password }) => {

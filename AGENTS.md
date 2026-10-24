@@ -38,6 +38,8 @@ Do not treat the data repo as “optional secrets.” It **is** the sync store.
 | Partner / owner colors | `src/lib/partners.ts`, `OwnerBadge` |
 | Migrations | `src/lib/migration.ts` |
 | Device invite | `src/lib/device-invite.ts` |
+| Auth canvas (boot/setup/lock) | `src/components/lock/AuthShell.tsx` + `public/auth-shell.css` |
+| Self-hosted fonts | `public/fonts/` + `src/lib/fonts.css` |
 | Routes / phases | `src/App.tsx` (`/`, `/history`, `/incomes`, `/expenses`, `/outlook`, `/settings`) |
 | History / Incomes / Expenses / Outlook UI | `src/components/analytics/` |
 

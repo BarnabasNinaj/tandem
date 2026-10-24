@@ -14,14 +14,6 @@ import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { useTheme } from '@/hooks/use-theme'
 import { useTandemStore } from '@/store/tandem-store'
 
-function BootSplash() {
-  return (
-    <div className="flex min-h-dvh items-center justify-center bg-[var(--bg)]">
-      <p className="logo-mark text-3xl">Tandem</p>
-    </div>
-  )
-}
-
 function AuthenticatedApp() {
   useAutoLock()
   useKeyboardShortcuts()
@@ -52,7 +44,8 @@ export default function App() {
     void boot()
   }, [boot])
 
-  if (phase === 'booting') return <BootSplash />
+  // Quiet session restore: keep the themed body canvas only — no logo-only frame.
+  if (phase === 'booting') return null
   if (phase === 'setup') return <SetupWizard />
   if (phase === 'locked' || phase === 'unlocking') return <LockScreen />
 

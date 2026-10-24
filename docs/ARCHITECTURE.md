@@ -30,11 +30,13 @@ Defined in `src/store/tandem-store.ts` / gated in `src/App.tsx`:
 
 | Phase | UI | Meaning |
 |-------|-----|---------|
-| `booting` | Splash | Loading GitHub config; may quiet-unlock from session |
-| `setup` | `SetupWizard` | No local GitHub config yet |
-| `locked` / `unlocking` | `LockScreen` | Config present; need master password |
+| `booting` | Empty (themed `body` only) | **Only** quiet session restore (password in sessionStorage) |
+| `setup` | `SetupWizard` on `AuthShell` | No local GitHub config yet |
+| `locked` / `unlocking` | `LockScreen` on `AuthShell` | Config present; need master password |
 | `ready` | Router + `AppShell` | Decrypted state in memory |
 | `error` | (via store `error`) | Surfaced in shell banner |
+
+`resolveInitialGate()` sets `setup` / `locked` / `booting` **synchronously** so the first React paint is the real gate (or blank canvas during quiet unlock). **Never** paint a logo-only splash. When GitHub config exists and there is no session password, `index.html` paints a **full static lock shell** into `#root` using `public/auth-shell.css` (same classes as React `AuthShell` / `LockScreen`) so refresh doesn’t reflow; focus uses `preventScroll`. Fugaz + Jakarta are preloaded/self-hosted.
 
 ## Routing (only when `ready`)
 

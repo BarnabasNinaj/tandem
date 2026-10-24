@@ -37,9 +37,9 @@ UI copy never uses formula letters **X / Y / Z** — say income, expenses, left 
 
 Partner hexes also live in `src/lib/partners.ts` (`PARTNER_COLOR`) for charts. Dark theme brightens the CSS vars.
 
-Dark theme via `.dark` on root (hook `use-theme`). Setup/lock use light canvas + `.logo-mark-on-light`.
+Dark theme via `.dark` on root (inline boot script in `index.html` + hook `use-theme`). Setup/lock share `AuthShell` + `public/auth-shell.css` (same classes as the pre-React static lock shell — avoids layout jump on refresh). Boot: locked vault paints that full unlock shell into `#root`; React replaces it in place. Focus uses `preventScroll`. Quiet session restore stays blank until `ready`. Fonts self-hosted (`public/fonts/`, Fugaz + Jakarta preloaded).
 
-Motion: `fadeUp` keyframes; Home hero reveal. Prefer subtle transitions over noisy animations.
+Motion: `fadeUp` on in-app surfaces (Home hero, analytics); auth gate mounts without entrance animation. Prefer subtle transitions over noisy animations.
 
 UI primitives: `src/components/ui/*` (button, input, select, card, label, money-input, progress). Native `<select>` goes through `Select` (custom inset chevron, not the browser-flush arrow). Clickable controls use `cursor-pointer` (hand) on hover, not the default arrow.
 

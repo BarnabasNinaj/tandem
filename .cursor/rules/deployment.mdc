@@ -7,7 +7,7 @@ alwaysApply: false
 # Deployment
 
 - App is static `dist/` only — SPA rewrite to `index.html`. No server env secrets required.
-- PWA via `vite-plugin-pwa`; keep `navigateFallback` for client routes.
+- PWA via `vite-plugin-pwa` + `registerSW({ immediate: true })`; NetworkFirst HTML shell (do not precache `index.html`).
 - Dev/preview port **5280** avoids cross-app SW cache clashes — don’t “simplify” to 5173 without reason.
 - Vercel Hobby + private **app** repo blocks non-owner commits → make **`tandem` public**, never the data vault repo.
 - Git author email should be verified on the GitHub account linked to Vercel.

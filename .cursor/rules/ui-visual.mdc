@@ -9,9 +9,9 @@ alwaysApply: false
 ## Brand
 
 - Logo: `logo-mark` / Fugaz One; teal `#0f766e` (light) / brighter on dark
-- Body: Plus Jakarta Sans; CSS vars in `src/index.css` (`--bg`, `--surface`, `--logo`, `--partner-a/b/common/other`)
+- Body: Plus Jakarta Sans (self-hosted `public/fonts/` + `src/lib/fonts.css`); CSS vars in `src/index.css` (`--bg`, `--surface`, `--logo`, `--partner-a/b/common/other`). Do not reintroduce Google Fonts `@import` (causes logo FOUT).
 - Partner identity: blue A / rose B / violet common / amber other (not brand teal) — `src/lib/partners.ts` + `OwnerBadge`
-- Setup/lock stay on light canvas (`.logo-mark-on-light`)
+- Boot/setup/lock share `AuthShell` + `.logo-mark-on-light` (no flat `--bg` splash — avoids flash)
 
 Tone: private couple’s OS — not bank SaaS. Sync = “vault / GitHub”, not “our cloud.”
 Never show formula letters (X / Y / Z) in UI copy — use plain words (income, expenses, left after expenses, pocket).
