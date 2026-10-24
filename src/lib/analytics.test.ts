@@ -34,17 +34,6 @@ function month(
         amount: groceries,
       },
     ],
-    allocations: {
-      emergencyReserve: 100,
-      travelFund: 50,
-      investments: 200,
-    },
-    portfolioSnapshot: {
-      emergencyReserveBalance: 1000,
-      travelFundBalance: 500,
-      externalInvestmentsBalance: 2000,
-      liquidCashBalance: 3000,
-    },
   }
   return buildMonthlyRecord(draft, 'equal')
 }

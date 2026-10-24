@@ -53,13 +53,7 @@ Built by `buildMonthlyRecord` in `finance.ts` (never hand-roll `computed`).
 
 **Expenses** (UI; stored as `outflows`): `{ categoryId, categoryName, amount }[]`
 
-**Add from card (Track editor → Expenses):** pick a card → enter amounts for that **bank’s** remembered labels (each mapped to a household category) → **merge** (add) into `outflows`. New labels can be added inline and are saved on the bank. Cards themselves are not stored on the month — only the rolled-up categories. Merge/mappings: `src/lib/card-expenses.ts`.
-
-**Allocations (this month’s transfers off the spending pool):**  
-`emergencyReserve`, `travelFund`, `investments`
-
-**Portfolio snapshot (balances at close):**  
-`emergencyReserveBalance`, `travelFundBalance`, `externalInvestmentsBalance`, `liquidCashBalance`
+**Card expenses (Track editor → Expenses):** card-first. Pick a **card** (clickable chips) → enter amounts for that card’s **bank** labels (shared by all cards of the bank; each mapped to a household category) → **Add to month** merges (adds) into `outflows`. Month category totals update below (read-only rollup). **New label** (+) writes `categoryMappings` on the bank immediately; amounts still need Add to month. Cards are not stored on the month — only rolled-up categories. UI: `CardExpenses.tsx`; merge/mappings: `src/lib/card-expenses.ts`. Investment transfers (if tracked) are expense categories via cards — there is no separate allocations / portfolio snapshot on the month.
 
 **Computed (derived, stored for history):**
 
@@ -67,22 +61,22 @@ Built by `buildMonthlyRecord` in `finance.ts` (never hand-roll `computed`).
 X = totalInflow = sum(incomes)
 Y = totalOutflow = sum(expenses)
 Z = leftoverAfterExpenses = X − Y
-pocket pool = discretionarySurplus = Z − sum(allocations)
+discretionarySurplus = Z   // “keeps” pool / analytics “pocket”
 
-Toggle (allowanceSplit) splits Y and the pocket pool:
+Toggle (allowanceSplit) splits Y and Z:
   equal  → 50/50
   income → ∝ partnerASalary : partnerBIncome (Other excluded from ratio)
 
 expenseSharePartnerA / B
-personalAllowancePartnerA / B   // pocket money
-personalAllowancePerPartner     // pocket/2 reference
+personalAllowancePartnerA / B   // each partner’s share of Z
+personalAllowancePerPartner     // Z/2 reference
 ```
 
 All money values rounded with `round2`.
 
-**Net worth:** sum of portfolio snapshot balances (not a separate stored field); shown on History charts.
+**Savings rate:** `(totalInflow − totalOutflow) / totalInflow * 100`.
 
-**Savings rate:** `(totalInflow − totalOutflow) / totalInflow * 100` — Z counts as saved (allocations come from Z).
+**Migration:** older vault months that still have `allocations` / `portfolioSnapshot` drop those fields on `normalizeHistory` and recompute.
 
 ### Analytics (derived, not stored)
 
@@ -93,8 +87,7 @@ All money values rounded with `round2`.
 | Range slice | Last 3 / 6 / 12 months or all |
 | Category average | Mean monthly spend (missing month = €0) |
 | Category trend | OLS slope €/month over the range |
-| Month outlook | Trailing means for income, expenses, pocket, savings rate → project next 3 calendar months |
-| Net-worth projection | Last snapshot NW + average leftover after expenses (Z) per projected month |
+| Month outlook | Trailing means for income, expenses, leftover/pocket (Z), savings rate → project next 3 calendar months |
 
 Focus month defaults to the current calendar month (`toMonthKey()`). If that month is already in `history`, Outlook shows deltas vs the trailing average.
 
@@ -105,6 +98,8 @@ UI slices of the same history (no extra stored fields): `/history` (mixed charts
 `WizardDraft` (name kept in `finance.ts`) mirrors a month while editing on Track. Autosaved every 5s while the editor is active as an encrypted blob in `localStorage` (`tandem.draft.enc`), using the vault salt + master password. Track hub can **Resume** a leftover draft after Cancel.
 
 `draftForMonth(history, monthKey, categories)` loads an existing `MonthlyRecord` for edit, or `emptyDraft` seeded from the prior month. Saving overwrites `history[monthKey]` and clears the encrypted draft.
+
+While a draft is open, `updateState` realigns `wizardDraft.outflows` to current `settings.categories` (`alignDraftToCategories`) so Settings add/remove/rename shows up in Track expenses month totals without restarting the draft.
 
 ## GitHubConfig (browser only — not in vault)
 

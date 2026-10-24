@@ -26,7 +26,11 @@ import {
   setSessionPassword,
   setSessionUnlocked,
 } from '@/lib/storage'
-import { buildMonthlyRecord, type WizardDraft } from '@/lib/finance'
+import {
+  alignDraftToCategories,
+  buildMonthlyRecord,
+  type WizardDraft,
+} from '@/lib/finance'
 import type { GitHubConfig, MonthlyRecord, TandemState } from '@/types/tandem'
 
 export type AppPhase =
@@ -408,9 +412,19 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
   },
 
   updateState: (updater) => {
-    const { state } = get()
+    const { state, wizardDraft } = get()
     if (!state) return
-    set({ state: updater(state), localDirty: true })
+    const next = updater(state)
+    const alignedDraft = wizardDraft
+      ? alignDraftToCategories(wizardDraft, next.settings.categories)
+      : null
+    set({
+      state: next,
+      localDirty: true,
+      ...(alignedDraft && alignedDraft !== wizardDraft
+        ? { wizardDraft: alignedDraft }
+        : {}),
+    })
   },
 
   saveMonth: async (draft) => {

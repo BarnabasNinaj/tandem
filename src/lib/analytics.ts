@@ -283,52 +283,6 @@ export function incomeExpenseWithProjection(
   return actual
 }
 
-export interface NetWorthPoint {
-  month: string
-  monthKey: string
-  value: number | null
-  projected: number | null
-  kind: 'actual' | 'projected'
-}
-
-/**
- * Net-worth series with forward path: last NW + avg monthly leftover (Z).
- */
-export function netWorthWithProjection(
-  records: MonthlyRecord[],
-  netWorthOf: (r: MonthlyRecord) => number,
-  projectMonths = 3,
-): NetWorthPoint[] {
-  if (records.length === 0) return []
-  const avgZ = mean(records.map((r) => r.computed.leftoverAfterExpenses))
-
-  const actual: NetWorthPoint[] = records.map((r) => ({
-    month: formatMonthKey(r.monthKey),
-    monthKey: r.monthKey,
-    value: netWorthOf(r),
-    projected: null,
-    kind: 'actual',
-  }))
-
-  const last = actual[actual.length - 1]!
-  last.projected = last.value
-
-  let cursor = last.monthKey
-  let nw = last.value ?? 0
-  for (let i = 0; i < projectMonths; i++) {
-    cursor = shiftMonthKey(cursor, 1)
-    nw = round2(nw + avgZ)
-    actual.push({
-      month: formatMonthKey(cursor),
-      monthKey: cursor,
-      value: null,
-      projected: nw,
-      kind: 'projected',
-    })
-  }
-  return actual
-}
-
 export interface IncomeMonth {
   monthKey: string
   label: string

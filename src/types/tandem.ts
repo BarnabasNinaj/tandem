@@ -14,34 +14,23 @@ export interface MonthlyRecord {
     otherInflows: number
   }
   outflows: CategoryExpense[]
-  allocations: {
-    emergencyReserve: number
-    travelFund: number
-    investments: number
-  }
-  portfolioSnapshot: {
-    emergencyReserveBalance: number
-    travelFundBalance: number
-    externalInvestmentsBalance: number
-    liquidCashBalance: number
-  }
   computed: {
     /** X — total incomes */
     totalInflow: number
     /** Y — total expenses */
     totalOutflow: number
-    /** Z = X − Y (left after expenses, before allocations) */
+    /** Z = X − Y (left after expenses) */
     leftoverAfterExpenses: number
     /**
-     * Pocket-money pool = Z − allocations.
-     * Field name kept for older docs/readers.
+     * What gets split between partners as “keeps” — same as Z.
+     * Name kept for analytics (“pocket”) continuity.
      */
     discretionarySurplus: number
     expenseSharePartnerA: number
     expenseSharePartnerB: number
-    /** Equal half of the pocket pool (reference). */
+    /** Equal half of Z (reference). */
     personalAllowancePerPartner: number
-    /** Pocket money for each partner after expense split + allocations. */
+    /** Each partner’s share of Z after expense split. */
     personalAllowancePartnerA: number
     personalAllowancePartnerB: number
     allowanceSplit: AllowanceSplit
@@ -49,7 +38,7 @@ export interface MonthlyRecord {
   notes?: string
 }
 
-/** Splits expenses (Y) and pocket money (Z − allocations): 50/50 or by income. */
+/** Splits expenses (Y) and leftover (Z): 50/50 or by income. */
 export type AllowanceSplit = 'equal' | 'income'
 
 export interface ExpenseCategory {
@@ -68,7 +57,7 @@ export interface ExpenseBank {
 }
 
 /**
- * Physical / virtual card used as a Track Data → Add from card source.
+ * Physical / virtual card used as a Track expenses entry source.
  * Cards under the same bank share that bank’s label → Tandem category map.
  */
 export interface ExpenseCard {
@@ -108,7 +97,7 @@ export interface TandemSettings {
   categories: ExpenseCategory[]
   /** Banks (each with its own label taxonomy). */
   banks: ExpenseBank[]
-  /** Cards used in Track Data → Add from card (each belongs to a bank). */
+  /** Cards used in Track expenses entry (each belongs to a bank). */
   cards: ExpenseCard[]
   /** Bank label → Tandem category (scoped per bank). */
   categoryMappings: BankCategoryMapping[]

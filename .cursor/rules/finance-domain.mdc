@@ -1,6 +1,6 @@
 ---
 description: Month math, money rounding, vault schema
-globs: src/lib/finance.ts,src/lib/number.ts,src/lib/migration.ts,src/lib/demo-data.ts,src/types/tandem.ts,src/components/wizard/**/*,src/components/track/**/*,src/components/analytics/**/*
+globs: src/lib/finance.ts,src/lib/number.ts,src/lib/migration.ts,src/lib/demo-data.ts,src/types/tandem.ts,src/components/track/**/*,src/components/analytics/**/*
 alwaysApply: false
 ---
 
@@ -10,19 +10,19 @@ alwaysApply: false
 
 ```
 X = incomes, Y = expenses, Z = X − Y
-pocket = Z − allocations
-// allowanceSplit splits Y and pocket: equal | income (∝ Barney:Lucka; Other excluded)
+// allowanceSplit splits Y and Z: equal | income (∝ Barney:Lucka; Other excluded)
+// discretionarySurplus = Z (analytics “pocket” / partner “keeps” pool)
 ```
 
 Always build months with `buildMonthlyRecord(draft, split)` / `computeMonthly(..., split)`. Use `round2` for money.
 Money display is always EUR (`CURRENCY_SYMBOL` / `CURRENCY_LOCALE` in `number.ts`) — do not re-add currency Settings.
 UI: **Incomes** / **Expenses** (schema still `inflows` / `outflows`). Incomes are only three buckets: Barney / Lucka / Other. No `childSupport` field.
 Split toggle: Settings + Track editor bar (`settings.allowanceSplit`).
+No allocations or portfolio snapshot on `MonthlyRecord` (dropped; migrate strips legacy fields).
 
-Banks live in `settings.banks`; cards in `settings.cards` (`bankId` required). Card `owner`: `partnerA` | `partnerB` | `common`. Labels → categories are `settings.categoryMappings` scoped by `bankId` (shared across cards of that bank). Track editor → **Add from card** enters amounts per bank label and merges into `outflows` via `card-expenses.ts`.
+Banks live in `settings.banks`; cards in `settings.cards` (`bankId` required). Card `owner`: `partnerA` | `partnerB` | `common`. Labels → categories are `settings.categoryMappings` scoped by `bankId` (shared across all cards of that bank — e.g. every Revolut card). Track expenses are **card-first** (`CardExpenses`): clickable cards → that bank’s label amounts → merge into `outflows` via `card-expenses.ts`; month category totals are a read-only rollup (no manual category grid).
 
-- Net worth = sum of portfolio snapshot balances
-- Savings rate = (X − Y) / X; allocations come from Z
+- Savings rate = (X − Y) / X
 - Month keys: `YYYY-MM`
 
 ## Schema changes

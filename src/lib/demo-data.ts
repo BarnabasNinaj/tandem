@@ -28,14 +28,6 @@ type MonthSpec = {
   transport: number
   entertainment: number
   shopping: number
-  emergencyReserve: number
-  travelFund: number
-  investments: number
-  /** End-of-month balances after that month’s allocations. */
-  emergencyReserveBalance: number
-  travelFundBalance: number
-  externalInvestmentsBalance: number
-  liquidCashBalance: number
   label: string
 }
 
@@ -53,13 +45,6 @@ const H1_SPECS: MonthSpec[] = [
     transport: 140,
     entertainment: 90,
     shopping: 120,
-    emergencyReserve: 200,
-    travelFund: 100,
-    investments: 250,
-    emergencyReserveBalance: 3200,
-    travelFundBalance: 600,
-    externalInvestmentsBalance: 11200,
-    liquidCashBalance: 1600,
     label: 'January',
   },
   {
@@ -71,13 +56,6 @@ const H1_SPECS: MonthSpec[] = [
     transport: 135,
     entertainment: 70,
     shopping: 95,
-    emergencyReserve: 200,
-    travelFund: 100,
-    investments: 250,
-    emergencyReserveBalance: 3400,
-    travelFundBalance: 700,
-    externalInvestmentsBalance: 11550,
-    liquidCashBalance: 1750,
     label: 'February',
   },
   {
@@ -89,13 +67,6 @@ const H1_SPECS: MonthSpec[] = [
     transport: 150,
     entertainment: 110,
     shopping: 160,
-    emergencyReserve: 250,
-    travelFund: 150,
-    investments: 300,
-    emergencyReserveBalance: 3650,
-    travelFundBalance: 850,
-    externalInvestmentsBalance: 12000,
-    liquidCashBalance: 1900,
     label: 'March',
   },
   {
@@ -107,13 +78,6 @@ const H1_SPECS: MonthSpec[] = [
     transport: 145,
     entertainment: 85,
     shopping: 130,
-    emergencyReserve: 250,
-    travelFund: 150,
-    investments: 300,
-    emergencyReserveBalance: 3900,
-    travelFundBalance: 1000,
-    externalInvestmentsBalance: 12450,
-    liquidCashBalance: 2000,
     label: 'April',
   },
   {
@@ -125,13 +89,6 @@ const H1_SPECS: MonthSpec[] = [
     transport: 155,
     entertainment: 100,
     shopping: 140,
-    emergencyReserve: 250,
-    travelFund: 120,
-    investments: 350,
-    emergencyReserveBalance: 4150,
-    travelFundBalance: 1120,
-    externalInvestmentsBalance: 12900,
-    liquidCashBalance: 2050,
     label: 'May',
   },
   {
@@ -143,13 +100,6 @@ const H1_SPECS: MonthSpec[] = [
     transport: 160,
     entertainment: 130,
     shopping: 175,
-    emergencyReserve: 300,
-    travelFund: 150,
-    investments: 350,
-    emergencyReserveBalance: 4450,
-    travelFundBalance: 1270,
-    externalInvestmentsBalance: 13400,
-    liquidCashBalance: 2200,
     label: 'June',
   },
 ]
@@ -202,17 +152,6 @@ export function buildDemoHistory(): Record<string, MonthlyRecord> {
         },
         { categoryId: cats[7]!.id, categoryName: cats[7]!.name, amount: 55 },
       ],
-      allocations: {
-        emergencyReserve: spec.emergencyReserve,
-        travelFund: spec.travelFund,
-        investments: spec.investments,
-      },
-      portfolioSnapshot: {
-        emergencyReserveBalance: spec.emergencyReserveBalance,
-        travelFundBalance: spec.travelFundBalance,
-        externalInvestmentsBalance: spec.externalInvestmentsBalance,
-        liquidCashBalance: spec.liquidCashBalance,
-      },
       notes: `Sample ${spec.label} close — demo data (H1 2026)`,
     })
     record.updatedAt = lastDayIso(spec.monthKey)

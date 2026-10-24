@@ -143,6 +143,7 @@ Goal: catch vault/math regressions without a heavyweight QA program.
 | P3 | Wizard autosave encrypted — good |
 | P4 | Auto-lock effect depends on whole `state` object — timer resets on any state update (may delay lock while actively editing; usually fine) |
 | P5 | ~~Defaults `sk-SK` / `€` in Settings~~ → **fixed:** money always EUR; locale not user-facing (`CURRENCY_*` in `number.ts`) |
+| P6 | Allocations + portfolio snapshot **removed** from schema (2026-10-25) — migrate strips legacy fields; History net-worth chart removed; invest via expense categories if needed |
 
 ## Tooling findings
 

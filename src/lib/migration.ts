@@ -68,19 +68,17 @@ function normalizeHistory(
       record.inflows as LegacyInflows | undefined,
     )
     const outflows = record.outflows ?? []
-    const allocations = record.allocations ?? {
-      emergencyReserve: 0,
-      travelFund: 0,
-      investments: 0,
-    }
     const split = normalizeAllowanceSplit(
       record.computed?.allowanceSplit ?? allowanceSplit,
     )
+    // Drop legacy allocations / portfolioSnapshot if present on older vaults.
     next[key] = {
-      ...record,
       monthKey: record.monthKey || key,
+      updatedAt: record.updatedAt || new Date().toISOString(),
       inflows,
-      computed: computeMonthly(inflows, outflows, allocations, split),
+      outflows,
+      computed: computeMonthly(inflows, outflows, split),
+      ...(record.notes ? { notes: record.notes } : {}),
     }
   }
   return next

@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { MoneyInput } from '@/components/ui/money-input'
 import { Select } from '@/components/ui/select'
-import { AddFromCard } from '@/components/wizard/AddFromCard'
+import { CardExpenses } from '@/components/track/CardExpenses'
 import { formatMonthKey, listRecentMonthKeys } from '@/lib/dates'
 import {
   computeMonthly,
@@ -26,7 +26,6 @@ export function MonthEditor() {
   const syncing = useTandemStore((s) => s.syncing)
 
   const [saving, setSaving] = useState(false)
-  const [addFromCard, setAddFromCard] = useState(false)
 
   useEffect(() => {
     const id = setInterval(() => void autosaveDraft(), 5000)
@@ -38,14 +37,8 @@ export function MonthEditor() {
   const money = formatMoney
 
   const computed = useMemo(
-    () =>
-      computeMonthly(
-        draft.inflows,
-        draft.outflows,
-        draft.allocations,
-        allowanceSplit,
-      ),
-    [draft, allowanceSplit],
+    () => computeMonthly(draft.inflows, draft.outflows, allowanceSplit),
+    [draft.inflows, draft.outflows, allowanceSplit],
   )
 
   const setAllowanceSplit = (mode: 'equal' | 'income') => {
@@ -74,11 +67,12 @@ export function MonthEditor() {
   const loadMonth = (key: string) => {
     if (key === draft.monthKey) return
     setWizardDraft(draftForMonth(state.history, key, settings.categories))
-    setAddFromCard(false)
   }
 
+  const leftoverNegative = computed.leftoverAfterExpenses < 0
+
   return (
-    <div className="space-y-8 pb-28 animate-[fadeUp_0.35s_ease-out]">
+    <div className="space-y-8 pb-36 animate-[fadeUp_0.35s_ease-out] sm:pb-36">
       <header className="flex flex-wrap items-center gap-3">
         <Button
           variant="ghost"
@@ -166,248 +160,226 @@ export function MonthEditor() {
       </section>
 
       <section className="space-y-4 border-t border-stone-300 pt-6 dark:border-stone-700">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-xs font-medium tracking-[0.18em] text-stone-700 uppercase dark:text-stone-400">
-            Expenses
-          </h2>
-          {!addFromCard && (
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={() => setAddFromCard(true)}
-            >
-              Add from card
-            </Button>
-          )}
-        </div>
-        {addFromCard ? (
-          <AddFromCard
-            banks={settings.banks ?? []}
-            cards={settings.cards ?? []}
-            categories={settings.categories}
-            mappings={settings.categoryMappings ?? []}
-            outflows={draft.outflows}
-            partnerAName={settings.partnerAName}
-            partnerBName={settings.partnerBName}
-            onCancel={() => setAddFromCard(false)}
-            onApply={({ outflows, mappings }) => {
-              update({ outflows })
-              updateState((s) => ({
-                ...s,
-                settings: {
-                  ...s.settings,
-                  categoryMappings: mappings,
-                },
-              }))
-              setAddFromCard(false)
-            }}
-          />
-        ) : (
-          <>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {draft.outflows.map((o) => (
-                <Field
-                  key={o.categoryId}
-                  label={o.categoryName}
-                  name={o.categoryId}
-                >
-                  <MoneyInput
-                    name={o.categoryId}
-                    value={o.amount}
-                    onValueChange={(n) => {
-                      const outflows = draft.outflows.map((x) =>
-                        x.categoryId === o.categoryId ? { ...x, amount: n } : x,
-                      )
-                      update({ outflows })
-                    }}
-                  />
-                </Field>
-              ))}
-            </div>
-            <p className="text-right text-sm font-medium text-stone-700 dark:text-stone-200">
-              Total expenses: {money(computed.totalOutflow)}
-            </p>
-          </>
-        )}
+        <h2 className="text-xs font-medium tracking-[0.18em] text-stone-700 uppercase dark:text-stone-400">
+          Expenses
+        </h2>
+        <CardExpenses
+          banks={settings.banks ?? []}
+          cards={settings.cards ?? []}
+          categories={settings.categories}
+          mappings={settings.categoryMappings ?? []}
+          outflows={draft.outflows}
+          partnerAName={settings.partnerAName}
+          partnerBName={settings.partnerBName}
+          onApply={({ outflows, mappings }) => {
+            update({ outflows })
+            updateState((s) => ({
+              ...s,
+              settings: {
+                ...s.settings,
+                categoryMappings: mappings,
+              },
+            }))
+          }}
+        />
       </section>
 
-      <section className="space-y-5 border-t border-stone-300 pt-6 dark:border-stone-700">
+      <section className="space-y-4 border-t border-stone-300 pt-6 dark:border-stone-700">
         <h2 className="text-xs font-medium tracking-[0.18em] text-stone-700 uppercase dark:text-stone-400">
-          Allocations
+          Notes
         </h2>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <Field label="Emergency reserve" name="alloc-em">
-            <MoneyInput
-              name="alloc-em"
-              value={draft.allocations.emergencyReserve}
-              onValueChange={(n) =>
-                update({
-                  allocations: {
-                    ...draft.allocations,
-                    emergencyReserve: n,
-                  },
-                })
-              }
-            />
-          </Field>
-          <Field label="Travel fund" name="alloc-tr">
-            <MoneyInput
-              name="alloc-tr"
-              value={draft.allocations.travelFund}
-              onValueChange={(n) =>
-                update({
-                  allocations: {
-                    ...draft.allocations,
-                    travelFund: n,
-                  },
-                })
-              }
-            />
-          </Field>
-          <Field label="Investments" name="alloc-inv">
-            <MoneyInput
-              name="alloc-inv"
-              value={draft.allocations.investments}
-              onValueChange={(n) =>
-                update({
-                  allocations: {
-                    ...draft.allocations,
-                    investments: n,
-                  },
-                })
-              }
-            />
-          </Field>
-        </div>
-
-        <h3 className="pt-2 text-sm font-semibold text-stone-800 dark:text-stone-100">
-          Portfolio snapshot (end of month)
-        </h3>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {(
-            [
-              ['emergencyReserveBalance', 'Emergency balance'],
-              ['travelFundBalance', 'Travel fund balance'],
-              ['externalInvestmentsBalance', 'External investments'],
-              ['liquidCashBalance', 'Liquid cash'],
-            ] as const
-          ).map(([key, label]) => (
-            <Field key={key} label={label} name={key}>
-              <MoneyInput
-                name={key}
-                value={draft.portfolioSnapshot[key]}
-                onValueChange={(n) =>
-                  update({
-                    portfolioSnapshot: {
-                      ...draft.portfolioSnapshot,
-                      [key]: n,
-                    },
-                  })
-                }
-              />
-            </Field>
-          ))}
-        </div>
-
         <div className="space-y-1.5">
-          <Label htmlFor="notes">Notes (optional)</Label>
+          <Label htmlFor="notes" className="sr-only">
+            Notes (optional)
+          </Label>
           <Input
             id="notes"
+            placeholder="Optional notes for this month"
             value={draft.notes ?? ''}
             onChange={(e) => update({ notes: e.target.value })}
           />
         </div>
       </section>
 
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-stone-300 bg-[var(--surface)]/95 backdrop-blur-md dark:border-stone-700 sm:bottom-0">
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-stone-300 bg-[var(--surface)]/95 backdrop-blur-md dark:border-stone-700">
         {/* Sit above mobile bottom nav */}
-        <div className="mx-auto max-w-6xl space-y-3 px-4 py-3 pb-[calc(0.75rem+4.5rem)] sm:pb-3">
-          <div className="space-y-1.5 rounded-lg border border-teal-200/80 bg-teal-50/90 px-3 py-2 dark:border-teal-900 dark:bg-teal-950/40">
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-              <p className="shrink-0 text-[10px] font-medium tracking-wide text-teal-800 uppercase dark:text-teal-300">
+        <div className="mx-auto flex max-w-6xl flex-col gap-1.5 px-4 py-2 pb-[calc(0.5rem+4.5rem)] sm:gap-3 sm:py-3 sm:pb-3">
+          <div className="flex flex-col gap-1 sm:grid sm:grid-cols-3 sm:gap-0 sm:divide-x sm:divide-stone-200 dark:sm:divide-stone-700">
+            <SummaryPart
+              title="Household"
+              metrics={[
+                {
+                  label: 'Expenses',
+                  shortLabel: 'Expenses',
+                  value: money(computed.totalOutflow),
+                },
+                {
+                  label: 'Left after expenses',
+                  shortLabel: 'Left',
+                  value: money(computed.leftoverAfterExpenses),
+                  negative: leftoverNegative,
+                },
+              ]}
+            />
+            <SummaryPart
+              title={settings.partnerAName}
+              titleColor="var(--partner-a)"
+              metrics={[
+                {
+                  label: 'Pays toward bills',
+                  shortLabel: 'Pays',
+                  value: money(computed.expenseSharePartnerA),
+                },
+                {
+                  label: 'Keeps',
+                  shortLabel: 'Keeps',
+                  value: money(computed.personalAllowancePartnerA),
+                },
+              ]}
+            />
+            <SummaryPart
+              title={settings.partnerBName}
+              titleColor="var(--partner-b)"
+              metrics={[
+                {
+                  label: 'Pays toward bills',
+                  shortLabel: 'Pays',
+                  value: money(computed.expenseSharePartnerB),
+                },
+                {
+                  label: 'Keeps',
+                  shortLabel: 'Keeps',
+                  value: money(computed.personalAllowancePartnerB),
+                },
+              ]}
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-stone-200 pt-1.5 sm:pt-3 dark:border-stone-700">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[11px] text-stone-500 dark:text-stone-500">
                 Split
-              </p>
-              <div className="flex shrink-0 gap-0.5 rounded-md bg-teal-900/10 p-0.5 dark:bg-teal-950/60">
+              </span>
+              <div className="flex gap-0.5 rounded-md bg-stone-200/80 p-0.5 dark:bg-stone-800">
                 {(
                   [
                     { id: 'equal', label: '50/50' },
-                    { id: 'income', label: 'Income' },
+                    { id: 'income', label: 'By income' },
                   ] as const
                 ).map(({ id, label }) => (
                   <button
                     key={id}
                     type="button"
                     onClick={() => setAllowanceSplit(id)}
-                    className={`cursor-pointer rounded px-2 py-0.5 text-[10px] font-medium transition-colors ${
+                    className={`cursor-pointer rounded px-2.5 py-1 text-[11px] font-medium transition-colors ${
                       allowanceSplit === id
-                        ? 'bg-white text-teal-950 shadow-sm dark:bg-teal-800 dark:text-teal-50'
-                        : 'text-teal-800/80 hover:text-teal-950 dark:text-teal-300'
+                        ? 'bg-[var(--surface)] text-stone-900 shadow-sm dark:bg-stone-700 dark:text-stone-50'
+                        : 'text-stone-600 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100'
                     }`}
                   >
                     {label}
                   </button>
                 ))}
               </div>
-              <p className="min-w-0 flex-1 text-[11px] tabular-nums text-teal-800/75 dark:text-teal-400/75 sm:text-right">
-                Left after expenses {money(computed.leftoverAfterExpenses)}
-                <span className="mx-1 text-teal-600/40">·</span>
-                Pocket {money(computed.discretionarySurplus)}
-              </p>
             </div>
-            <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-[11px] tabular-nums text-teal-900 dark:text-teal-100">
-              <p>
-                <span className="text-teal-700/80 dark:text-teal-400">
-                  Expenses{' '}
-                </span>
-                <span style={{ color: 'var(--partner-a)' }}>
-                  {settings.partnerAName}
-                </span>{' '}
-                {money(computed.expenseSharePartnerA)}
-                <span className="mx-1 text-teal-600/40">·</span>
-                <span style={{ color: 'var(--partner-b)' }}>
-                  {settings.partnerBName}
-                </span>{' '}
-                {money(computed.expenseSharePartnerB)}
-              </p>
-              <p>
-                <span className="text-teal-700/80 dark:text-teal-400">
-                  Pocket{' '}
-                </span>
-                {allowanceSplit === 'equal' ? (
-                  <>{money(computed.personalAllowancePartnerA)} each</>
-                ) : (
+            <div className="flex gap-2">
+              <Button variant="secondary" size="sm" onClick={cancelTracking}>
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => void onSave()}
+                disabled={saving || syncing}
+              >
+                {saving || syncing ? (
                   <>
-                    <span style={{ color: 'var(--partner-a)' }}>
-                      {settings.partnerAName}
-                    </span>{' '}
-                    {money(computed.personalAllowancePartnerA)}
-                    <span className="mx-1 text-teal-600/40">·</span>
-                    <span style={{ color: 'var(--partner-b)' }}>
-                      {settings.partnerBName}
-                    </span>{' '}
-                    {money(computed.personalAllowancePartnerB)}
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Encrypting & syncing…
                   </>
+                ) : (
+                  'Save month'
                 )}
-              </p>
+              </Button>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
-          <div className="flex justify-end gap-2">
-            <Button variant="secondary" onClick={cancelTracking}>
-              Cancel
-            </Button>
-            <Button onClick={() => void onSave()} disabled={saving || syncing}>
-              {saving || syncing ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Encrypting & syncing…
-                </>
-              ) : (
-                'Save month'
-              )}
-            </Button>
-          </div>
+type SummaryMetric = {
+  label: string
+  shortLabel: string
+  value: string
+  negative?: boolean
+}
+
+function SummaryPart({
+  title,
+  titleColor,
+  metrics,
+}: {
+  title: string
+  titleColor?: string
+  metrics: SummaryMetric[]
+}) {
+  const titleClass = `truncate text-[10px] font-medium tracking-[0.14em] uppercase ${
+    titleColor ? '' : 'text-stone-600 dark:text-stone-400'
+  }`
+  const titleStyle = titleColor ? { color: titleColor } : undefined
+
+  return (
+    <div className="min-w-0 sm:px-4 first:sm:pl-0 last:sm:pr-0">
+      {/* Mobile: 3 equal columns — title | metric | metric */}
+      <div className="grid grid-cols-3 items-baseline gap-1.5 sm:hidden">
+        <p className={`min-w-0 truncate ${titleClass}`} style={titleStyle} title={title}>
+          {title}
+        </p>
+        {metrics.map((m) => (
+          <p
+            key={m.label}
+            className="min-w-0 truncate text-[12px] tabular-nums"
+            title={`${m.label} ${m.value}`}
+          >
+            <span className="text-stone-500 dark:text-stone-500">
+              {m.shortLabel}{' '}
+            </span>
+            <span
+              className={`font-semibold ${
+                m.negative
+                  ? 'text-rose-700 dark:text-rose-400'
+                  : 'text-stone-900 dark:text-stone-50'
+              }`}
+            >
+              {m.value}
+            </span>
+          </p>
+        ))}
+      </div>
+
+      {/* sm+: titled columns */}
+      <div className="hidden sm:block">
+        <p className={`mb-1.5 ${titleClass}`} style={titleStyle} title={title}>
+          {title}
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          {metrics.map((m) => (
+            <div key={m.label} className="min-w-0">
+              <p className="text-[11px] text-stone-600 dark:text-stone-400">
+                {m.label}
+              </p>
+              <p
+                className={`font-[family-name:var(--font-display)] text-xl font-semibold tabular-nums tracking-tight ${
+                  m.negative
+                    ? 'text-rose-700 dark:text-rose-400'
+                    : 'text-stone-900 dark:text-stone-50'
+                }`}
+              >
+                {m.value}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     </div>

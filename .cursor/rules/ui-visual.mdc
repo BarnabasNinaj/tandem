@@ -26,9 +26,9 @@ Never show formula letters (X / Y / Z) in UI copy — use plain words (income, e
 
 - Primitives: `src/components/ui/*`
 - Nav: Track, History, Incomes, Expenses, Outlook (text); Settings as header icon with sync/theme/lock
-- Track (`/`) = hub + inline month editor (`MonthEditor`); no modal wizard; no pocket/net-worth overview
+- Track (`/`) = hub + inline month editor (`MonthEditor`); no modal wizard; no net-worth overview. Editor sticky footer = three equal metric parts (Household · partner A · partner B); split toggle on the Cancel/Save row; avoid “Pocket” on this strip.
 - Settings uses sticky sub-tabs: Household / Categories / Banks / Vault / Security / Data
-- Track editor sections: **Incomes**, **Expenses**, Allocations (not “Inflows/Outflows”)
+- Track editor sections: **Incomes**, **Expenses** (card chips + shared bank labels + month totals), optional **Notes**
 - History = charts over tracked months (varied series hues, not all teal); Outlook = planning (averages/projections)
 - History/Outlook range toggle sticks under the app header while scrolling
 - Prefer existing Button/Card/Input/Select patterns and stone/teal Tailwind usage

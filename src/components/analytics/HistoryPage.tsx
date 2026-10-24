@@ -1,7 +1,5 @@
 import { useMemo, useState } from 'react'
 import {
-  Area,
-  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
@@ -30,10 +28,8 @@ import {
   categoryStats,
   categoryTrendSeries,
   incomeExpenseWithProjection,
-  netWorthWithProjection,
   sliceHistory,
 } from '@/lib/analytics'
-import { netWorthFromSnapshot } from '@/lib/finance'
 import { formatMoney } from '@/lib/number'
 import { useTandemStore } from '@/store/tandem-store'
 
@@ -62,14 +58,6 @@ export function HistoryPage() {
     [records],
   )
 
-  const nwSeries = useMemo(
-    () =>
-      netWorthWithProjection(records, (r) =>
-        netWorthFromSnapshot(r.portfolioSnapshot),
-      ),
-    [records],
-  )
-
   const categoryTotals = useMemo(
     () =>
       cats.map((c) => ({
@@ -90,7 +78,7 @@ export function HistoryPage() {
 
       <div className="space-y-6">
       {records.length === 0 ? (
-        <AnalyticsEmpty blurb="No months yet. Track a month (or load H1 samples) to see category lines, flow, and net worth." />
+        <AnalyticsEmpty blurb="No months yet. Track a month (or load H1 samples) to see category lines, flow, and expense mix." />
       ) : (
         <>
           <Card>
@@ -181,69 +169,6 @@ export function HistoryPage() {
                     radius={[4, 4, 0, 0]}
                   />
                 </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-
-          <Card>
-            <CardTitle>Net worth</CardTitle>
-            <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
-              Dashed path assumes what’s left after expenses stays near your
-              average
-            </p>
-            <div className="mt-4 h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={nwSeries}>
-                  <defs>
-                    <linearGradient id="nw" x1="0" y1="0" x2="0" y2="1">
-                      <stop
-                        offset="0%"
-                        stopColor={CHART.netWorth}
-                        stopOpacity={0.4}
-                      />
-                      <stop
-                        offset="100%"
-                        stopColor={CHART.netWorth}
-                        stopOpacity={0}
-                      />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                  <XAxis
-                    dataKey="month"
-                    tick={{ fontSize: 11 }}
-                    tickFormatter={(v: string) => formatChartMonth(v)}
-                  />
-                  <YAxis tick={{ fontSize: 11 }} width={56} />
-                  <Tooltip
-                    contentStyle={tipStyle}
-                    formatter={(v) =>
-                      v == null || Number.isNaN(Number(v))
-                        ? '—'
-                        : money(Number(v))
-                    }
-                    labelFormatter={(l) => String(l)}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="value"
-                    name="Net worth"
-                    stroke={CHART.netWorth}
-                    fill="url(#nw)"
-                    strokeWidth={2}
-                    connectNulls={false}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="projected"
-                    name="Projected"
-                    stroke={CHART.projected}
-                    fill="transparent"
-                    strokeWidth={2}
-                    strokeDasharray="6 4"
-                    connectNulls
-                  />
-                </AreaChart>
               </ResponsiveContainer>
             </div>
           </Card>

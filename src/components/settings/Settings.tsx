@@ -610,23 +610,34 @@ export function Settings() {
               const draft = cardDraft(bank.id)
               const lDraft = labelDraft(bank.id)
               const bankCards = cardsForBank(bank.id)
+              const editing = Boolean(editingBank[bank.id])
+              const catName = (id: string) =>
+                categories.find((c) => c.id === id)?.name ?? id
               return (
                 <section
                   key={bank.id}
                   className="overflow-hidden rounded-lg border border-stone-300 dark:border-stone-600"
                 >
-                  {/* Bank + cards on one row; deletes only in edit */}
+                  {/* Bank + cards; edits/deletes only with pencil */}
                   <header className="flex flex-wrap items-center gap-1 border-b border-teal-800/15 bg-teal-800/[0.07] px-2.5 py-1.5 dark:border-teal-400/20 dark:bg-teal-400/10">
                     <Landmark
                       className="h-3.5 w-3.5 shrink-0 text-teal-800 dark:text-teal-300"
                       aria-hidden
                     />
-                    <Input
-                      value={bank.name}
-                      onChange={(e) => renameBank(bank.id, e.target.value)}
-                      className={`h-7 shrink-0 rounded-md border border-transparent bg-white/70 px-2 text-sm font-semibold shadow-none focus-visible:border-teal-700/40 focus-visible:ring-1 focus-visible:ring-teal-700/30 dark:bg-white/10 dark:focus-visible:border-teal-400/40 ${FIT_NAME}`}
-                      aria-label="Bank name"
-                    />
+                    {editing ? (
+                      <Input
+                        value={bank.name}
+                        onChange={(e) => renameBank(bank.id, e.target.value)}
+                        className={`h-7 shrink-0 rounded-md border border-transparent bg-white/70 px-2 text-sm font-semibold shadow-none focus-visible:border-teal-700/40 focus-visible:ring-1 focus-visible:ring-teal-700/30 dark:bg-white/10 dark:focus-visible:border-teal-400/40 ${FIT_NAME}`}
+                        aria-label="Bank name"
+                      />
+                    ) : (
+                      <span
+                        className={`truncate px-2 text-sm font-semibold text-stone-900 dark:text-stone-50 ${FIT_NAME}`}
+                      >
+                        {bank.name}
+                      </span>
+                    )}
                     <span
                       className="mx-0.5 hidden h-4 w-px bg-teal-800/20 sm:block dark:bg-teal-400/25"
                       aria-hidden
@@ -636,21 +647,31 @@ export function Settings() {
                         key={c.id}
                         className="flex h-7 w-fit max-w-full items-center gap-1.5 rounded-md border border-stone-300/80 bg-white/80 px-2 dark:border-stone-500/60 dark:bg-white/10"
                       >
-                        <Input
-                          value={c.name}
-                          onChange={(e) => renameCard(c.id, e.target.value)}
-                          className={`h-5 border-0 bg-transparent p-0 text-xs shadow-none focus-visible:ring-0 dark:bg-transparent ${FIT_NAME}`}
-                          aria-label="Card name"
-                        />
+                        {editing ? (
+                          <Input
+                            value={c.name}
+                            onChange={(e) => renameCard(c.id, e.target.value)}
+                            className={`h-5 border-0 bg-transparent p-0 text-xs shadow-none focus-visible:ring-0 dark:bg-transparent ${FIT_NAME}`}
+                            aria-label="Card name"
+                          />
+                        ) : (
+                          <span
+                            className={`truncate text-xs text-stone-800 dark:text-stone-100 ${FIT_NAME}`}
+                          >
+                            {c.name}
+                          </span>
+                        )}
                         <OwnerBadge
                           owner={c.owner}
                           partnerAName={state.settings.partnerAName}
                           partnerBName={state.settings.partnerBName}
-                          onClick={() =>
-                            setCardOwner(c.id, nextOwner(c.owner))
+                          onClick={
+                            editing
+                              ? () => setCardOwner(c.id, nextOwner(c.owner))
+                              : undefined
                           }
                         />
-                        {editingBank[bank.id] ? (
+                        {editing ? (
                           <Button
                             variant="ghost"
                             size="icon"
@@ -664,7 +685,7 @@ export function Settings() {
                         ) : null}
                       </div>
                     ))}
-                    {editingBank[bank.id] ? (
+                    {editing ? (
                       addingCardFor[bank.id] ? (
                         <div className="flex h-7 w-fit max-w-full items-center gap-1.5 rounded-md border border-dashed border-stone-300 bg-white/60 px-2 dark:border-stone-500/60 dark:bg-white/10">
                           <Input
@@ -741,7 +762,7 @@ export function Settings() {
                       )
                     ) : null}
                     <div className="ml-auto flex items-center gap-0.5">
-                      {editingBank[bank.id] ? (
+                      {editing ? (
                         <>
                           <Button
                             variant="ghost"
@@ -790,7 +811,7 @@ export function Settings() {
                     </div>
                   </header>
 
-                  {/* Labels — primary */}
+                  {/* Labels — read-only until pencil; edit mode = map / add / delete */}
                   <div className="space-y-1.5 bg-white p-2.5 dark:bg-stone-900/40">
                     <div className="flex items-center gap-1.5 text-teal-800 dark:text-teal-300">
                       <Tags className="h-3.5 w-3.5" aria-hidden />
@@ -805,33 +826,107 @@ export function Settings() {
                     </div>
                     {bankMaps.length === 0 ? (
                       <p className="text-xs text-stone-500 dark:text-stone-400">
-                        Add how this bank names spend (e.g. Lebensmittel →
-                        Groceries).
+                        {editing
+                          ? 'Add how this bank names spend (e.g. Lebensmittel → Groceries).'
+                          : 'No labels yet — tap the pencil to add mappings.'}
                       </p>
                     ) : null}
                     <div className="space-y-0.5">
-                      {bankMaps.map((m) => (
-                        <div
-                          key={m.key}
-                          className="grid grid-cols-[minmax(0,1fr)_0.75rem_9rem_1.75rem] items-center gap-x-1.5 rounded-md bg-stone-100 px-2 py-0.5 dark:bg-stone-800/70"
-                        >
-                          <span className="min-w-0 truncate text-sm font-medium text-stone-900 dark:text-stone-50">
-                            {m.label}
-                          </span>
+                      {bankMaps.map((m) =>
+                        editing ? (
+                          <div
+                            key={m.key}
+                            className="grid grid-cols-[minmax(0,1fr)_0.75rem_9rem_1.75rem] items-center gap-x-1.5 rounded-md bg-stone-100 px-2 py-0.5 dark:bg-stone-800/70"
+                          >
+                            <span className="min-w-0 truncate text-sm font-medium text-stone-900 dark:text-stone-50">
+                              {m.label}
+                            </span>
+                            <ArrowRight
+                              className="mx-auto h-3 w-3 text-stone-400"
+                              aria-hidden
+                            />
+                            <Select
+                              wrapperClassName="w-full"
+                              className="h-7 min-w-0 border-stone-300 bg-white pr-7 pl-2 text-xs dark:border-stone-600 dark:bg-stone-900"
+                              value={m.categoryId}
+                              onChange={(e) =>
+                                setMappingCategory(
+                                  bank.id,
+                                  m.key,
+                                  e.target.value,
+                                )
+                              }
+                            >
+                              {categories.map((c) => (
+                                <option key={c.id} value={c.id}>
+                                  {c.name}
+                                </option>
+                              ))}
+                            </Select>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              type="button"
+                              className="h-7 w-7"
+                              onClick={() => removeMapping(bank.id, m.key)}
+                              aria-label="Delete label"
+                            >
+                              <Trash2 className="h-3.5 w-3.5 text-red-600" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div
+                            key={m.key}
+                            className="grid grid-cols-[minmax(0,1fr)_0.75rem_minmax(0,9rem)] items-center gap-x-1.5 rounded-md bg-stone-100 px-2 py-1 dark:bg-stone-800/70"
+                          >
+                            <span className="min-w-0 truncate text-sm font-medium text-stone-900 dark:text-stone-50">
+                              {m.label}
+                            </span>
+                            <ArrowRight
+                              className="mx-auto h-3 w-3 text-stone-400"
+                              aria-hidden
+                            />
+                            <span className="min-w-0 truncate text-xs text-stone-600 dark:text-stone-300">
+                              {catName(m.categoryId)}
+                            </span>
+                          </div>
+                        ),
+                      )}
+                      {editing ? (
+                        <div className="grid grid-cols-[minmax(0,1fr)_0.75rem_9rem_1.75rem] items-center gap-x-1.5 rounded-md border border-dashed border-teal-800/25 bg-teal-800/[0.03] px-2 py-0.5 dark:border-teal-400/30 dark:bg-teal-400/5">
+                          <Input
+                            placeholder="New bank label"
+                            value={lDraft.label}
+                            onChange={(e) =>
+                              setNewLabelDraft((prev) => ({
+                                ...prev,
+                                [bank.id]: {
+                                  ...lDraft,
+                                  label: e.target.value,
+                                },
+                              }))
+                            }
+                            onKeyDown={(e) =>
+                              e.key === 'Enter' && addBankLabel(bank.id)
+                            }
+                            className="h-7 min-w-0 w-full border-0 bg-transparent p-0 text-sm shadow-none focus-visible:ring-0 dark:bg-transparent"
+                          />
                           <ArrowRight
                             className="mx-auto h-3 w-3 text-stone-400"
                             aria-hidden
                           />
                           <Select
                             wrapperClassName="w-full"
-                            className="h-7 min-w-0 border-stone-300 bg-white pr-7 pl-2 text-xs dark:border-stone-600 dark:bg-stone-900"
-                            value={m.categoryId}
+                            className="h-7 min-w-0 border-stone-300 bg-white pr-7 pl-2 text-xs dark:border-stone-600 dark:bg-stone-800"
+                            value={lDraft.categoryId}
                             onChange={(e) =>
-                              setMappingCategory(
-                                bank.id,
-                                m.key,
-                                e.target.value,
-                              )
+                              setNewLabelDraft((prev) => ({
+                                ...prev,
+                                [bank.id]: {
+                                  ...lDraft,
+                                  categoryId: e.target.value,
+                                },
+                              }))
                             }
                           >
                             {categories.map((c) => (
@@ -841,70 +936,17 @@ export function Settings() {
                             ))}
                           </Select>
                           <Button
-                            variant="ghost"
-                            size="icon"
                             type="button"
+                            variant="secondary"
+                            size="icon"
                             className="h-7 w-7"
-                            onClick={() => removeMapping(bank.id, m.key)}
-                            aria-label="Delete label"
+                            onClick={() => addBankLabel(bank.id)}
+                            aria-label="Add label"
                           >
-                            <Trash2 className="h-3.5 w-3.5 text-red-600" />
+                            <Plus className="h-3.5 w-3.5" />
                           </Button>
                         </div>
-                      ))}
-                      <div className="grid grid-cols-[minmax(0,1fr)_0.75rem_9rem_1.75rem] items-center gap-x-1.5 rounded-md border border-dashed border-teal-800/25 bg-teal-800/[0.03] px-2 py-0.5 dark:border-teal-400/30 dark:bg-teal-400/5">
-                        <Input
-                          placeholder="New bank label"
-                          value={lDraft.label}
-                          onChange={(e) =>
-                            setNewLabelDraft((prev) => ({
-                              ...prev,
-                              [bank.id]: {
-                                ...lDraft,
-                                label: e.target.value,
-                              },
-                            }))
-                          }
-                          onKeyDown={(e) =>
-                            e.key === 'Enter' && addBankLabel(bank.id)
-                          }
-                          className="h-7 min-w-0 w-full border-0 bg-transparent p-0 text-sm shadow-none focus-visible:ring-0 dark:bg-transparent"
-                        />
-                        <ArrowRight
-                          className="mx-auto h-3 w-3 text-stone-400"
-                          aria-hidden
-                        />
-                        <Select
-                          wrapperClassName="w-full"
-                          className="h-7 min-w-0 border-stone-300 bg-white pr-7 pl-2 text-xs dark:border-stone-600 dark:bg-stone-800"
-                          value={lDraft.categoryId}
-                          onChange={(e) =>
-                            setNewLabelDraft((prev) => ({
-                              ...prev,
-                              [bank.id]: {
-                                ...lDraft,
-                                categoryId: e.target.value,
-                              },
-                            }))
-                          }
-                        >
-                          {categories.map((c) => (
-                            <option key={c.id} value={c.id}>
-                              {c.name}
-                            </option>
-                          ))}
-                        </Select>
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="icon"
-                          className="h-7 w-7"
-                          onClick={() => addBankLabel(bank.id)}
-                          aria-label="Add label"
-                        >
-                          <Plus className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
+                      ) : null}
                     </div>
                   </div>
                 </section>

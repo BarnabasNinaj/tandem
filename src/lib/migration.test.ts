@@ -50,12 +50,12 @@ describe('migrateState', () => {
           },
           outflows: [],
           allocations: {
-            emergencyReserve: 0,
+            emergencyReserve: 100,
             travelFund: 0,
             investments: 0,
           },
           portfolioSnapshot: {
-            emergencyReserveBalance: 0,
+            emergencyReserveBalance: 500,
             travelFundBalance: 0,
             externalInvestmentsBalance: 0,
             liquidCashBalance: 0,
@@ -80,6 +80,8 @@ describe('migrateState', () => {
     expect(jan.computed.totalInflow).toBe(1750)
     expect(jan.computed.leftoverAfterExpenses).toBe(1750)
     expect(jan.computed.expenseSharePartnerA).toBe(0)
+    expect(jan).not.toHaveProperty('allocations')
+    expect(jan).not.toHaveProperty('portfolioSnapshot')
     expect(
       'childSupport' in (jan.inflows as Record<string, unknown>),
     ).toBe(false)

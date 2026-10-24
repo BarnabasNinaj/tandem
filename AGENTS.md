@@ -41,7 +41,7 @@ Do not treat the data repo as “optional secrets.” It **is** the sync store.
 | Auth canvas (boot/setup/lock) | `src/components/lock/AuthShell.tsx` + `public/auth-shell.css` |
 | Self-hosted fonts | `public/fonts/` + `src/lib/fonts.css` |
 | Routes / phases | `src/App.tsx` (`/` Track, `/history`, `/incomes`, `/expenses`, `/outlook`, `/settings`) |
-| Track (month entry) | `src/components/track/TrackPage.tsx` + `MonthEditor.tsx` (`AddFromCard` in `wizard/`) |
+| Track (month entry) | `src/components/track/TrackPage.tsx` + `MonthEditor.tsx` + `CardExpenses.tsx` (card-first expense entry) |
 | History / Incomes / Expenses / Outlook UI | `src/components/analytics/` |
 
 ## Commands

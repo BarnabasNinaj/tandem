@@ -10,12 +10,12 @@ Private household operating system for a couple — calm, local-first, not a ban
 |---------|---------|
 | Setup | Join via invite QR **or** manual GitHub + PAT + password |
 | Lock | Unlock with master password (no vault path shown) |
-| Track | Hub: calendar-month CTA + tracked-month list (+ resume unsaved draft). Editor: inline month form (Incomes · Expenses · Allocations / portfolio / notes) with sticky pocket summary + **Save month**. No modal wizard. |
-| History | Charts over tracked months: category lines, income vs expense (solid actuals · sage/sand dashed projections), net worth (+ dashed path), expense mix pie. Sticky range: 3M / 6M / 1Y / All. |
+| Track | Hub: calendar-month CTA + tracked-month list (+ resume unsaved draft). Editor: inline month form (Incomes · **Expenses** card-first · optional **Notes**). Sticky footer: **Household** (expenses · left) · **partner A** · **partner B**; action row = split + **Cancel** / **Save month**. No modal wizard. |
+| History | Charts over tracked months: category lines, income vs expense (solid actuals · sage/sand dashed projections), expense mix pie. Sticky range: 3M / 6M / 1Y / All. |
 | Incomes | Incomes only: compact metric strip + stacked bars + share pie + month table (partner A / partner B / Other). Same sticky range. **Edit** → Track editor for that month. |
 | Expenses | Expenses only: compact metric strip + stacked category bars + mix pie + month × category table. Same sticky range. **Edit** → Track editor for that month. |
 | Outlook | Forward look: compact metric strip + trailing averages → next 3 months; category baselines (avg / last / €/mo slope). Same sticky range. |
-| Settings | Sticky tabs: **Household** · **Categories** · **Banks** (compact: per bank labels + cards with owner) · **Vault** (GitHub data repo, invite QR) · **Security** (password) · **Data** (samples, JSON backup) |
+| Settings | Sticky tabs: **Household** · **Categories** · **Banks** (read-only until pencil: then rename/delete bank & cards, remap/add/delete labels) · **Vault** (GitHub data repo, invite QR) · **Security** (password) · **Data** (samples, JSON backup) |
 
 Nav: **Track**, **History**, **Incomes**, **Expenses**, **Outlook** (text); **Settings** as a header icon (with sync / theme / lock). **Tandem** logo mark links to Track (`/`). Legacy `/trends` & `/breakdown` → History; `/analytics` → Outlook. Brand mark: **Tandem** (`Fugaz One`, teal). Loop: **track** → **review** (History / Incomes / Expenses) → **look ahead** (Outlook).
 
