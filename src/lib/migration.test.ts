@@ -90,12 +90,47 @@ describe('migrateState', () => {
     expect(() => migrateState(null)).toThrow(/Invalid vault/)
     expect(() => migrateState('nope')).toThrow(/Invalid vault/)
   })
+
+  it('migrates legacy cards / mappings into a bank', () => {
+    const migrated = migrateState({
+      version: '1.0',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+      salt: 'ab'.repeat(16),
+      settings: {
+        cards: [
+          { id: 'c1', name: 'Visa', owner: 'partnerA' },
+          { id: 'c2', name: 'Joint', owner: 'common' },
+        ],
+        categoryMappings: [
+          { key: 'fuel', label: 'Fuel', categoryId: 'transport' },
+        ],
+      },
+      history: {},
+    })
+    expect(migrated.settings.banks).toEqual([
+      { id: 'bank-migrated', name: 'Bank' },
+    ])
+    expect(migrated.settings.cards.every((c) => c.bankId === 'bank-migrated')).toBe(
+      true,
+    )
+    expect(migrated.settings.categoryMappings).toEqual([
+      {
+        bankId: 'bank-migrated',
+        key: 'fuel',
+        label: 'Fuel',
+        categoryId: 'transport',
+      },
+    ])
+  })
 })
 
 describe('createInitialState', () => {
   it('can start with empty history', () => {
     const state = createInitialState({ withDemoData: false })
     expect(Object.keys(state.history)).toHaveLength(0)
+    expect(state.settings.banks).toEqual([])
+    expect(state.settings.cards).toEqual([])
+    expect(state.settings.categoryMappings).toEqual([])
   })
 
   it('defaults to empty history (C3A)', () => {

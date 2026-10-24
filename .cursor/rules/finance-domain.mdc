@@ -19,7 +19,7 @@ Money display is always EUR (`CURRENCY_SYMBOL` / `CURRENCY_LOCALE` in `number.ts
 UI: **Incomes** / **Expenses** (schema still `inflows` / `outflows`). Incomes are only three buckets: Barney / Lucka / Other. No `childSupport` field.
 Split toggle: Settings + Track Data bar (`settings.allowanceSplit`).
 
-Cards + bank-label mappings live in `settings.cards` / `settings.categoryMappings`. Card `owner`: `partnerA` | `partnerB` | `common` (household card). Owner is the paste source, not “was this shared spend” — shared categories can come from any card. Track Data → **Add from card** merges into `outflows` via `card-expenses.ts`.
+Banks live in `settings.banks`; cards in `settings.cards` (`bankId` required). Card `owner`: `partnerA` | `partnerB` | `common`. Labels → categories are `settings.categoryMappings` scoped by `bankId` (shared across cards of that bank). Track Data → **Add from card** enters amounts per bank label and merges into `outflows` via `card-expenses.ts`.
 
 - Net worth = sum of portfolio snapshot balances
 - Savings rate = (X − Y) / X; allocations come from Z

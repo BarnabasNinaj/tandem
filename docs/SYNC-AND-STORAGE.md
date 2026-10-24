@@ -69,7 +69,7 @@ Every 5 seconds while open: encrypt draft with password + state salt → `tandem
 
 ## Settings persistence nuance
 
-- Household / categories / cards / mappings call `updateState` and set `localDirty` until **Save & sync** (`push`) or a successful pull that pushed first.
+- Household / categories / banks (labels + cards) call `updateState` and set `localDirty` until **Save & sync** (`push`) or a successful pull that pushed first.
 - Header sync icon is a **pull**; if `localDirty`, it **pushes local edits first** so cards/categories are not replaced by an older remote vault.
 - GitHub credential **Update** writes `localStorage` immediately; next sync uses new PAT.
 - Lock still drops memory — unsynced edits are lost on lock unless you Save & sync first.

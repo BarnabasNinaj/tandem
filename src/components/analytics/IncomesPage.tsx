@@ -26,12 +26,13 @@ import {
 } from '@/lib/analytics'
 import { draftForMonth } from '@/lib/finance'
 import { formatMoney } from '@/lib/number'
+import { PARTNER_COLOR } from '@/lib/partners'
 import { useTandemStore } from '@/store/tandem-store'
 
 const SOURCE = {
-  partnerA: '#0369a1',
-  partnerB: '#15803d',
-  other: '#ca8a04',
+  partnerA: PARTNER_COLOR.partnerA,
+  partnerB: PARTNER_COLOR.partnerB,
+  other: PARTNER_COLOR.other,
 } as const
 
 export function IncomesPage() {
@@ -169,13 +170,24 @@ export function IncomesPage() {
                   <thead>
                     <tr className="text-xs tracking-wide text-stone-500 uppercase">
                       <th className="py-2 font-medium">Month</th>
-                      <th className="py-2 font-medium text-right">
+                      <th
+                        className="py-2 font-medium text-right"
+                        style={{ color: 'var(--partner-a)' }}
+                      >
                         {partnerAName}
                       </th>
-                      <th className="py-2 font-medium text-right">
+                      <th
+                        className="py-2 font-medium text-right"
+                        style={{ color: 'var(--partner-b)' }}
+                      >
                         {partnerBName}
                       </th>
-                      <th className="py-2 font-medium text-right">Other</th>
+                      <th
+                        className="py-2 font-medium text-right"
+                        style={{ color: 'var(--partner-other)' }}
+                      >
+                        Other
+                      </th>
                       <th className="py-2 font-medium text-right">Total</th>
                       <th className="py-2 font-medium text-right"> </th>
                     </tr>

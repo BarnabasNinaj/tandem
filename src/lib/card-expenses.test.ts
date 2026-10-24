@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
-  mapCardLines,
+  mappingsForBank,
   mergeCardLinesIntoOutflows,
   normalizeBankLabel,
-  parseCardPaste,
-  upsertMappings,
+  upsertBankMappings,
 } from './card-expenses'
 import { DEFAULT_CATEGORIES } from '@/types/tandem'
 
@@ -15,50 +14,53 @@ describe('normalizeBankLabel', () => {
   })
 })
 
-describe('parseCardPaste', () => {
-  it('parses space / tab / semicolon / colon amounts', () => {
-    const lines = parseCardPaste(`
-Groceries 120,50
-Restaurant\t45
-Fuel; 60
-Dining: 12.3
-`)
-    expect(lines).toEqual([
-      { label: 'Groceries', key: 'groceries', amount: 120.5 },
-      { label: 'Restaurant', key: 'restaurant', amount: 45 },
-      { label: 'Fuel', key: 'fuel', amount: 60 },
-      { label: 'Dining', key: 'dining', amount: 12.3 },
+describe('upsertBankMappings + mappingsForBank', () => {
+  it('scopes by bank and updates by key', () => {
+    const next = upsertBankMappings(
+      [
+        {
+          bankId: 'b1',
+          key: 'fuel',
+          label: 'Fuel',
+          categoryId: 'transport',
+        },
+        {
+          bankId: 'b2',
+          key: 'fuel',
+          label: 'Fuel',
+          categoryId: 'misc',
+        },
+      ],
+      'b1',
+      [
+        { label: 'Petrol', categoryId: 'transport' },
+        { key: 'fuel', label: 'Fuel', categoryId: 'misc' },
+        { label: 'Restaurant', categoryId: 'dining' },
+      ],
+    )
+    expect(mappingsForBank(next, 'b1')).toEqual([
+      { bankId: 'b1', key: 'fuel', label: 'Fuel', categoryId: 'misc' },
+      {
+        bankId: 'b1',
+        key: 'petrol',
+        label: 'Petrol',
+        categoryId: 'transport',
+      },
+      {
+        bankId: 'b1',
+        key: 'restaurant',
+        label: 'Restaurant',
+        categoryId: 'dining',
+      },
     ])
-  })
-
-  it('sums duplicate labels in one paste', () => {
-    const lines = parseCardPaste(`Groceries 10\nGroceries 5`)
-    expect(lines).toEqual([
-      { label: 'Groceries', key: 'groceries', amount: 15 },
+    expect(mappingsForBank(next, 'b2')).toEqual([
+      { bankId: 'b2', key: 'fuel', label: 'Fuel', categoryId: 'misc' },
     ])
   })
 })
 
-describe('mapCardLines + merge', () => {
-  it('maps known labels and merges into outflows', () => {
-    const parsed = parseCardPaste(`Groceries 100\nFuel 40\nWeird 10`)
-    const mapped = mapCardLines(
-      parsed,
-      [
-        {
-          key: 'groceries',
-          label: 'Groceries',
-          categoryId: 'groceries',
-        },
-        { key: 'fuel', label: 'Fuel', categoryId: 'transport' },
-      ],
-      DEFAULT_CATEGORIES,
-    )
-    expect(mapped.find((m) => m.key === 'groceries')?.categoryId).toBe(
-      'groceries',
-    )
-    expect(mapped.find((m) => m.key === 'weird')?.categoryId).toBeNull()
-
+describe('mergeCardLinesIntoOutflows', () => {
+  it('adds card amounts into existing outflows and skips zeros', () => {
     const outflows = DEFAULT_CATEGORIES.map((c) => ({
       categoryId: c.id,
       categoryName: c.name,
@@ -66,30 +68,15 @@ describe('mapCardLines + merge', () => {
     }))
     const merged = mergeCardLinesIntoOutflows(
       outflows,
-      mapped
-        .filter((m) => m.categoryId)
-        .map((m) => ({ categoryId: m.categoryId!, amount: m.amount })),
+      [
+        { categoryId: 'groceries', amount: 100 },
+        { categoryId: 'transport', amount: 40 },
+        { categoryId: 'dining', amount: 0 },
+      ],
       DEFAULT_CATEGORIES,
     )
     expect(merged.find((o) => o.categoryId === 'groceries')?.amount).toBe(150)
     expect(merged.find((o) => o.categoryId === 'transport')?.amount).toBe(40)
-  })
-})
-
-describe('upsertMappings', () => {
-  it('adds and updates by key', () => {
-    const next = upsertMappings(
-      [{ key: 'fuel', label: 'Fuel', categoryId: 'transport' }],
-      [
-        { key: 'fuel', label: 'Petrol', categoryId: 'misc' },
-        { key: 'restaurant', label: 'Restaurant', categoryId: 'dining' },
-      ],
-    )
-    expect(next.find((m) => m.key === 'fuel')).toEqual({
-      key: 'fuel',
-      label: 'Petrol',
-      categoryId: 'misc',
-    })
-    expect(next.find((m) => m.key === 'restaurant')?.categoryId).toBe('dining')
+    expect(merged.find((o) => o.categoryId === 'dining')?.amount).toBe(0)
   })
 })

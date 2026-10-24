@@ -3,10 +3,12 @@ import {
   type AllowanceSplit,
   type BankCategoryMapping,
   type CardOwner,
+  type ExpenseBank,
   type ExpenseCard,
   type MonthlyRecord,
   type TandemState,
 } from '@/types/tandem'
+import { normalizeBankLabel } from './card-expenses'
 import { generateSalt } from './crypto'
 import { buildDemoHistory } from './demo-data'
 import { computeMonthly } from './finance'
@@ -98,32 +100,103 @@ function normalizeCardOwner(raw: unknown): CardOwner | null {
   return null
 }
 
-function normalizeCards(raw: unknown): ExpenseCard[] {
-  if (!Array.isArray(raw)) return []
-  return raw
-    .map((c) => {
-      if (!c || typeof c !== 'object') return null
-      const row = c as ExpenseCard
-      const owner = normalizeCardOwner(row.owner)
-      if (typeof row.id !== 'string' || typeof row.name !== 'string' || !owner) {
-        return null
-      }
-      return {
-        id: row.id,
-        name: row.name.trim() || 'Card',
-        owner,
-      } satisfies ExpenseCard
-    })
-    .filter((c): c is ExpenseCard => c !== null)
-}
-
-function normalizeCategoryMappings(raw: unknown): BankCategoryMapping[] {
+function normalizeBanks(raw: unknown): ExpenseBank[] {
   if (!Array.isArray(raw)) return []
   const seen = new Set<string>()
-  const out: BankCategoryMapping[] = []
+  const out: ExpenseBank[] = []
   for (const row of raw) {
     if (!row || typeof row !== 'object') continue
-    const m = row as BankCategoryMapping
+    const b = row as ExpenseBank
+    if (typeof b.id !== 'string' || typeof b.name !== 'string') continue
+    const id = b.id.trim()
+    if (!id || seen.has(id)) continue
+    seen.add(id)
+    out.push({ id, name: b.name.trim() || 'Bank' })
+  }
+  return out
+}
+
+type LegacyCard = Partial<ExpenseCard> & { id?: string; name?: string }
+type LegacyMapping = Partial<BankCategoryMapping> & {
+  key?: string
+  label?: string
+  categoryId?: string
+  bankId?: string
+}
+
+/**
+ * Normalize banks, cards, and per-bank mappings.
+ * Legacy vaults (cards / global mappings, no banks) get a migrated bank.
+ */
+function normalizeBanksCardsMappings(
+  rawBanks: unknown,
+  rawCards: unknown,
+  rawMappings: unknown,
+): {
+  banks: ExpenseBank[]
+  cards: ExpenseCard[]
+  categoryMappings: BankCategoryMapping[]
+} {
+  let banks = normalizeBanks(rawBanks)
+
+  const rawCardList = Array.isArray(rawCards) ? rawCards : []
+  const parsedCards: Array<{
+    id: string
+    name: string
+    owner: CardOwner
+    bankId: string | null
+  }> = []
+  for (const row of rawCardList) {
+    if (!row || typeof row !== 'object') continue
+    const c = row as LegacyCard
+    const owner = normalizeCardOwner(c.owner)
+    if (typeof c.id !== 'string' || typeof c.name !== 'string' || !owner) {
+      continue
+    }
+    const bankId =
+      typeof c.bankId === 'string' && c.bankId.trim() ? c.bankId.trim() : null
+    parsedCards.push({
+      id: c.id,
+      name: c.name.trim() || 'Card',
+      owner,
+      bankId,
+    })
+  }
+
+  const bankIds = new Set(banks.map((b) => b.id))
+  const needsMigrateBank =
+    parsedCards.some((c) => !c.bankId || !bankIds.has(c.bankId)) ||
+    (parsedCards.length > 0 && banks.length === 0)
+
+  let migrateBankId: string | null = null
+  if (needsMigrateBank) {
+    migrateBankId =
+      banks.find((b) => b.id === 'bank-migrated')?.id ??
+      banks[0]?.id ??
+      'bank-migrated'
+    if (!banks.some((b) => b.id === migrateBankId)) {
+      banks = [{ id: migrateBankId, name: 'Bank' }, ...banks]
+      bankIds.add(migrateBankId)
+    }
+  }
+
+  const cards: ExpenseCard[] = parsedCards.map((c) => ({
+    id: c.id,
+    name: c.name,
+    owner: c.owner,
+    bankId:
+      c.bankId && bankIds.has(c.bankId)
+        ? c.bankId
+        : (migrateBankId ?? banks[0]!.id),
+  }))
+
+  const defaultBankId = banks[0]?.id ?? migrateBankId
+  const seen = new Set<string>()
+  const categoryMappings: BankCategoryMapping[] = []
+  const rawMapList = Array.isArray(rawMappings) ? rawMappings : []
+  for (const row of rawMapList) {
+    if (!row || typeof row !== 'object') continue
+    const m = row as LegacyMapping
     if (
       typeof m.key !== 'string' ||
       typeof m.label !== 'string' ||
@@ -131,16 +204,25 @@ function normalizeCategoryMappings(raw: unknown): BankCategoryMapping[] {
     ) {
       continue
     }
-    const key = m.key.trim().toLowerCase()
-    if (!key || seen.has(key)) continue
-    seen.add(key)
-    out.push({
+    const key = normalizeBankLabel(m.key)
+    let bankId =
+      typeof m.bankId === 'string' && m.bankId.trim() ? m.bankId.trim() : null
+    if (!bankId || !bankIds.has(bankId)) {
+      if (!defaultBankId) continue
+      bankId = defaultBankId
+    }
+    const dedupe = `${bankId}::${key}`
+    if (!key || seen.has(dedupe)) continue
+    seen.add(dedupe)
+    categoryMappings.push({
+      bankId,
       key,
       label: m.label.trim() || key,
       categoryId: m.categoryId,
     })
   }
-  return out
+
+  return { banks, cards, categoryMappings }
 }
 
 function normalizeV1(state: TandemState): TandemState {
@@ -172,8 +254,9 @@ function normalizeV1(state: TandemState): TandemState {
         state.settings?.categories?.length > 0
           ? state.settings.categories
           : DEFAULT_CATEGORIES,
-      cards: normalizeCards(state.settings?.cards),
-      categoryMappings: normalizeCategoryMappings(
+      ...normalizeBanksCardsMappings(
+        state.settings?.banks,
+        state.settings?.cards,
         state.settings?.categoryMappings,
       ),
       autoLockMinutes: state.settings?.autoLockMinutes ?? 30,
@@ -201,6 +284,7 @@ export function createInitialState(partial?: {
       partnerBName: partial?.partnerBName || 'Lucka',
       allowanceSplit: 'equal',
       categories: [...DEFAULT_CATEGORIES],
+      banks: [],
       cards: [],
       categoryMappings: [],
       autoLockMinutes: 30,

@@ -9,7 +9,8 @@ alwaysApply: false
 ## Brand
 
 - Logo: `logo-mark` / Fugaz One; teal `#0f766e` (light) / brighter on dark
-- Body: Plus Jakarta Sans; CSS vars in `src/index.css` (`--bg`, `--surface`, `--logo`)
+- Body: Plus Jakarta Sans; CSS vars in `src/index.css` (`--bg`, `--surface`, `--logo`, `--partner-a/b/common/other`)
+- Partner identity: blue A / rose B / violet common / amber other (not brand teal) — `src/lib/partners.ts` + `OwnerBadge`
 - Setup/lock stay on light canvas (`.logo-mark-on-light`)
 
 Tone: private couple’s OS — not bank SaaS. Sync = “vault / GitHub”, not “our cloud.”
@@ -25,7 +26,7 @@ Never show formula letters (X / Y / Z) in UI copy — use plain words (income, e
 
 - Primitives: `src/components/ui/*`
 - Nav: Home, History, Incomes, Expenses, Outlook (text); Settings as header icon with sync/theme/lock
-- Settings uses sticky sub-tabs: Household / Categories / Cards / Sync / Security / Data
+- Settings uses sticky sub-tabs: Household / Categories / Banks / Vault / Security / Data
 - Track Data steps: **Incomes**, **Expenses**, Allocations (not “Inflows/Outflows”)
 - History = charts over tracked months (varied series hues, not all teal); Outlook = planning (averages/projections)
 - History/Outlook range toggle sticks under the app header while scrolling

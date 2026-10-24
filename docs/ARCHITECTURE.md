@@ -60,7 +60,7 @@ hooks/*          →  auto-lock, shortcuts, theme
 store/*          →  boot, unlock, pull/push, wizard, import
 lib/finance      →  pure month math
 lib/analytics    →  range slices, income buckets, expense grid, category trends, outlook projections
-lib/card-expenses → paste card monthly totals, map labels, merge into outflows
+lib/card-expenses → bank-scoped label mappings + merge amounts into outflows
 lib/crypto       →  Web Crypto envelope
 lib/github       →  Contents API
 lib/storage      →  localStorage / sessionStorage keys

@@ -24,7 +24,7 @@ Was: `createInitialState()` seeded demo months by default. **Now:** empty histor
 
 #### C2 — Unsynced Settings can vanish (Medium) — **mitigated (C2A)**
 
-Was: pull / background refresh could wipe in-memory Settings (cards, categories, etc.). **Now:** `localDirty` after `updateState`; pull pushes local first when dirty; quiet-unlock background refresh skips while dirty; Categories/Cards tabs have **Save & sync**. **Still open:** lock without Save & sync still drops unsynced memory — dirty banner on lock would close the rest.
+Was: pull / background refresh could wipe in-memory Settings (cards, categories, etc.). **Now:** `localDirty` after `updateState`; pull pushes local first when dirty; quiet-unlock background refresh skips while dirty; Categories/Banks tabs have **Save & sync**. **Still open:** lock without Save & sync still drops unsynced memory — dirty banner on lock would close the rest.
 
 #### C1 — Conflicts are pull or overwrite (Medium)
 

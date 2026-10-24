@@ -40,8 +40,9 @@ Unrecognized `v` or missing fields → hard error (`parseEnvelope`).
 | `partnerAName` / `partnerBName` | `Barney` / `Lucka` (legacy “Partner A/B” remapped on migrate) |
 | `allowanceSplit` | Splits **expenses** and **pocket**: `equal` or `income` (Barney/Lucka ratio; Other excluded) |
 | `categories` | `DEFAULT_CATEGORIES` |
-| `cards` | `[]` — `{ id, name, owner: partnerA\|partnerB\|common }` paste sources; `common` = household card |
-| `categoryMappings` | `[]` — `{ key, label, categoryId }` bank label → household category |
+| `banks` | `[]` — `{ id, name }` issuers; each has its own expense-label taxonomy |
+| `cards` | `[]` — `{ id, name, bankId, owner: partnerA\|partnerB\|common }` entry sources |
+| `categoryMappings` | `[]` — `{ bankId, key, label, categoryId }` bank label → household category |
 | `autoLockMinutes` | `30` |
 
 ### MonthlyRecord
@@ -52,7 +53,7 @@ Built by `buildMonthlyRecord` in `finance.ts` (never hand-roll `computed`).
 
 **Expenses** (UI; stored as `outflows`): `{ categoryId, categoryName, amount }[]`
 
-**Add from card (Track Data → Expenses):** paste monthly totals per bank label from one card → map labels via `settings.categoryMappings` → **merge** (add) into `outflows`. Cards themselves are not stored on the month — only the rolled-up categories. Parsing/merge: `src/lib/card-expenses.ts`.
+**Add from card (Track Data → Expenses):** pick a card → enter amounts for that **bank’s** remembered labels (each mapped to a household category) → **merge** (add) into `outflows`. New labels can be added inline and are saved on the bank. Cards themselves are not stored on the month — only the rolled-up categories. Merge/mappings: `src/lib/card-expenses.ts`.
 
 **Allocations (this month’s transfers off the spending pool):**  
 `emergencyReserve`, `travelFund`, `investments`

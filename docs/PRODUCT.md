@@ -15,8 +15,8 @@ Private household operating system for a couple — calm, local-first, not a ban
 | Incomes | Incomes only: compact metric strip + stacked bars + share pie + month table (partner A / partner B / Other). Same sticky range. |
 | Expenses | Expenses only: compact metric strip + stacked category bars + mix pie + month × category table. Same sticky range. |
 | Outlook | Forward look: compact metric strip + trailing averages → next 3 months; category baselines (avg / last / €/mo slope). Same sticky range. |
-| Settings | Sticky tabs: **Household** · **Categories** · **Cards** (Common / Barney / Lucka + label mappings) · **Sync** (GitHub, invite QR) · **Security** (password) · **Data** (samples, JSON backup) |
-| Track Data wizard | Month picker loads **saved** months for edit (or seeds a new one); Incomes → Expenses → Allocations; **Add from card**; **Edit** on Incomes/Expenses tables opens that month |
+| Settings | Sticky tabs: **Household** · **Categories** · **Banks** (compact: per bank labels + cards with owner) · **Vault** (GitHub data repo, invite QR) · **Security** (password) · **Data** (samples, JSON backup) |
+| Track Data wizard | Month picker loads **saved** months for edit (or seeds a new one); Incomes → Expenses → Allocations; **Add from card** (bank-label amounts → merge into categories); **Edit** on Incomes/Expenses tables opens that month |
 
 Nav: **Home**, **History**, **Incomes**, **Expenses**, **Outlook** (text); **Settings** as a header icon (with sync / theme / lock). **Tandem** logo mark links to Home. Legacy `/trends` & `/breakdown` → History; `/analytics` → Outlook. Brand mark: **Tandem** (`Fugaz One`, teal).
 
@@ -27,9 +27,15 @@ UI copy never uses formula letters **X / Y / Z** — say income, expenses, left 
 | Token | Light | Role |
 |-------|-------|------|
 | `--logo` | `#0f766e` | Brand / accents |
+| `--partner-a` | `#0369a1` | Partner A (Barney) — blue |
+| `--partner-b` | `#be123c` | Partner B (Lucka) — rose (not brand teal/green) |
+| `--partner-common` | `#7c3aed` | Household / common card — violet |
+| `--partner-other` | `#ca8a04` | Other income — amber |
 | `--bg` | `#eef1ef` | Page ground |
 | `--surface` | `#ffffff` | Panels |
 | Fonts | Plus Jakarta Sans + Fugaz One | Body / logo |
+
+Partner hexes also live in `src/lib/partners.ts` (`PARTNER_COLOR`) for charts. Dark theme brightens the CSS vars.
 
 Dark theme via `.dark` on root (hook `use-theme`). Setup/lock use light canvas + `.logo-mark-on-light`.
 
@@ -48,7 +54,7 @@ UI primitives: `src/components/ui/*` (button, input, select, card, label, money-
 
 - Display dates: **DD/MM/YYYY** (**Last Synced** `DD/MM/YYYY HH:mm` on the pull-icon tooltip, not in the header)
 - Header icon tooltips: Settings, sync/pull (Last Synced; notes unsaved local edits), theme (Switch to light/dark), lock (Lock)
-- Settings **Save & sync** on Household / Categories / Cards; header sync pushes dirty local edits before pull
+- Settings **Save & sync** on Household / Categories / Banks; header sync pushes dirty local edits before pull
 - Month labels: **MM/YYYY** from `YYYY-MM` keys
 - Money: always **euro** (`formatMoney` → `€` + `sk-SK` grouping); inputs via `MoneyInput` / `parseLocaleNumber` (`,` and `.`)
 

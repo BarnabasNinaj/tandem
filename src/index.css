@@ -14,6 +14,11 @@
   --text: #1c1917;
   --text-muted: #3f3a36;
   --text-faint: #57534e;
+  /* Partner / card-owner identity — not brand teal (charts + badges) */
+  --partner-a: #0369a1; /* blue */
+  --partner-b: #be123c; /* rose */
+  --partner-common: #7c3aed; /* violet */
+  --partner-other: #ca8a04; /* amber */
   color-scheme: light;
 }
 
@@ -26,6 +31,10 @@
   --text-faint: #78716c;
   /* Brighter teal on dark chrome — still not white/black */
   --logo: #2dd4bf;
+  --partner-a: #38bdf8;
+  --partner-b: #fb7185;
+  --partner-common: #a78bfa;
+  --partner-other: #fbbf24;
   color-scheme: dark;
 }
 

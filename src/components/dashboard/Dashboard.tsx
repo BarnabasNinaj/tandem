@@ -174,7 +174,12 @@ export function Dashboard() {
           </div>
           <div className="flex gap-8 text-sm">
             <div>
-              <p className="text-stone-700 dark:text-stone-400">{settings.partnerAName}</p>
+              <p
+                className="font-medium"
+                style={{ color: 'var(--partner-a)' }}
+              >
+                {settings.partnerAName}
+              </p>
               <p className="font-semibold tabular-nums text-stone-900 dark:text-stone-100">
                 {money(allowanceA)}
               </p>
@@ -186,7 +191,12 @@ export function Dashboard() {
             </div>
             <div className="w-px bg-stone-400 dark:bg-stone-600" />
             <div>
-              <p className="text-stone-700 dark:text-stone-400">{settings.partnerBName}</p>
+              <p
+                className="font-medium"
+                style={{ color: 'var(--partner-b)' }}
+              >
+                {settings.partnerBName}
+              </p>
               <p className="font-semibold tabular-nums text-stone-900 dark:text-stone-100">
                 {money(allowanceB)}
               </p>

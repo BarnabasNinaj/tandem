@@ -237,6 +237,7 @@ export function MonthlyWizard() {
             <div className="space-y-3">
               {addFromCard ? (
                 <AddFromCard
+                  banks={settings.banks ?? []}
                   cards={settings.cards ?? []}
                   categories={settings.categories}
                   mappings={settings.categoryMappings ?? []}
@@ -431,9 +432,15 @@ export function MonthlyWizard() {
                 <span className="text-teal-700/80 dark:text-teal-400">
                   Expenses{' '}
                 </span>
-                {settings.partnerAName} {money(computed.expenseSharePartnerA)}
+                <span style={{ color: 'var(--partner-a)' }}>
+                  {settings.partnerAName}
+                </span>{' '}
+                {money(computed.expenseSharePartnerA)}
                 <span className="mx-1 text-teal-600/40">·</span>
-                {settings.partnerBName} {money(computed.expenseSharePartnerB)}
+                <span style={{ color: 'var(--partner-b)' }}>
+                  {settings.partnerBName}
+                </span>{' '}
+                {money(computed.expenseSharePartnerB)}
               </p>
               <p>
                 <span className="text-teal-700/80 dark:text-teal-400">
@@ -443,10 +450,14 @@ export function MonthlyWizard() {
                   <>{money(computed.personalAllowancePartnerA)} each</>
                 ) : (
                   <>
-                    {settings.partnerAName}{' '}
+                    <span style={{ color: 'var(--partner-a)' }}>
+                      {settings.partnerAName}
+                    </span>{' '}
                     {money(computed.personalAllowancePartnerA)}
                     <span className="mx-1 text-teal-600/40">·</span>
-                    {settings.partnerBName}{' '}
+                    <span style={{ color: 'var(--partner-b)' }}>
+                      {settings.partnerBName}
+                    </span>{' '}
                     {money(computed.personalAllowancePartnerB)}
                   </>
                 )}

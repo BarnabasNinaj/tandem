@@ -1,22 +1,32 @@
 import { useRef, useState } from 'react'
 import {
   ArrowDown,
+  ArrowRight,
   ArrowUp,
+  Check,
   Download,
+  Landmark,
+  Pencil,
   Plus,
+  Tags,
   Trash2,
   Upload,
+  X,
 } from 'lucide-react'
 import { InviteQr } from '@/components/invite/InviteQr'
 import { Button } from '@/components/ui/button'
 import { Card, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { OwnerBadge } from '@/components/ui/owner-badge'
 import { Select } from '@/components/ui/select'
+import { mappingsForBank, normalizeBankLabel } from '@/lib/card-expenses'
 import { formatDateTimeDDMMYYYY } from '@/lib/dates'
+import { nextOwner } from '@/lib/partners'
 import { useTandemStore } from '@/store/tandem-store'
 import type {
   CardOwner,
+  ExpenseBank,
   ExpenseCard,
   ExpenseCategory,
   GitHubConfig,
@@ -25,19 +35,23 @@ import type {
 type SettingsTab =
   | 'household'
   | 'categories'
-  | 'cards'
-  | 'sync'
+  | 'banks'
+  | 'vault'
   | 'security'
   | 'data'
 
 const TABS: { id: SettingsTab; label: string }[] = [
   { id: 'household', label: 'Household' },
   { id: 'categories', label: 'Categories' },
-  { id: 'cards', label: 'Cards' },
-  { id: 'sync', label: 'Sync' },
+  { id: 'banks', label: 'Banks' },
+  { id: 'vault', label: 'Vault' },
   { id: 'security', label: 'Security' },
   { id: 'data', label: 'Data' },
 ]
+
+/** Name fields size to glyphs, not oversized `ch` estimates. */
+const FIT_NAME =
+  'w-auto min-w-[2.5rem] max-w-[10rem] [field-sizing:content]' as const
 
 export function Settings() {
   const state = useTandemStore((s) => s.state)!
@@ -62,9 +76,20 @@ export function Settings() {
   const [msg, setMsg] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
   const [newCat, setNewCat] = useState('')
-  const [newCardA, setNewCardA] = useState('')
-  const [newCardB, setNewCardB] = useState('')
-  const [newCardCommon, setNewCardCommon] = useState('')
+  const [newBank, setNewBank] = useState('')
+  /** bankId → draft new card (name + owner) */
+  const [newCardDraft, setNewCardDraft] = useState<
+    Record<string, { name: string; owner: CardOwner }>
+  >({})
+  /** bankId → add-card form open */
+  const [addingCardFor, setAddingCardFor] = useState<Record<string, boolean>>(
+    {},
+  )
+  /** bankId → show delete controls */
+  const [editingBank, setEditingBank] = useState<Record<string, boolean>>({})
+  const [newLabelDraft, setNewLabelDraft] = useState<
+    Record<string, { label: string; categoryId: string }>
+  >({})
   const [tab, setTab] = useState<SettingsTab>('household')
 
   const saveSettings = async () => {
@@ -90,6 +115,7 @@ export function Settings() {
   }
 
   const categories = state.settings.categories
+  const banks = state.settings.banks ?? []
   const cards = state.settings.cards ?? []
   const mappings = state.settings.categoryMappings ?? []
 
@@ -144,19 +170,67 @@ export function Settings() {
     }))
   }
 
-  const addCard = (owner: CardOwner) => {
-    const name = (
-      owner === 'partnerA'
-        ? newCardA
-        : owner === 'partnerB'
-          ? newCardB
-          : newCardCommon
-    ).trim()
+  const cardDraft = (bankId: string) =>
+    newCardDraft[bankId] ?? { name: '', owner: 'partnerA' as CardOwner }
+
+  const labelDraft = (bankId: string) =>
+    newLabelDraft[bankId] ?? {
+      label: '',
+      categoryId: categories[0]?.id ?? '',
+    }
+
+  const addBank = () => {
+    const name = newBank.trim()
+    if (!name) return
+    const bank: ExpenseBank = {
+      id: `bank-${Date.now()}`,
+      name,
+    }
+    updateState((s) => ({
+      ...s,
+      settings: {
+        ...s.settings,
+        banks: [...(s.settings.banks ?? []), bank],
+      },
+    }))
+    setNewBank('')
+  }
+
+  const renameBank = (id: string, name: string) => {
+    updateState((s) => ({
+      ...s,
+      settings: {
+        ...s.settings,
+        banks: (s.settings.banks ?? []).map((b) =>
+          b.id === id ? { ...b, name } : b,
+        ),
+      },
+    }))
+  }
+
+  const removeBank = (id: string) => {
+    updateState((s) => ({
+      ...s,
+      settings: {
+        ...s.settings,
+        banks: (s.settings.banks ?? []).filter((b) => b.id !== id),
+        cards: (s.settings.cards ?? []).filter((c) => c.bankId !== id),
+        categoryMappings: (s.settings.categoryMappings ?? []).filter(
+          (m) => m.bankId !== id,
+        ),
+      },
+    }))
+  }
+
+  const addCard = (bankId: string) => {
+    const draft = cardDraft(bankId)
+    const name = draft.name.trim()
     if (!name) return
     const card: ExpenseCard = {
       id: `card-${Date.now()}`,
       name,
-      owner,
+      bankId,
+      owner: draft.owner,
     }
     updateState((s) => ({
       ...s,
@@ -165,9 +239,20 @@ export function Settings() {
         cards: [...(s.settings.cards ?? []), card],
       },
     }))
-    if (owner === 'partnerA') setNewCardA('')
-    else if (owner === 'partnerB') setNewCardB('')
-    else setNewCardCommon('')
+    setNewCardDraft((prev) => ({
+      ...prev,
+      [bankId]: { name: '', owner: draft.owner },
+    }))
+    setAddingCardFor((prev) => ({ ...prev, [bankId]: false }))
+  }
+
+  const cancelAddCard = (bankId: string) => {
+    const draft = cardDraft(bankId)
+    setNewCardDraft((prev) => ({
+      ...prev,
+      [bankId]: { name: '', owner: draft.owner },
+    }))
+    setAddingCardFor((prev) => ({ ...prev, [bankId]: false }))
   }
 
   const removeCard = (id: string) => {
@@ -192,32 +277,85 @@ export function Settings() {
     }))
   }
 
-  const cardsFor = (owner: CardOwner) =>
-    cards.filter((c) => c.owner === owner)
+  const setCardOwner = (id: string, owner: CardOwner) => {
+    updateState((s) => ({
+      ...s,
+      settings: {
+        ...s.settings,
+        cards: (s.settings.cards ?? []).map((c) =>
+          c.id === id ? { ...c, owner } : c,
+        ),
+      },
+    }))
+  }
 
-  const setMappingCategory = (key: string, categoryId: string) => {
+  const addBankLabel = (bankId: string) => {
+    const draft = labelDraft(bankId)
+    const label = draft.label.trim()
+    const key = normalizeBankLabel(label)
+    if (!key || !draft.categoryId) return
+    updateState((s) => {
+      const others = (s.settings.categoryMappings ?? []).filter(
+        (m) => !(m.bankId === bankId && m.key === key),
+      )
+      return {
+        ...s,
+        settings: {
+          ...s.settings,
+          categoryMappings: [
+            ...others,
+            {
+              bankId,
+              key,
+              label,
+              categoryId: draft.categoryId,
+            },
+          ].sort((a, b) => a.label.localeCompare(b.label)),
+        },
+      }
+    })
+    setNewLabelDraft((prev) => ({
+      ...prev,
+      [bankId]: { label: '', categoryId: draft.categoryId },
+    }))
+  }
+
+  const setMappingCategory = (
+    bankId: string,
+    key: string,
+    categoryId: string,
+  ) => {
     updateState((s) => ({
       ...s,
       settings: {
         ...s.settings,
         categoryMappings: (s.settings.categoryMappings ?? []).map((m) =>
-          m.key === key ? { ...m, categoryId } : m,
+          m.bankId === bankId && m.key === key ? { ...m, categoryId } : m,
         ),
       },
     }))
   }
 
-  const removeMapping = (key: string) => {
+  const removeMapping = (bankId: string, key: string) => {
     updateState((s) => ({
       ...s,
       settings: {
         ...s.settings,
         categoryMappings: (s.settings.categoryMappings ?? []).filter(
-          (m) => m.key !== key,
+          (m) => !(m.bankId === bankId && m.key === key),
         ),
       },
     }))
   }
+
+  const cardsForBank = (bankId: string) =>
+    cards
+      .filter((c) => c.bankId === bankId)
+      .sort((a, b) => {
+        const order = { common: 0, partnerA: 1, partnerB: 2 }
+        const d = order[a.owner] - order[b.owner]
+        return d !== 0 ? d : a.name.localeCompare(b.name)
+      })
 
   const downloadBackup = () => {
     const blob = new Blob([exportJson()], { type: 'application/json' })
@@ -433,152 +571,356 @@ export function Settings() {
       </Card>
       )}
 
-      {tab === 'cards' && (
-      <>
-      <Card className="space-y-5">
+      {tab === 'banks' && (
+      <Card className="space-y-3">
         <div>
-          <CardTitle>Cards</CardTitle>
-          <p className="mt-1 text-xs text-stone-700 dark:text-stone-400">
-            Paste sources for Track Data → Add from card. Personal and common
-            cards all merge into the same household categories — shared spend
-            can sit on any card.
+          <CardTitle>Banks</CardTitle>
+          <p className="mt-0.5 text-xs text-stone-700 dark:text-stone-400">
+            Focus: map each bank’s labels onto household categories. Cards are
+            just who pays.
           </p>
         </div>
-        {(
-          [
-            {
-              owner: 'common' as const,
-              name: 'Common',
-              hint: 'Household card you both fund',
-              draft: newCardCommon,
-              setDraft: setNewCardCommon,
-              placeholder: 'Card name (e.g. Joint card)',
-            },
-            {
-              owner: 'partnerA' as const,
-              name: state.settings.partnerAName,
-              hint: null,
-              draft: newCardA,
-              setDraft: setNewCardA,
-              placeholder: `Card name (e.g. ${state.settings.partnerAName} Visa)`,
-            },
-            {
-              owner: 'partnerB' as const,
-              name: state.settings.partnerBName,
-              hint: null,
-              draft: newCardB,
-              setDraft: setNewCardB,
-              placeholder: `Card name (e.g. ${state.settings.partnerBName} Visa)`,
-            },
-          ] as const
-        ).map(({ owner, name, hint, draft, setDraft, placeholder }) => {
-          const group = cardsFor(owner)
-          return (
-            <div key={owner} className="space-y-2">
-              <div>
-                <p className="text-xs font-medium tracking-[0.14em] text-stone-500 uppercase">
-                  {name}
-                </p>
-                {hint ? (
-                  <p className="text-[11px] text-stone-500 dark:text-stone-400">
-                    {hint}
-                  </p>
-                ) : null}
-              </div>
-              <ul className="space-y-2">
-                {group.map((c) => (
-                  <li key={c.id} className="flex items-center gap-2">
-                    <Input
-                      value={c.name}
-                      onChange={(e) => renameCard(c.id, e.target.value)}
-                      className="min-w-[8rem] flex-1"
-                    />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      type="button"
-                      onClick={() => removeCard(c.id)}
-                      aria-label="Delete card"
-                    >
-                      <Trash2 className="h-4 w-4 text-red-600" />
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-              <div className="flex gap-2">
-                <Input
-                  placeholder={placeholder}
-                  value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && addCard(owner)}
-                  className="min-w-[10rem] flex-1"
-                />
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => addCard(owner)}
-                >
-                  <Plus className="h-4 w-4" /> Add
-                </Button>
-              </div>
-            </div>
-          )
-        })}
-        <Button onClick={() => void saveSettings()}>Save & sync</Button>
-      </Card>
 
-      <Card className="space-y-3">
-        <CardTitle>Category mappings</CardTitle>
-        <p className="text-xs text-stone-700 dark:text-stone-400">
-          How bank/card labels map onto household categories. New labels are
-          learned when you confirm them in Add from card.
-        </p>
-        {mappings.length === 0 ? (
+        <div className="flex gap-2">
+          <Input
+            placeholder="New bank (e.g. Revolut)"
+            value={newBank}
+            onChange={(e) => setNewBank(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && addBank()}
+            className="h-8 min-w-[8rem] flex-1"
+          />
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={addBank}
+          >
+            <Landmark className="h-3.5 w-3.5" /> Bank
+          </Button>
+        </div>
+
+        {banks.length === 0 ? (
           <p className="text-sm text-stone-500 dark:text-stone-400">
-            No mappings yet — paste a card in Track Data and pick categories
-            once.
+            No banks yet.
           </p>
         ) : (
-          <ul className="space-y-2">
-            {mappings.map((m) => (
-              <li key={m.key} className="flex flex-wrap items-center gap-2">
-                <span className="min-w-[7rem] flex-1 text-sm text-stone-800 dark:text-stone-200">
-                  {m.label}
-                </span>
-                <Select
-                  wrapperClassName="min-w-[8rem] w-auto"
-                  className="min-w-[8rem]"
-                  value={m.categoryId}
-                  onChange={(e) => setMappingCategory(m.key, e.target.value)}
+          <div className="space-y-3">
+            {banks.map((bank) => {
+              const bankMaps = mappingsForBank(mappings, bank.id)
+              const draft = cardDraft(bank.id)
+              const lDraft = labelDraft(bank.id)
+              const bankCards = cardsForBank(bank.id)
+              return (
+                <section
+                  key={bank.id}
+                  className="overflow-hidden rounded-lg border border-stone-300 dark:border-stone-600"
                 >
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </Select>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  type="button"
-                  onClick={() => removeMapping(m.key)}
-                  aria-label="Delete mapping"
-                >
-                  <Trash2 className="h-4 w-4 text-red-600" />
-                </Button>
-              </li>
-            ))}
-          </ul>
+                  {/* Bank + cards on one row; deletes only in edit */}
+                  <header className="flex flex-wrap items-center gap-1 border-b border-teal-800/15 bg-teal-800/[0.07] px-2.5 py-1.5 dark:border-teal-400/20 dark:bg-teal-400/10">
+                    <Landmark
+                      className="h-3.5 w-3.5 shrink-0 text-teal-800 dark:text-teal-300"
+                      aria-hidden
+                    />
+                    <Input
+                      value={bank.name}
+                      onChange={(e) => renameBank(bank.id, e.target.value)}
+                      className={`h-7 shrink-0 rounded-md border border-transparent bg-white/70 px-2 text-sm font-semibold shadow-none focus-visible:border-teal-700/40 focus-visible:ring-1 focus-visible:ring-teal-700/30 dark:bg-white/10 dark:focus-visible:border-teal-400/40 ${FIT_NAME}`}
+                      aria-label="Bank name"
+                    />
+                    <span
+                      className="mx-0.5 hidden h-4 w-px bg-teal-800/20 sm:block dark:bg-teal-400/25"
+                      aria-hidden
+                    />
+                    {bankCards.map((c) => (
+                      <div
+                        key={c.id}
+                        className="flex h-7 w-fit max-w-full items-center gap-1.5 rounded-md border border-stone-300/80 bg-white/80 px-2 dark:border-stone-500/60 dark:bg-white/10"
+                      >
+                        <Input
+                          value={c.name}
+                          onChange={(e) => renameCard(c.id, e.target.value)}
+                          className={`h-5 border-0 bg-transparent p-0 text-xs shadow-none focus-visible:ring-0 dark:bg-transparent ${FIT_NAME}`}
+                          aria-label="Card name"
+                        />
+                        <OwnerBadge
+                          owner={c.owner}
+                          partnerAName={state.settings.partnerAName}
+                          partnerBName={state.settings.partnerBName}
+                          onClick={() =>
+                            setCardOwner(c.id, nextOwner(c.owner))
+                          }
+                        />
+                        {editingBank[bank.id] ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            type="button"
+                            className="h-5 w-5 shrink-0"
+                            onClick={() => removeCard(c.id)}
+                            aria-label="Delete card"
+                          >
+                            <Trash2 className="h-3 w-3 text-red-600" />
+                          </Button>
+                        ) : null}
+                      </div>
+                    ))}
+                    {editingBank[bank.id] ? (
+                      addingCardFor[bank.id] ? (
+                        <div className="flex h-7 w-fit max-w-full items-center gap-1.5 rounded-md border border-dashed border-stone-300 bg-white/60 px-2 dark:border-stone-500/60 dark:bg-white/10">
+                          <Input
+                            autoFocus
+                            placeholder="Name"
+                            value={draft.name}
+                            onChange={(e) =>
+                              setNewCardDraft((prev) => ({
+                                ...prev,
+                                [bank.id]: {
+                                  ...draft,
+                                  name: e.target.value,
+                                },
+                              }))
+                            }
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') addCard(bank.id)
+                              if (e.key === 'Escape') cancelAddCard(bank.id)
+                            }}
+                            className={`h-5 border-0 bg-transparent p-0 text-xs shadow-none focus-visible:ring-0 dark:bg-transparent ${FIT_NAME}`}
+                          />
+                          <OwnerBadge
+                            owner={draft.owner}
+                            partnerAName={state.settings.partnerAName}
+                            partnerBName={state.settings.partnerBName}
+                            onClick={() =>
+                              setNewCardDraft((prev) => ({
+                                ...prev,
+                                [bank.id]: {
+                                  ...draft,
+                                  owner: nextOwner(draft.owner),
+                                },
+                              }))
+                            }
+                          />
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="icon"
+                            className="h-5 w-5 shrink-0"
+                            onClick={() => addCard(bank.id)}
+                            disabled={!draft.name.trim()}
+                            aria-label="Save card"
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-5 w-5 shrink-0"
+                            onClick={() => cancelAddCard(bank.id)}
+                            aria-label="Cancel add card"
+                          >
+                            <X className="h-3 w-3 text-stone-500" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 shrink-0 rounded border border-dashed border-stone-300 dark:border-stone-600"
+                          onClick={() =>
+                            setAddingCardFor((prev) => ({
+                              ...prev,
+                              [bank.id]: true,
+                            }))
+                          }
+                          aria-label="Add card"
+                        >
+                          <Plus className="h-3 w-3" />
+                        </Button>
+                      )
+                    ) : null}
+                    <div className="ml-auto flex items-center gap-0.5">
+                      {editingBank[bank.id] ? (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            type="button"
+                            className="h-7 w-7 shrink-0"
+                            onClick={() => removeBank(bank.id)}
+                            aria-label="Delete bank"
+                          >
+                            <Trash2 className="h-3.5 w-3.5 text-red-600" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            type="button"
+                            className="h-7 w-7 shrink-0"
+                            onClick={() => {
+                              setEditingBank((prev) => ({
+                                ...prev,
+                                [bank.id]: false,
+                              }))
+                              cancelAddCard(bank.id)
+                            }}
+                            aria-label="Done editing bank"
+                          >
+                            <Check className="h-3.5 w-3.5 text-teal-800 dark:text-teal-300" />
+                          </Button>
+                        </>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          type="button"
+                          className="h-7 w-7 shrink-0"
+                          onClick={() =>
+                            setEditingBank((prev) => ({
+                              ...prev,
+                              [bank.id]: true,
+                            }))
+                          }
+                          aria-label="Edit bank"
+                        >
+                          <Pencil className="h-3.5 w-3.5 text-stone-500" />
+                        </Button>
+                      )}
+                    </div>
+                  </header>
+
+                  {/* Labels — primary */}
+                  <div className="space-y-1.5 bg-white p-2.5 dark:bg-stone-900/40">
+                    <div className="flex items-center gap-1.5 text-teal-800 dark:text-teal-300">
+                      <Tags className="h-3.5 w-3.5" aria-hidden />
+                      <p className="text-[10px] font-semibold tracking-[0.14em] uppercase">
+                        Labels → categories
+                      </p>
+                      <span className="text-[10px] font-normal tracking-normal text-stone-400 normal-case dark:text-stone-500">
+                        {bankMaps.length
+                          ? `${bankMaps.length} mapped`
+                          : 'none yet'}
+                      </span>
+                    </div>
+                    {bankMaps.length === 0 ? (
+                      <p className="text-xs text-stone-500 dark:text-stone-400">
+                        Add how this bank names spend (e.g. Lebensmittel →
+                        Groceries).
+                      </p>
+                    ) : null}
+                    <div className="space-y-0.5">
+                      {bankMaps.map((m) => (
+                        <div
+                          key={m.key}
+                          className="grid grid-cols-[minmax(0,1fr)_0.75rem_9rem_1.75rem] items-center gap-x-1.5 rounded-md bg-stone-100 px-2 py-0.5 dark:bg-stone-800/70"
+                        >
+                          <span className="min-w-0 truncate text-sm font-medium text-stone-900 dark:text-stone-50">
+                            {m.label}
+                          </span>
+                          <ArrowRight
+                            className="mx-auto h-3 w-3 text-stone-400"
+                            aria-hidden
+                          />
+                          <Select
+                            wrapperClassName="w-full"
+                            className="h-7 min-w-0 border-stone-300 bg-white pr-7 pl-2 text-xs dark:border-stone-600 dark:bg-stone-900"
+                            value={m.categoryId}
+                            onChange={(e) =>
+                              setMappingCategory(
+                                bank.id,
+                                m.key,
+                                e.target.value,
+                              )
+                            }
+                          >
+                            {categories.map((c) => (
+                              <option key={c.id} value={c.id}>
+                                {c.name}
+                              </option>
+                            ))}
+                          </Select>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            type="button"
+                            className="h-7 w-7"
+                            onClick={() => removeMapping(bank.id, m.key)}
+                            aria-label="Delete label"
+                          >
+                            <Trash2 className="h-3.5 w-3.5 text-red-600" />
+                          </Button>
+                        </div>
+                      ))}
+                      <div className="grid grid-cols-[minmax(0,1fr)_0.75rem_9rem_1.75rem] items-center gap-x-1.5 rounded-md border border-dashed border-teal-800/25 bg-teal-800/[0.03] px-2 py-0.5 dark:border-teal-400/30 dark:bg-teal-400/5">
+                        <Input
+                          placeholder="New bank label"
+                          value={lDraft.label}
+                          onChange={(e) =>
+                            setNewLabelDraft((prev) => ({
+                              ...prev,
+                              [bank.id]: {
+                                ...lDraft,
+                                label: e.target.value,
+                              },
+                            }))
+                          }
+                          onKeyDown={(e) =>
+                            e.key === 'Enter' && addBankLabel(bank.id)
+                          }
+                          className="h-7 min-w-0 w-full border-0 bg-transparent p-0 text-sm shadow-none focus-visible:ring-0 dark:bg-transparent"
+                        />
+                        <ArrowRight
+                          className="mx-auto h-3 w-3 text-stone-400"
+                          aria-hidden
+                        />
+                        <Select
+                          wrapperClassName="w-full"
+                          className="h-7 min-w-0 border-stone-300 bg-white pr-7 pl-2 text-xs dark:border-stone-600 dark:bg-stone-800"
+                          value={lDraft.categoryId}
+                          onChange={(e) =>
+                            setNewLabelDraft((prev) => ({
+                              ...prev,
+                              [bank.id]: {
+                                ...lDraft,
+                                categoryId: e.target.value,
+                              },
+                            }))
+                          }
+                        >
+                          {categories.map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {c.name}
+                            </option>
+                          ))}
+                        </Select>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => addBankLabel(bank.id)}
+                          aria-label="Add label"
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              )
+            })}
+          </div>
         )}
+
         <Button onClick={() => void saveSettings()}>Save & sync</Button>
       </Card>
-      </>
       )}
 
-      {tab === 'sync' && (
+      {tab === 'vault' && (
       <>
       <Card className="space-y-4">
-        <CardTitle>GitHub sync</CardTitle>
+        <CardTitle>Private vault</CardTitle>
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Username">
             <Input
