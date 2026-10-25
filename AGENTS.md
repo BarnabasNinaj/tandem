@@ -32,13 +32,14 @@ Do not treat the data repo as “optional secrets.” It **is** the sync store.
 | Crypto | `src/lib/crypto.ts` |
 | GitHub vault I/O | `src/lib/github.ts` |
 | Browser keys | `src/lib/storage.ts` |
-| Month math | `src/lib/finance.ts` |
+| Month math + settlement | `src/lib/finance.ts` (`settleExpenseShares`, `paymentByOwner`) |
 | Analytics (averages, trends, outlook) | `src/lib/analytics.ts` |
 | Bank label mappings + card merge | `src/lib/card-expenses.ts` |
 | Partner / owner colors | `src/lib/partners.ts`, `OwnerBadge` |
 | Migrations | `src/lib/migration.ts` |
 | Device invite | `src/lib/device-invite.ts` |
 | Page title band | `src/components/layout/PageHeader.tsx` (sticky under app nav; analytics adds range via `AnalyticsPageHeader`) |
+| Section / meta type | `src/components/layout/SectionHeading.tsx` (`SectionHeading` + `MetaLabel`; in-card titles use `CardTitle`) |
 | Auth canvas (boot/setup/lock) | `src/components/lock/AuthShell.tsx` + `public/auth-shell.css` |
 | Self-hosted fonts | `public/fonts/` + `src/lib/fonts.css` |
 | Routes / phases | `src/App.tsx` (`/` Home, `/track`, `/history`, `/incomes`, `/expenses`, `/outlook`, `/settings`) |

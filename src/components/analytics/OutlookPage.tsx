@@ -3,6 +3,10 @@ import { AnalyticsEmpty } from '@/components/analytics/AnalyticsEmpty'
 import { AnalyticsPageHeader } from '@/components/analytics/AnalyticsPageHeader'
 import { CAT_COLORS } from '@/components/analytics/chart-theme'
 import {
+  MetaLabel,
+  SectionHeading,
+} from '@/components/layout/SectionHeading'
+import {
   type AnalyticsRange,
   buildMonthOutlook,
   categoryStats,
@@ -103,9 +107,7 @@ function AheadMetric({
           : 'border-stone-300 dark:border-stone-600',
       )}
     >
-      <p className="text-[10px] font-medium tracking-[0.16em] text-stone-600 uppercase dark:text-stone-400">
-        {label}
-      </p>
+      <MetaLabel>{label}</MetaLabel>
       <p
         className={cn(
           'mt-2 font-[family-name:var(--font-display)] text-xl font-semibold tabular-nums tracking-tight sm:text-2xl',
@@ -131,53 +133,6 @@ function AheadMetric({
   )
 }
 
-/** Avg income split: expenses vs pocket — one glance at the plan shape. */
-function IncomeFlowBar({
-  income,
-  expense,
-  pocket,
-}: {
-  income: number
-  expense: number
-  pocket: number
-}) {
-  if (income <= 0) return null
-  const expPct = Math.min(100, Math.max(0, round2((expense / income) * 100)))
-  const pokPct = Math.min(
-    100 - expPct,
-    Math.max(0, round2((Math.max(pocket, 0) / income) * 100)),
-  )
-
-  return (
-    <div className="space-y-2">
-      <div
-        className="flex h-2.5 overflow-hidden rounded-sm bg-stone-200 dark:bg-stone-800"
-        role="img"
-        aria-label={`Of average income, about ${expPct}% goes to expenses and ${pokPct}% is pocket`}
-      >
-        <div
-          className="h-full bg-stone-500 transition-[width] duration-500 dark:bg-stone-400"
-          style={{ width: `${expPct}%` }}
-        />
-        <div
-          className="h-full bg-[var(--logo)] transition-[width] duration-500"
-          style={{ width: `${pokPct}%` }}
-        />
-      </div>
-      <div className="flex flex-wrap gap-x-4 gap-y-1 text-[10px] font-medium tracking-wide text-stone-600 uppercase dark:text-stone-400">
-        <span className="inline-flex items-center gap-1.5">
-          <span className="h-1.5 w-1.5 rounded-full bg-stone-500 dark:bg-stone-400" />
-          Expenses {expPct}%
-        </span>
-        <span className="inline-flex items-center gap-1.5">
-          <span className="h-1.5 w-1.5 rounded-full bg-[var(--logo)]" />
-          Pocket {pokPct}%
-        </span>
-      </div>
-    </div>
-  )
-}
-
 export function OutlookPage() {
   const state = useTandemStore((s) => s.state)!
   const [range, setRange] = useState<AnalyticsRange>('6M')
@@ -188,10 +143,7 @@ export function OutlookPage() {
     [state.history, range],
   )
 
-  const outlook = useMemo(
-    () => buildMonthOutlook(records, { projectMonths: 3 }),
-    [records],
-  )
+  const outlook = useMemo(() => buildMonthOutlook(records), [records])
 
   const cats = useMemo(() => categoryStats(records), [records])
 
@@ -217,16 +169,14 @@ export function OutlookPage() {
             {outlook && (
               <>
                 <section
-                  className="relative overflow-hidden border-y border-stone-300 py-4 dark:border-stone-700"
+                  className="relative overflow-hidden border-y border-stone-300 px-4 py-4 dark:border-stone-700 sm:px-5"
                   style={{
                     background:
                       'linear-gradient(135deg, color-mix(in oklab, var(--logo) 8%, transparent), transparent 55%)',
                   }}
                 >
-                  <p className="text-[10px] font-medium tracking-[0.18em] text-stone-600 uppercase dark:text-stone-400">
-                    In this range
-                  </p>
-                  <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
+                  <SectionHeading title="In this range" />
+                  <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
                     <div className="min-w-0 shrink-0">
                       <p
                         className={cn(
@@ -252,18 +202,19 @@ export function OutlookPage() {
                 </section>
 
                 <section className="space-y-6 animate-[fadeUp_0.5s_ease-out]">
-                  <div className="pr-1">
-                    <p className="text-[10px] font-medium tracking-[0.18em] text-stone-700 uppercase dark:text-stone-400">
-                      Looking ahead
-                    </p>
-                    <p className="mt-1.5 text-sm leading-relaxed text-stone-600 dark:text-stone-400">
-                      Baseline from the last {outlook.sampleSize} month
-                      {outlook.sampleSize === 1 ? '' : 's'}
-                      {outlook.focusRecorded
-                        ? ` · ${outlook.focusLabel} is already tracked`
-                        : ` · plan ${outlook.focusLabel} against this`}
-                    </p>
-                  </div>
+                  <SectionHeading
+                    className="pr-1"
+                    title="Looking ahead"
+                    subtitle={
+                      <>
+                        Baseline from the last {outlook.sampleSize} month
+                        {outlook.sampleSize === 1 ? '' : 's'}
+                        {outlook.focusRecorded
+                          ? ` · ${outlook.focusLabel} is already tracked`
+                          : ` · plan ${outlook.focusLabel} against this`}
+                      </>
+                    }
+                  />
 
                   <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 sm:gap-8">
                     <AheadMetric
@@ -293,66 +244,15 @@ export function OutlookPage() {
                       accent
                     />
                   </div>
-
-                  <IncomeFlowBar
-                    income={outlook.avgIncome}
-                    expense={outlook.avgExpense}
-                    pocket={outlook.avgPocket}
-                  />
-
-                  <div className="overflow-x-auto border-t border-stone-300 pt-4 dark:border-stone-700">
-                    <table className="w-full min-w-[28rem] text-left text-sm">
-                      <thead>
-                        <tr className="text-xs tracking-wide text-stone-600 uppercase dark:text-stone-400">
-                          <th className="py-2 pr-4 font-medium">
-                            Projected month
-                          </th>
-                          <th className="px-3 py-2 font-medium text-right">
-                            Income
-                          </th>
-                          <th className="px-3 py-2 font-medium text-right">
-                            Expenses
-                          </th>
-                          <th className="py-2 pl-3 font-medium text-right">
-                            Pocket
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {outlook.projected.map((p) => (
-                          <tr
-                            key={p.monthKey}
-                            className="border-t border-stone-200 dark:border-stone-800"
-                          >
-                            <td className="py-2.5 pr-4 text-stone-800 dark:text-stone-200">
-                              {p.label}
-                            </td>
-                            <td className="px-3 py-2.5 text-right tabular-nums">
-                              {money(p.income)}
-                            </td>
-                            <td className="px-3 py-2.5 text-right tabular-nums">
-                              {money(p.expense)}
-                            </td>
-                            <td className="py-2.5 pl-3 text-right tabular-nums font-medium text-[var(--logo)]">
-                              {money(p.pocket)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
                 </section>
               </>
             )}
 
             <section>
-              <p className="text-xs font-medium tracking-[0.18em] text-stone-700 dark:text-stone-400 uppercase">
-                Category baselines
-              </p>
-              <p className="mt-1 text-sm text-stone-600 dark:text-stone-400">
-                Average spend per month in this range. Trend is a rough €/month
-                slope — e.g. rising about €20/mo means groceries creep up.
-              </p>
+              <SectionHeading
+                title="Category baselines"
+                subtitle="Average spend per month in this range. Trend is a rough €/month slope — e.g. rising about €20/mo means groceries creep up."
+              />
               <div className="mt-4 overflow-x-auto border-t border-stone-300 pt-3 dark:border-stone-700">
                 <table className="w-full min-w-[32rem] text-left text-sm">
                   <thead>

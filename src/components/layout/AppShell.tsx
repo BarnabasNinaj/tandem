@@ -26,6 +26,23 @@ const NAV = [
   { to: '/outlook', label: 'Outlook', icon: Compass },
 ]
 
+/**
+ * Selected = teal fill + teal type.
+ * Hover (idle) = soft stone wash only — not the same as selected.
+ * Pending uses selected so click doesn’t flash through hover first.
+ */
+function navTone({
+  isActive,
+  isPending,
+}: {
+  isActive: boolean
+  isPending: boolean
+}) {
+  return isActive || isPending
+    ? 'bg-teal-700/15 text-teal-900 dark:bg-teal-400/15 dark:text-teal-200'
+    : 'text-stone-700 hover:bg-stone-200/80 dark:text-stone-400 dark:hover:bg-stone-800'
+}
+
 export function AppShell() {
   const lock = useTandemStore((s) => s.lock)
   const pull = useTandemStore((s) => s.pull)
@@ -63,12 +80,10 @@ export function AppShell() {
                   key={to}
                   to={to}
                   end={end}
-                  className={({ isActive }) =>
+                  className={(state) =>
                     cn(
-                      'inline-flex shrink-0 cursor-pointer items-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors',
-                      isActive
-                        ? 'bg-teal-700/10 text-teal-900 dark:bg-teal-400/10 dark:text-teal-200'
-                        : 'text-stone-700 hover:bg-stone-200/70 dark:text-stone-400 dark:hover:bg-stone-800',
+                      'inline-flex shrink-0 cursor-pointer items-center rounded-lg px-2.5 py-1.5 text-sm font-medium',
+                      navTone(state),
                     )
                   }
                 >
@@ -82,12 +97,10 @@ export function AppShell() {
               to="/settings"
               title="Settings"
               aria-label="Settings"
-              className={({ isActive }) =>
+              className={(state) =>
                 cn(
-                  'inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg transition-colors',
-                  isActive
-                    ? 'bg-teal-700/10 text-teal-900 dark:bg-teal-400/10 dark:text-teal-200'
-                    : 'text-stone-700 hover:bg-stone-200/70 dark:text-stone-400 dark:hover:bg-stone-800',
+                  'inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg',
+                  navTone(state),
                 )
               }
             >
@@ -166,10 +179,10 @@ export function AppShell() {
             key={to}
             to={to}
             end={end}
-            className={({ isActive }) =>
+            className={({ isActive, isPending }) =>
               cn(
                 'flex flex-1 cursor-pointer flex-col items-center gap-0.5 py-2 text-[10px] font-medium',
-                isActive
+                isActive || isPending
                   ? 'text-teal-800 dark:text-teal-300'
                   : 'text-stone-700 dark:text-stone-400',
               )

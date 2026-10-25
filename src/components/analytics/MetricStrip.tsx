@@ -1,3 +1,4 @@
+import { MetaLabel } from '@/components/layout/SectionHeading'
 import { cn } from '@/lib/utils'
 
 export interface MetricItem {
@@ -11,7 +12,7 @@ export interface MetricItem {
 const valueClass =
   'font-[family-name:var(--font-display)] text-base font-semibold tabular-nums tracking-tight text-stone-900 dark:text-stone-50'
 
-/** Dense label + value band for Outlook / Incomes / Expenses summaries. */
+/** Dense label + value band for Incomes / Expenses summaries. */
 export function MetricStrip({
   items,
   className,
@@ -31,9 +32,9 @@ export function MetricStrip({
           key={item.label}
           className="flex min-w-0 items-baseline gap-1.5"
         >
-          <span className="shrink-0 text-[10px] font-medium tracking-wide text-stone-600 uppercase dark:text-stone-400">
+          <MetaLabel as="span" className="shrink-0">
             {item.label}
-          </span>
+          </MetaLabel>
           <span className={valueClass}>{item.value}</span>
           {item.secondary ? (
             <>

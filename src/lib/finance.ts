@@ -1,8 +1,10 @@
 import { round2 } from './number'
 import type {
   AllowanceSplit,
+  CardOwner,
   CategoryExpense,
   MonthlyRecord,
+  PaymentByOwner,
   TandemSettings,
   TandemState,
 } from '@/types/tandem'
@@ -11,7 +13,101 @@ export interface WizardDraft {
   monthKey: string
   inflows: MonthlyRecord['inflows']
   outflows: CategoryExpense[]
+  /** Who paid via card entry — bumped on Add to month. */
+  paymentByOwner?: PaymentByOwner
   notes?: string
+}
+
+export function emptyPaymentByOwner(): PaymentByOwner {
+  return { partnerA: 0, partnerB: 0, common: 0 }
+}
+
+export function normalizePaymentByOwner(raw: unknown): PaymentByOwner {
+  if (!raw || typeof raw !== 'object') return emptyPaymentByOwner()
+  const o = raw as Record<string, unknown>
+  const n = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : 0)
+  return {
+    partnerA: round2(n(o.partnerA)),
+    partnerB: round2(n(o.partnerB)),
+    common: round2(n(o.common)),
+  }
+}
+
+export function paymentByOwnerTotal(p: PaymentByOwner): number {
+  return round2(p.partnerA + p.partnerB + p.common)
+}
+
+/** Add a card-sheet total to the matching owner bucket. */
+export function bumpPaymentByOwner(
+  current: PaymentByOwner,
+  owner: CardOwner,
+  amount: number,
+): PaymentByOwner {
+  if (amount === 0) return current
+  return {
+    ...current,
+    [owner]: round2(current[owner] + amount),
+  }
+}
+
+export type SettlementDirection = 'a_to_b' | 'b_to_a' | 'settled'
+
+/**
+ * Compare effective card payments (common split like expenses) to fair Pays shares.
+ * Positive `netA` ⇒ partner A overpaid ⇒ B → A transfer.
+ */
+export function settleExpenseShares(
+  paymentByOwner: PaymentByOwner,
+  inflows: MonthlyRecord['inflows'],
+  expenseSharePartnerA: number,
+  expenseSharePartnerB: number,
+  allowanceSplit: AllowanceSplit,
+): {
+  hasPaymentData: boolean
+  effectivePaidA: number
+  effectivePaidB: number
+  fairShareA: number
+  fairShareB: number
+  netA: number
+  transferAmount: number
+  direction: SettlementDirection
+} {
+  const hasPaymentData = paymentByOwnerTotal(paymentByOwner) > 0
+  const commonSplit = splitByMode(
+    paymentByOwner.common,
+    inflows,
+    allowanceSplit,
+  )
+  const effectivePaidA = round2(paymentByOwner.partnerA + commonSplit.partnerA)
+  const effectivePaidB = round2(paymentByOwner.partnerB + commonSplit.partnerB)
+  const netA = round2(effectivePaidA - expenseSharePartnerA)
+  if (!hasPaymentData) {
+    return {
+      hasPaymentData: false,
+      effectivePaidA,
+      effectivePaidB,
+      fairShareA: expenseSharePartnerA,
+      fairShareB: expenseSharePartnerB,
+      netA: 0,
+      transferAmount: 0,
+      direction: 'settled',
+    }
+  }
+  const transferAmount = round2(Math.abs(netA))
+  let direction: SettlementDirection = 'settled'
+  if (transferAmount >= 0.01) {
+    direction = netA > 0 ? 'b_to_a' : 'a_to_b'
+  }
+  return {
+    hasPaymentData,
+    effectivePaidA,
+    effectivePaidB,
+    fairShareA: expenseSharePartnerA,
+    fairShareB: expenseSharePartnerB,
+    netA,
+    transferAmount,
+    direction,
+  }
 }
 
 export function sumInflows(inflows: MonthlyRecord['inflows']): number {
@@ -114,6 +210,7 @@ export function buildMonthlyRecord(
       ...o,
       amount: round2(o.amount),
     })),
+    paymentByOwner: normalizePaymentByOwner(draft.paymentByOwner),
     computed,
     notes: draft.notes?.trim() || undefined,
   }
@@ -197,6 +294,7 @@ export function emptyDraft(
       otherInflows: 0,
     },
     outflows: emptyOutflows(categories),
+    paymentByOwner: emptyPaymentByOwner(),
   }
 }
 
@@ -209,6 +307,7 @@ export function draftFromRecord(
     monthKey: record.monthKey,
     inflows: { ...record.inflows },
     outflows: alignOutflowsToCategories(record.outflows, categories),
+    paymentByOwner: normalizePaymentByOwner(record.paymentByOwner),
     notes: record.notes,
   }
 }

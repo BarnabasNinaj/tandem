@@ -4,11 +4,14 @@ import {
   alignHistoryToCategories,
   alignOutflowsToCategories,
   buildMonthlyRecord,
+  bumpPaymentByOwner,
   computeMonthly,
   draftForMonth,
   draftFromRecord,
   emptyDraft,
+  emptyPaymentByOwner,
   savingsRate,
+  settleExpenseShares,
 } from './finance'
 import { round2 } from './number'
 import { DEFAULT_CATEGORIES } from '@/types/tandem'
@@ -99,6 +102,7 @@ describe('buildMonthlyRecord / savings', () => {
     expect(record.computed.leftoverAfterExpenses).toBe(600)
     expect(record.computed.discretionarySurplus).toBe(600)
     expect(savingsRate(record)).toBe(60)
+    expect(record.paymentByOwner).toEqual(emptyPaymentByOwner())
     expect(record).not.toHaveProperty('allocations')
     expect(record).not.toHaveProperty('portfolioSnapshot')
   })
@@ -112,6 +116,58 @@ describe('buildMonthlyRecord / savings', () => {
     const draft = emptyDraft('2026-11', DEFAULT_CATEGORIES, previous)
     expect(draft.inflows.partnerASalary).toBe(2800)
     expect(draft.outflows).toHaveLength(DEFAULT_CATEGORIES.length)
+    expect(draft.paymentByOwner).toEqual(emptyPaymentByOwner())
+  })
+})
+
+describe('settleExpenseShares / bumpPaymentByOwner', () => {
+  it('bumps the matching owner bucket', () => {
+    const next = bumpPaymentByOwner(emptyPaymentByOwner(), 'partnerA', 120)
+    expect(next).toEqual({ partnerA: 120, partnerB: 0, common: 0 })
+    expect(bumpPaymentByOwner(next, 'common', 30).common).toBe(30)
+  })
+
+  it('hides settlement when no card payments were recorded', () => {
+    const s = settleExpenseShares(
+      emptyPaymentByOwner(),
+      { partnerASalary: 2000, partnerBIncome: 1000, otherInflows: 0 },
+      600,
+      300,
+      'income',
+    )
+    expect(s.hasPaymentData).toBe(false)
+    expect(s.direction).toBe('settled')
+  })
+
+  it('B → A when A overpaid vs income fair share', () => {
+    // Y=900 fair A:B = 600:300; A cards paid 900
+    const s = settleExpenseShares(
+      { partnerA: 900, partnerB: 0, common: 0 },
+      { partnerASalary: 2000, partnerBIncome: 1000, otherInflows: 0 },
+      600,
+      300,
+      'income',
+    )
+    expect(s.hasPaymentData).toBe(true)
+    expect(s.effectivePaidA).toBe(900)
+    expect(s.effectivePaidB).toBe(0)
+    expect(s.direction).toBe('b_to_a')
+    expect(s.transferAmount).toBe(300)
+  })
+
+  it('splits common-card spend like expenses before settling', () => {
+    // common 900 → income 2:1 → A 600 B 300; fair same → settled
+    const s = settleExpenseShares(
+      { partnerA: 0, partnerB: 0, common: 900 },
+      { partnerASalary: 2000, partnerBIncome: 1000, otherInflows: 0 },
+      600,
+      300,
+      'income',
+    )
+    expect(s.effectivePaidA).toBe(600)
+    expect(s.effectivePaidB).toBe(300)
+    expect(s.direction).toBe('settled')
+    expect(s.transferAmount).toBe(0)
   })
 })
 

@@ -404,8 +404,17 @@ function MonthCard({
               >
                 {partnerAName}
               </p>
-              <p className="mt-0.5 text-sm font-medium tabular-nums text-stone-900 dark:text-stone-50">
-                {money(snap.pocketA!)}
+              <p className="mt-0.5 text-xs text-stone-600 dark:text-stone-400">
+                Pays{' '}
+                <span className="font-medium tabular-nums text-stone-900 dark:text-stone-50">
+                  {money(snap.paysA!)}
+                </span>
+              </p>
+              <p className="mt-0.5 text-xs text-stone-600 dark:text-stone-400">
+                Keeps{' '}
+                <span className="font-medium tabular-nums text-stone-900 dark:text-stone-50">
+                  {money(snap.pocketA!)}
+                </span>
               </p>
             </div>
             <div>
@@ -415,11 +424,38 @@ function MonthCard({
               >
                 {partnerBName}
               </p>
-              <p className="mt-0.5 text-sm font-medium tabular-nums text-stone-900 dark:text-stone-50">
-                {money(snap.pocketB!)}
+              <p className="mt-0.5 text-xs text-stone-600 dark:text-stone-400">
+                Pays{' '}
+                <span className="font-medium tabular-nums text-stone-900 dark:text-stone-50">
+                  {money(snap.paysB!)}
+                </span>
+              </p>
+              <p className="mt-0.5 text-xs text-stone-600 dark:text-stone-400">
+                Keeps{' '}
+                <span className="font-medium tabular-nums text-stone-900 dark:text-stone-50">
+                  {money(snap.pocketB!)}
+                </span>
               </p>
             </div>
           </div>
+
+          {snap.settlement ? (
+            <p className="mt-3 text-[11px] leading-snug text-stone-600 dark:text-stone-400">
+              {snap.settlement.direction === 'settled' ? (
+                <>Settled</>
+              ) : snap.settlement.direction === 'b_to_a' ? (
+                <>
+                  Settle {money(snap.settlement.transferAmount)}: {partnerBName}{' '}
+                  → {partnerAName}
+                </>
+              ) : (
+                <>
+                  Settle {money(snap.settlement.transferAmount)}: {partnerAName}{' '}
+                  → {partnerBName}
+                </>
+              )}
+            </p>
+          ) : null}
         </>
       )}
     </article>

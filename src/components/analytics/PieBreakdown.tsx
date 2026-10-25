@@ -9,7 +9,7 @@ export type PieSlice = {
   color: string
 }
 
-/** Donut on the left, compact € + % rows on the right (of full total). */
+/** Donut left; €/% rows fill the remaining width (two columns when many slices). */
 export function PieBreakdown({
   slices,
   isHidden,
@@ -27,14 +27,15 @@ export function PieBreakdown({
 }) {
   const total = slices.reduce((s, x) => s + x.value, 0)
   const visible = slices.filter((s) => !isHidden(s.name) && s.value > 0)
+  const multiCol = slices.length >= 5
 
   const pctOfTotal = (value: number) =>
     total > 0 ? Math.round((value / total) * 100) : 0
 
   return (
     <div className="space-y-3">
-      <div className="grid items-center gap-5 sm:grid-cols-[17rem_auto]">
-        <div className={cn('mx-auto w-full max-w-[17rem]', chartClassName)}>
+      <div className="grid items-center gap-6 lg:grid-cols-[minmax(15rem,18rem)_minmax(0,1fr)]">
+        <div className={cn('mx-auto w-full max-w-[18rem]', chartClassName)}>
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -64,12 +65,17 @@ export function PieBreakdown({
           </ResponsiveContainer>
         </div>
 
-        <ul className="w-full max-w-[18rem] min-w-0 space-y-1">
+        <ul
+          className={cn(
+            'grid w-full min-w-0 gap-x-8 gap-y-1',
+            multiCol ? 'sm:grid-cols-2' : 'grid-cols-1',
+          )}
+        >
           {slices.map((s) => {
             const dimmed = isHidden(s.name)
             const pct = pctOfTotal(s.value)
             return (
-              <li key={s.name}>
+              <li key={s.name} className="min-w-0">
                 <button
                   type="button"
                   onClick={() => onToggle(s.name)}

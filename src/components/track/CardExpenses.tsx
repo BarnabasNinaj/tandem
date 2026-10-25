@@ -74,6 +74,8 @@ export const CardExpenses = forwardRef<
     onApply: (next: {
       outflows: CategoryExpense[]
       mappings: BankCategoryMapping[]
+      /** Set when card amounts were merged into the month. */
+      payment?: { owner: ExpenseCard['owner']; amount: number }
     }) => void
   }
 >(function CardExpenses(
@@ -194,6 +196,7 @@ export const CardExpenses = forwardRef<
     onApply({
       outflows: mergeCardLinesIntoOutflows(outflows, lines, categories),
       mappings,
+      payment: { owner: card.owner, amount: sheetTotal },
     })
     clearAmounts()
     return true

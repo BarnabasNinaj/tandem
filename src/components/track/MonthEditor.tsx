@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { SectionHeading } from '@/components/layout/SectionHeading'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,8 +14,12 @@ import {
 import { formatMonthKey, listRecentMonthKeys } from '@/lib/dates'
 import { registerCardSheetFlush } from '@/lib/card-sheet'
 import {
+  bumpPaymentByOwner,
   computeMonthly,
   draftForMonth,
+  emptyPaymentByOwner,
+  normalizePaymentByOwner,
+  settleExpenseShares,
   type WizardDraft,
 } from '@/lib/finance'
 import { formatMoney } from '@/lib/number'
@@ -50,6 +55,29 @@ export function MonthEditor() {
   const computed = useMemo(
     () => computeMonthly(draft.inflows, draft.outflows, allowanceSplit),
     [draft.inflows, draft.outflows, allowanceSplit],
+  )
+
+  const paymentByOwner = useMemo(
+    () => normalizePaymentByOwner(draft.paymentByOwner),
+    [draft.paymentByOwner],
+  )
+
+  const settlement = useMemo(
+    () =>
+      settleExpenseShares(
+        paymentByOwner,
+        draft.inflows,
+        computed.expenseSharePartnerA,
+        computed.expenseSharePartnerB,
+        allowanceSplit,
+      ),
+    [
+      paymentByOwner,
+      draft.inflows,
+      computed.expenseSharePartnerA,
+      computed.expenseSharePartnerB,
+      allowanceSplit,
+    ],
   )
 
   const setAllowanceSplit = (mode: 'equal' | 'income') => {
@@ -137,15 +165,10 @@ export function MonthEditor() {
 
       <div className="space-y-8">
       <section className="space-y-4">
-        <div>
-          <h2 className="text-xs font-medium tracking-[0.18em] text-stone-700 uppercase dark:text-stone-400">
-            Incomes
-          </h2>
-          <p className="mt-1 text-xs text-stone-600 dark:text-stone-400">
-            Partner salaries plus anything else that landed this month — gifts,
-            refunds, side work.
-          </p>
-        </div>
+        <SectionHeading
+          title="Incomes"
+          subtitle="Partner salaries plus anything else that landed this month — gifts, refunds, side work."
+        />
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <Field label={`${settings.partnerAName} Income`} name="pa-income">
             <MoneyInput
@@ -185,15 +208,10 @@ export function MonthEditor() {
       </section>
 
       <section className="space-y-4 border-t border-stone-300 pt-6 dark:border-stone-700">
-        <div>
-          <h2 className="text-xs font-medium tracking-[0.18em] text-stone-700 uppercase dark:text-stone-400">
-            Expenses
-          </h2>
-          <p className="mt-1 text-xs text-stone-600 dark:text-stone-400">
-            Pick a card, type that bank’s labels, then Add to month. Totals below
-            roll into household categories.
-          </p>
-        </div>
+        <SectionHeading
+          title="Expenses"
+          subtitle="Pick a card, type that bank’s labels, then Add to month. Totals below roll into household categories."
+        />
         <CardExpenses
           key={draft.monthKey}
           ref={cardExpensesRef}
@@ -204,8 +222,19 @@ export function MonthEditor() {
           outflows={draft.outflows}
           partnerAName={settings.partnerAName}
           partnerBName={settings.partnerBName}
-          onApply={({ outflows, mappings }) => {
-            update({ outflows })
+          onApply={({ outflows, mappings, payment }) => {
+            update({
+              outflows,
+              ...(payment
+                ? {
+                    paymentByOwner: bumpPaymentByOwner(
+                      draft.paymentByOwner ?? emptyPaymentByOwner(),
+                      payment.owner,
+                      payment.amount,
+                    ),
+                  }
+                : {}),
+            })
             // Avoid dirtying vault settings when only outflows changed (Add to month).
             if (mappings === settings.categoryMappings) return
             updateState((s) => ({
@@ -220,9 +249,7 @@ export function MonthEditor() {
       </section>
 
       <section className="space-y-4 border-t border-stone-300 pt-6 dark:border-stone-700">
-        <h2 className="text-xs font-medium tracking-[0.18em] text-stone-700 uppercase dark:text-stone-400">
-          Notes
-        </h2>
+        <SectionHeading title="Notes" />
         <div className="space-y-1.5">
           <Label htmlFor="notes" className="sr-only">
             Notes (optional)
@@ -262,7 +289,7 @@ export function MonthEditor() {
               titleColor="var(--partner-a)"
               metrics={[
                 {
-                  label: 'Pays toward bills',
+                  label: 'Fair share of bills',
                   shortLabel: 'Pays',
                   value: money(computed.expenseSharePartnerA),
                 },
@@ -278,7 +305,7 @@ export function MonthEditor() {
               titleColor="var(--partner-b)"
               metrics={[
                 {
-                  label: 'Pays toward bills',
+                  label: 'Fair share of bills',
                   shortLabel: 'Pays',
                   value: money(computed.expenseSharePartnerB),
                 },
@@ -291,10 +318,37 @@ export function MonthEditor() {
             />
           </div>
 
+          {settlement.hasPaymentData ? (
+            <p
+              className="text-center text-xs text-stone-600 dark:text-stone-400"
+              title="Card entry (who paid) vs fair share of bills — common-card spend is split like expenses"
+            >
+              {settlement.direction === 'settled' ? (
+                <>Settled — card payments match fair shares</>
+              ) : settlement.direction === 'b_to_a' ? (
+                <>
+                  Settle{' '}
+                  <span className="font-medium tabular-nums text-stone-800 dark:text-stone-200">
+                    {money(settlement.transferAmount)}
+                  </span>
+                  : {settings.partnerBName} → {settings.partnerAName}
+                </>
+              ) : (
+                <>
+                  Settle{' '}
+                  <span className="font-medium tabular-nums text-stone-800 dark:text-stone-200">
+                    {money(settlement.transferAmount)}
+                  </span>
+                  : {settings.partnerAName} → {settings.partnerBName}
+                </>
+              )}
+            </p>
+          ) : null}
+
           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-stone-200 pt-1.5 sm:pt-3 dark:border-stone-700">
             <div
               className="flex items-center gap-1.5"
-              title="How Pays and Keeps are shared — change the household default in Settings"
+              title="How Pays and Keeps are shared — Pays is fair share of bills, not what a card charged. Change the household default in Settings"
             >
               <span className="text-[11px] text-stone-600 dark:text-stone-400">
                 Split

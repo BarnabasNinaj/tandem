@@ -68,6 +68,11 @@ describe('migrateState', () => {
     )
     expect(dining?.categoryName).toBe('Restaurants')
     expect(dining?.amount).toBe(80)
+    expect(migrated.history['2026-01']!.paymentByOwner).toEqual({
+      partnerA: 0,
+      partnerB: 0,
+      common: 0,
+    })
   })
 
   it('fills missing settings with defaults', () => {

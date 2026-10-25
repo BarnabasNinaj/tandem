@@ -4,6 +4,16 @@ export interface CategoryExpense {
   amount: number
 }
 
+/**
+ * Additive totals of card-sheet amounts by card owner (who paid).
+ * Common is split by allowanceSplit when computing settlement.
+ */
+export interface PaymentByOwner {
+  partnerA: number
+  partnerB: number
+  common: number
+}
+
 export interface MonthlyRecord {
   monthKey: string
   updatedAt: string
@@ -14,6 +24,11 @@ export interface MonthlyRecord {
     otherInflows: number
   }
   outflows: CategoryExpense[]
+  /**
+   * Who paid via Track card entry (bumped on Add to month).
+   * Missing / all-zero on older months → no settlement UI.
+   */
+  paymentByOwner: PaymentByOwner
   computed: {
     /** X — total incomes */
     totalInflow: number

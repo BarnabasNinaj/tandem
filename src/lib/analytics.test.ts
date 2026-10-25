@@ -93,7 +93,7 @@ describe('categoryStats', () => {
 })
 
 describe('buildMonthOutlook', () => {
-  it('projects trailing averages into future months', () => {
+  it('averages trailing months for the looking-ahead baseline', () => {
     const records = [
       month('2026-01', 900, 300),
       month('2026-02', 900, 300),
@@ -101,7 +101,6 @@ describe('buildMonthOutlook', () => {
     ]
     const outlook = buildMonthOutlook(records, {
       focusMonthKey: '2026-04',
-      projectMonths: 2,
     })
     expect(outlook).not.toBeNull()
     expect(outlook!.sampleSize).toBe(3)
@@ -110,10 +109,6 @@ describe('buildMonthOutlook', () => {
     expect(outlook!.avgPocket).toBe(1800)
     expect(outlook!.totalPocket).toBe(5400)
     expect(outlook!.focusRecorded).toBe(false)
-    expect(outlook!.projected).toHaveLength(2)
-    expect(outlook!.projected[0]!.monthKey).toBe('2026-04')
-    expect(outlook!.projected[0]!.expense).toBe(1200)
-    expect(outlook!.projected[1]!.monthKey).toBe('2026-05')
   })
 
   it('compares a recorded focus month to the average', () => {
@@ -124,7 +119,6 @@ describe('buildMonthOutlook', () => {
     ]
     const outlook = buildMonthOutlook(records, {
       focusMonthKey: '2026-03',
-      projectMonths: 1,
     })
     expect(outlook!.focusRecorded).toBe(true)
     expect(outlook!.focusExpense).toBe(1000)
@@ -153,6 +147,9 @@ describe('buildHomeOverview', () => {
     expect(overview!.months[0]?.status).toBe('recorded')
     expect(overview!.months[1]?.isCalendar).toBe(true)
     expect(overview!.months[1]?.expense).toBe(1000)
+    expect(overview!.months[1]?.paysA).toBe(500)
+    expect(overview!.months[1]?.paysB).toBe(500)
+    expect(overview!.months[1]?.settlement).toBeNull()
     expect(overview!.months[2]?.status).toBe('projected')
     expect(overview!.months[2]?.expense).toBe(1100)
   })

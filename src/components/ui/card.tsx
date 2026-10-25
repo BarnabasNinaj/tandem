@@ -13,6 +13,7 @@ export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   )
 }
 
+/** In-card section title — same tier as `SectionHeading` (sentence case, not MetaLabel). */
 export function CardTitle({
   className,
   ...props
@@ -20,7 +21,7 @@ export function CardTitle({
   return (
     <h3
       className={cn(
-        'text-sm font-semibold tracking-tight text-stone-950 dark:text-stone-50',
+        'font-[family-name:var(--font-display)] text-base font-semibold tracking-tight text-stone-900 dark:text-stone-50',
         className,
       )}
       {...props}

@@ -52,7 +52,15 @@ Built by `buildMonthlyRecord` in `finance.ts` (never hand-roll `computed`).
 
 **Expenses** (UI; stored as `outflows`): `{ categoryId, categoryName, amount }[]`
 
-**Card expenses (Track editor → Expenses):** card-first. Pick a **card** (clickable chips) → enter amounts for that card’s **bank** labels (shared by all cards of the bank; each mapped to a household category) → **Add to month** merges (adds) into `outflows`. Month category totals update below (read-only rollup). **New label** (+) writes `categoryMappings` on the bank immediately. Typed sheet amounts are local until Add (or until **Save month**, which flushes any pending sheet into `outflows` so a covered Add button cannot drop spend). Switching the editor month clears the sheet. Cards are not stored on the month — only rolled-up categories. UI: `CardExpenses.tsx`; merge/mappings: `src/lib/card-expenses.ts`. Investment transfers (if tracked) are expense categories via cards — there is no separate allocations / portfolio snapshot on the month.
+**Card expenses (Track editor → Expenses):** card-first. Pick a **card** (clickable chips) → enter amounts for that card’s **bank** labels (shared by all cards of the bank; each mapped to a household category) → **Add to month** merges (adds) into `outflows` **and** bumps `paymentByOwner` for that card’s `owner` by the sheet total. Month category totals update below (read-only rollup). **New label** (+) writes `categoryMappings` on the bank immediately (no payment bump). Typed sheet amounts are local until Add (or until **Save month**, which flushes any pending sheet). Switching the editor month clears the sheet. Per-line card ids are not stored — only category rollups + owner payment buckets. UI: `CardExpenses.tsx`; merge/mappings: `src/lib/card-expenses.ts`. Investment transfers (if tracked) are expense categories via cards — there is no separate allocations / portfolio snapshot on the month.
+
+**Who paid (stored):**
+
+```
+paymentByOwner = { partnerA, partnerB, common }  // additive card-sheet totals
+```
+
+Missing / all-zero on older months and demo samples → no settlement UI (do not invent history).
 
 **Computed (derived, stored for history):**
 
@@ -66,15 +74,17 @@ Toggle (allowanceSplit) splits Y and Z:
   equal  → 50/50
   income → ∝ partnerASalary : partnerBIncome (Other excluded from ratio)
 
-expenseSharePartnerA / B
-personalAllowancePartnerA / B   // each partner’s share of Z
+expenseSharePartnerA / B          // fair “Pays” share of Y
+personalAllowancePartnerA / B     // each partner’s share of Z (“Keeps”)
 ```
+
+**Settlement** (derived in `settleExpenseShares`, not stored): effective paid = personal bucket + that partner’s split of `common` (same `splitByMode`). Net = effectivePaid − expenseShare. Positive for A ⇒ transfer B → A. Shown on Track footer + Overview when `paymentByOwner` has data.
 
 All money values rounded with `round2`.
 
 **Savings rate:** `(totalInflow − totalOutflow) / totalInflow * 100`.
 
-**Migration:** older vault months that still have `allocations` / `portfolioSnapshot` drop those fields on `normalizeHistory` and recompute. Settings drop unused `emergencyTargetMonths` (never consumed). Recomputed months omit unused `personalAllowancePerPartner` (Z/2 was always derivable from A+B or Z).
+**Migration:** older vault months that still have `allocations` / `portfolioSnapshot` drop those fields on `normalizeHistory` and recompute. Missing `paymentByOwner` → `{0,0,0}`. Settings drop unused `emergencyTargetMonths` (never consumed). Recomputed months omit unused `personalAllowancePerPartner` (Z/2 was always derivable from A+B or Z).
 
 ### Analytics (derived, not stored)
 
@@ -85,7 +95,7 @@ All money values rounded with `round2`.
 | Range slice | Last 3 / 6 / 12 months or all |
 | Category average | Mean monthly spend (missing month = €0) |
 | Category trend | OLS slope €/month over the range |
-| Month outlook | Trailing means for income, expenses, leftover/pocket (Z); `totalPocket` = sum of Z over the range (UI: “Left over”); Pocket tile shows avg € and `(Z/X)%` → project next 3 calendar months |
+| Month outlook | Trailing means for income, expenses, leftover/pocket (Z); `totalPocket` = sum of Z over the range (UI: “Left over”); Pocket tile shows avg € and `(Z/X)%` — one looking-ahead baseline (no stamped multi-month projection rows) |
 
 **Not in the model:** partner bank balances / cash-on-hand. Months are cashflow (in/out), not a balance sheet. Range “Left over” is Σ(income − expenses) since tracking in that slice — opening cash and untracked movements are invisible. A current as-of snapshot could live in Settings later for runway; it must not be projected onto past month keys.
 

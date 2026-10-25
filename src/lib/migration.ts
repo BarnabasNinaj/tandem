@@ -12,7 +12,11 @@ import {
 import { normalizeBankLabel } from './card-expenses'
 import { generateSalt } from './crypto'
 import { buildDemoHistory } from './demo-data'
-import { alignHistoryToCategories, computeMonthly } from './finance'
+import {
+  alignHistoryToCategories,
+  computeMonthly,
+  normalizePaymentByOwner,
+} from './finance'
 import { CURRENCY_LOCALE, CURRENCY_SYMBOL, round2 } from './number'
 
 /** Keep household order; append any missing stock defaults (e.g. Investments). */
@@ -88,6 +92,9 @@ function normalizeHistory(
       updatedAt: record.updatedAt || new Date().toISOString(),
       inflows,
       outflows,
+      paymentByOwner: normalizePaymentByOwner(
+        (record as { paymentByOwner?: unknown }).paymentByOwner,
+      ),
       computed: computeMonthly(inflows, outflows, split),
       ...(record.notes ? { notes: record.notes } : {}),
     }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ArrowRight, Pencil, Trash2 } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { SectionHeading } from '@/components/layout/SectionHeading'
 import { MonthEditor } from '@/components/track/MonthEditor'
 import { Button } from '@/components/ui/button'
 import {
@@ -116,9 +117,7 @@ function TrackHub() {
       >
         <div className="flex flex-col gap-4 border-t border-stone-300 pt-6 dark:border-stone-700 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-medium tracking-[0.18em] text-stone-700 uppercase dark:text-stone-400">
-              This calendar month
-            </p>
+            <SectionHeading title="This calendar month" />
             <p className="mt-2 font-[family-name:var(--font-display)] text-4xl font-semibold tabular-nums tracking-tight text-stone-900 dark:text-stone-50 sm:text-5xl">
               {formatMonthKey(currentKey)}
             </p>
@@ -152,9 +151,7 @@ function TrackHub() {
           revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3',
         )}
       >
-        <p className="text-xs font-medium tracking-[0.18em] text-stone-700 uppercase dark:text-stone-400">
-          Tracked months
-        </p>
+        <SectionHeading title="Tracked months" />
         {months.length === 0 ? (
           <p className="mt-4 border-t border-stone-300 pt-6 text-sm text-stone-600 dark:border-stone-700 dark:text-stone-400">
             No months yet. Track {formatMonthKey(currentKey)}, or load H1 samples

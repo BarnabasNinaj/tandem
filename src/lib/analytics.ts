@@ -1,4 +1,9 @@
 import { formatMonthKey, toMonthKey } from './dates'
+import {
+  normalizePaymentByOwner,
+  settleExpenseShares,
+  type SettlementDirection,
+} from './finance'
 import { round2 } from './number'
 import type { MonthlyRecord } from '@/types/tandem'
 
@@ -152,14 +157,6 @@ export interface MonthOutlook {
   focusExpense: number | null
   focusIncomeDelta: number | null
   focusExpenseDelta: number | null
-  /** Next months at trailing averages (forward look). */
-  projected: Array<{
-    monthKey: string
-    label: string
-    income: number
-    expense: number
-    pocket: number
-  }>
 }
 
 function mean(nums: number[]): number {
@@ -168,19 +165,17 @@ function mean(nums: number[]): number {
 }
 
 /**
- * Forward-looking month plan from trailing history.
- * Averages use all `records` (already range-sliced). Projections start after
- * the latest recorded month (or focus month if empty history edge).
+ * Forward-looking baseline from trailing history.
+ * Averages use all `records` (already range-sliced). Focus month is compared
+ * to those averages when it is already tracked.
  */
 export function buildMonthOutlook(
   records: MonthlyRecord[],
-  opts?: { focusMonthKey?: string; projectMonths?: number },
+  opts?: { focusMonthKey?: string },
 ): MonthOutlook | null {
   if (records.length === 0) return null
 
   const focusMonthKey = opts?.focusMonthKey ?? toMonthKey()
-  const projectMonths = opts?.projectMonths ?? 3
-  const latestKey = records[records.length - 1]!.monthKey
   const focus = records.find((r) => r.monthKey === focusMonthKey)
 
   const avgIncome = mean(records.map((r) => r.computed.totalInflow))
@@ -203,20 +198,6 @@ export function buildMonthOutlook(
   const focusIncome = focus ? focus.computed.totalInflow : null
   const focusExpense = focus ? focus.computed.totalOutflow : null
 
-  const projected: MonthOutlook['projected'] = []
-  // Start projecting from the month after the latest data point
-  let cursor = latestKey
-  for (let i = 0; i < projectMonths; i++) {
-    cursor = shiftMonthKey(cursor, 1)
-    projected.push({
-      monthKey: cursor,
-      label: formatMonthKey(cursor),
-      income: avgIncome,
-      expense: avgExpense,
-      pocket: avgPocket,
-    })
-  }
-
   return {
     sampleSize: records.length,
     avgIncome,
@@ -234,7 +215,6 @@ export function buildMonthOutlook(
       focusIncome !== null ? round2(focusIncome - avgIncome) : null,
     focusExpenseDelta:
       focusExpense !== null ? round2(focusExpense - avgExpense) : null,
-    projected,
   }
 }
 
@@ -249,8 +229,17 @@ export interface HomeMonthSnap {
   income: number | null
   expense: number | null
   leftover: number | null
+  /** Fair share of bills (Pays). */
+  paysA: number | null
+  paysB: number | null
+  /** Fair share of leftover (Keeps). */
   pocketA: number | null
   pocketB: number | null
+  /** Card-paid vs fair share — only when paymentByOwner has data. */
+  settlement: {
+    transferAmount: number
+    direction: SettlementDirection
+  } | null
 }
 
 /** Logo Home — chronological tracked months + next-month estimate. */
@@ -264,6 +253,14 @@ function snapFromRecord(
   record: MonthlyRecord,
   isCalendar: boolean,
 ): HomeMonthSnap {
+  const paymentByOwner = normalizePaymentByOwner(record.paymentByOwner)
+  const settled = settleExpenseShares(
+    paymentByOwner,
+    record.inflows,
+    record.computed.expenseSharePartnerA,
+    record.computed.expenseSharePartnerB,
+    record.computed.allowanceSplit,
+  )
   return {
     monthKey: record.monthKey,
     label: formatMonthKey(record.monthKey),
@@ -272,8 +269,16 @@ function snapFromRecord(
     income: record.computed.totalInflow,
     expense: record.computed.totalOutflow,
     leftover: record.computed.leftoverAfterExpenses,
+    paysA: record.computed.expenseSharePartnerA,
+    paysB: record.computed.expenseSharePartnerB,
     pocketA: record.computed.personalAllowancePartnerA,
     pocketB: record.computed.personalAllowancePartnerB,
+    settlement: settled.hasPaymentData
+      ? {
+          transferAmount: settled.transferAmount,
+          direction: settled.direction,
+        }
+      : null,
   }
 }
 
@@ -301,6 +306,12 @@ export function buildHomeOverview(
   const avgLeftover = mean(
     trailing.map((r) => r.computed.leftoverAfterExpenses),
   )
+  const avgPaysA = mean(
+    trailing.map((r) => r.computed.expenseSharePartnerA),
+  )
+  const avgPaysB = mean(
+    trailing.map((r) => r.computed.expenseSharePartnerB),
+  )
   const avgPocketA = mean(
     trailing.map((r) => r.computed.personalAllowancePartnerA),
   )
@@ -321,8 +332,11 @@ export function buildHomeOverview(
       income: null,
       expense: null,
       leftover: null,
+      paysA: null,
+      paysB: null,
       pocketA: null,
       pocketB: null,
+      settlement: null,
     }
     const insertAt = months.findIndex((m) => m.monthKey > calendarMonthKey)
     if (insertAt === -1) months.push(untracked)
@@ -338,8 +352,11 @@ export function buildHomeOverview(
       income: avgIncome,
       expense: avgExpense,
       leftover: avgLeftover,
+      paysA: avgPaysA,
+      paysB: avgPaysB,
       pocketA: avgPocketA,
       pocketB: avgPocketB,
+      settlement: null,
     })
   }
 
