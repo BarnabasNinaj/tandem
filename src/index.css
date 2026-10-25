@@ -1,6 +1,9 @@
 @import './lib/fonts.css';
 @import 'tailwindcss';
 
+/* Class-based dark mode (theme toggle) — not prefers-color-scheme */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
   --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -18,7 +21,7 @@
   --partner-a: #0369a1; /* blue */
   --partner-b: #be123c; /* rose */
   --partner-common: #7c3aed; /* violet */
-  --partner-other: #ca8a04; /* amber */
+  --partner-other: #854d0e; /* amber-800 — AA text on light --bg/--surface */
   color-scheme: light;
 }
 

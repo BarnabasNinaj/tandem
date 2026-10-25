@@ -8,7 +8,7 @@ export const PARTNER_COLOR = {
   partnerA: '#0369a1', // blue
   partnerB: '#be123c', // rose
   common: '#7c3aed', // violet
-  other: '#ca8a04', // amber
+  other: '#854d0e', // amber-800 — AA text on light surfaces
 } as const
 
 export const OWNER_CYCLE: CardOwner[] = ['partnerA', 'partnerB', 'common']

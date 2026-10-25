@@ -264,7 +264,7 @@ export const CardExpenses = forwardRef<
                 />
                 <span className="min-w-0">
                   <span className="block truncate font-medium">{c.name}</span>
-                  <span className="block truncate text-[11px] text-stone-500 dark:text-stone-400">
+                  <span className="block truncate text-[11px] text-stone-600 dark:text-stone-400">
                     {b?.name ?? '?'} ·{' '}
                     {ownerLabel(c.owner, partnerAName, partnerBName)}
                   </span>
@@ -274,12 +274,12 @@ export const CardExpenses = forwardRef<
           })}
         </div>
 
-        <p className="text-xs text-stone-500 dark:text-stone-400">
+        <p className="text-xs text-stone-600 dark:text-stone-400">
           {bank.name} labels (shared by all its cards) → household categories
         </p>
 
         {bankMaps.length === 0 ? (
-          <p className="text-xs text-stone-500 dark:text-stone-400">
+          <p className="text-xs text-stone-600 dark:text-stone-400">
             No labels yet — add one below.
           </p>
         ) : (
@@ -293,7 +293,7 @@ export const CardExpenses = forwardRef<
                   <span className="block truncate text-sm text-stone-800 dark:text-stone-100">
                     {m.label}
                   </span>
-                  <span className="block truncate text-[11px] text-stone-500 dark:text-stone-400">
+                  <span className="block truncate text-[11px] text-stone-600 dark:text-stone-400">
                     → {catName(m.categoryId)}
                   </span>
                 </div>

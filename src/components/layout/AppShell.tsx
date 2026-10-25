@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils'
 import { useTandemStore } from '@/store/tandem-store'
 
 const NAV = [
-  { to: '/', label: 'Track', icon: PenLine, end: true },
+  { to: '/track', label: 'Track', icon: PenLine, end: true },
   { to: '/history', label: 'History', icon: BarChart3 },
   { to: '/incomes', label: 'Incomes', icon: Wallet },
   { to: '/expenses', label: 'Expenses', icon: Receipt },
@@ -52,8 +52,8 @@ export function AppShell() {
               to="/"
               end
               className="logo-mark cursor-pointer text-xl"
-              title="Track"
-              aria-label="Track"
+              title="Home"
+              aria-label="Home"
             >
               Tandem
             </NavLink>

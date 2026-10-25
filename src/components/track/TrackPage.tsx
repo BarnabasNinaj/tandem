@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowRight, PenLine } from 'lucide-react'
+import { ArrowRight, Pencil, Trash2 } from 'lucide-react'
 import { MonthEditor } from '@/components/track/MonthEditor'
 import { Button } from '@/components/ui/button'
 import {
@@ -21,6 +21,7 @@ export function TrackPage() {
 function TrackHub() {
   const state = useTandemStore((s) => s.state)!
   const startTracking = useTandemStore((s) => s.startTracking)
+  const deleteMonth = useTandemStore((s) => s.deleteMonth)
   const restoreDraft = useTandemStore((s) => s.restoreDraft)
   const loadDemoData = useTandemStore((s) => s.loadDemoData)
   const syncing = useTandemStore((s) => s.syncing)
@@ -36,6 +37,7 @@ function TrackHub() {
 
   const [revealed, setRevealed] = useState(false)
   const [resumeDraft, setResumeDraft] = useState<WizardDraft | null>(null)
+  const [deletingKey, setDeletingKey] = useState<string | null>(null)
 
   useEffect(() => {
     const id = requestAnimationFrame(() => setRevealed(true))
@@ -55,6 +57,24 @@ function TrackHub() {
 
   const openMonth = (monthKey: string) => {
     startTracking(draftForMonth(history, monthKey, settings.categories))
+  }
+
+  const onDelete = async (monthKey: string) => {
+    const label = formatMonthKey(monthKey)
+    if (
+      !window.confirm(
+        `Delete ${label}? This removes the month from your vault and syncs.`,
+      )
+    ) {
+      return
+    }
+    setDeletingKey(monthKey)
+    try {
+      await deleteMonth(monthKey)
+      setResumeDraft((d) => (d?.monthKey === monthKey ? null : d))
+    } finally {
+      setDeletingKey(null)
+    }
   }
 
   return (
@@ -149,38 +169,71 @@ function TrackHub() {
           </p>
         ) : (
           <ul className="mt-4 divide-y divide-stone-300 border-t border-stone-300 dark:divide-stone-700 dark:border-stone-700">
-            {months.map((record) => (
-              <li
-                key={record.monthKey}
-                className="flex items-center justify-between gap-4 py-3.5"
-              >
-                <div className="min-w-0">
-                  <p className="font-medium tabular-nums text-stone-900 dark:text-stone-100">
-                    {formatMonthKey(record.monthKey)}
+            {months.map((record) => {
+              const busy = deletingKey === record.monthKey || syncing
+              return (
+                <li
+                  key={record.monthKey}
+                  className="flex items-center gap-3 py-2.5 sm:gap-4"
+                >
+                  <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+                    <span className="shrink-0 font-medium tabular-nums text-stone-900 dark:text-stone-100">
+                      {formatMonthKey(record.monthKey)}
+                    </span>
                     {record.monthKey === currentKey && (
-                      <span className="ml-2 text-xs font-normal text-teal-800 dark:text-teal-300">
+                      <span className="shrink-0 text-[10px] font-medium tracking-wide text-teal-800 uppercase dark:text-teal-300">
                         current
                       </span>
                     )}
-                  </p>
-                  <p className="mt-0.5 text-xs text-stone-600 dark:text-stone-400">
-                    Updated {formatDateDDMMYYYY(record.updatedAt)}
-                    {' · '}
-                    In {money(record.computed.totalInflow)}
-                    {' · '}
-                    Out {money(record.computed.totalOutflow)}
-                  </p>
-                </div>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => openMonth(record.monthKey)}
-                >
-                  <PenLine className="h-3.5 w-3.5" />
-                  Edit
-                </Button>
-              </li>
-            ))}
+                    <span className="hidden min-w-0 truncate text-xs text-stone-600 sm:inline dark:text-stone-400">
+                      {formatDateDDMMYYYY(record.updatedAt)}
+                    </span>
+                  </div>
+
+                  <div className="flex shrink-0 items-baseline gap-3 text-sm tabular-nums sm:gap-5">
+                    <span className="text-stone-800 dark:text-stone-200">
+                      <span className="mr-1 text-[10px] font-medium tracking-wide text-stone-600 uppercase dark:text-stone-400">
+                        In
+                      </span>
+                      {money(record.computed.totalInflow)}
+                    </span>
+                    <span className="text-stone-800 dark:text-stone-200">
+                      <span className="mr-1 text-[10px] font-medium tracking-wide text-stone-600 uppercase dark:text-stone-400">
+                        Out
+                      </span>
+                      {money(record.computed.totalOutflow)}
+                    </span>
+                  </div>
+
+                  <div className="flex shrink-0 items-center gap-0.5">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      title={`Edit ${formatMonthKey(record.monthKey)}`}
+                      aria-label={`Edit ${formatMonthKey(record.monthKey)}`}
+                      disabled={busy}
+                      onClick={() => openMonth(record.monthKey)}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-stone-600 hover:text-red-700 dark:text-stone-400 dark:hover:text-red-400"
+                      title={`Delete ${formatMonthKey(record.monthKey)}`}
+                      aria-label={`Delete ${formatMonthKey(record.monthKey)}`}
+                      disabled={busy}
+                      onClick={() => void onDelete(record.monthKey)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </li>
+              )
+            })}
           </ul>
         )}
       </section>

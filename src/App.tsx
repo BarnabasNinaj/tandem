@@ -4,6 +4,7 @@ import { ExpensesPage } from '@/components/analytics/ExpensesPage'
 import { HistoryPage } from '@/components/analytics/HistoryPage'
 import { IncomesPage } from '@/components/analytics/IncomesPage'
 import { OutlookPage } from '@/components/analytics/OutlookPage'
+import { HomePage } from '@/components/home/HomePage'
 import { TrackPage } from '@/components/track/TrackPage'
 import { AppShell } from '@/components/layout/AppShell'
 import { LockScreen } from '@/components/lock/LockScreen'
@@ -24,7 +25,8 @@ function AuthenticatedApp() {
   return (
     <Routes>
       <Route element={<AppShell />}>
-        <Route index element={<TrackPage />} />
+        <Route index element={<HomePage />} />
+        <Route path="track" element={<TrackPage />} />
         <Route path="history" element={<HistoryPage />} />
         <Route path="incomes" element={<IncomesPage />} />
         <Route path="expenses" element={<ExpensesPage />} />

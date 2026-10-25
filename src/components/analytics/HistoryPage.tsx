@@ -17,8 +17,10 @@ import {
 import { AnalyticsEmpty } from '@/components/analytics/AnalyticsEmpty'
 import { AnalyticsPageHeader } from '@/components/analytics/AnalyticsPageHeader'
 import {
+  axisTick,
   CAT_COLORS,
   CHART,
+  legendLabel,
   tipStyle,
 } from '@/components/analytics/chart-theme'
 import { Card, CardTitle } from '@/components/ui/card'
@@ -83,7 +85,7 @@ export function HistoryPage() {
         <>
           <Card>
             <CardTitle>Category trends</CardTitle>
-            <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
+            <p className="mt-1 text-xs text-stone-600 dark:text-stone-400">
               Top categories by average spend
             </p>
             <div className="mt-4 h-72">
@@ -92,15 +94,15 @@ export function HistoryPage() {
                   <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                   <XAxis
                     dataKey="month"
-                    tick={{ fontSize: 11 }}
+                    tick={axisTick}
                     tickFormatter={(v: string) => formatChartMonth(v)}
                   />
-                  <YAxis tick={{ fontSize: 11 }} width={56} />
+                  <YAxis tick={axisTick} width={56} />
                   <Tooltip
                     contentStyle={tipStyle}
                     formatter={(v) => money(Number(v))}
                   />
-                  <Legend />
+                  <Legend formatter={legendLabel} />
                   {topCatNames.map((name, i) => (
                     <Line
                       key={name}
@@ -119,7 +121,7 @@ export function HistoryPage() {
 
           <Card>
             <CardTitle>Income vs expense</CardTitle>
-            <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
+            <p className="mt-1 text-xs text-stone-600 dark:text-stone-400">
               Solid green/orange = tracked · sage/sand with dashed outline =
               average projection
             </p>
@@ -127,8 +129,8 @@ export function HistoryPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={flowSeries}>
                   <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                  <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} width={56} />
+                  <XAxis dataKey="month" tick={axisTick} />
+                  <YAxis tick={axisTick} width={56} />
                   <Tooltip
                     contentStyle={tipStyle}
                     formatter={(v) =>
@@ -137,7 +139,7 @@ export function HistoryPage() {
                         : money(Number(v))
                     }
                   />
-                  <Legend />
+                  <Legend formatter={legendLabel} />
                   <Bar
                     dataKey="income"
                     name="Income"
@@ -175,7 +177,7 @@ export function HistoryPage() {
 
           <Card>
             <CardTitle>Expense mix</CardTitle>
-            <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
+            <p className="mt-1 text-xs text-stone-600 dark:text-stone-400">
               Total spend by category in this range
             </p>
             <div className="mt-4 grid gap-4 md:grid-cols-2">

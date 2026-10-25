@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  buildHomeOverview,
   buildMonthOutlook,
   categoryStats,
   expenseGrid,
@@ -125,6 +126,47 @@ describe('buildMonthOutlook', () => {
     expect(outlook!.focusRecorded).toBe(true)
     expect(outlook!.focusExpense).toBe(1000)
     expect(outlook!.focusExpenseDelta).toBe(round2(1000 - outlook!.avgExpense))
+  })
+})
+
+describe('buildHomeOverview', () => {
+  it('returns null for empty history', () => {
+    expect(buildHomeOverview({})).toBeNull()
+  })
+
+  it('lists tracked months then a next-month estimate', () => {
+    const history = {
+      '2026-01': month('2026-01', 900, 300),
+      '2026-02': month('2026-02', 800, 200),
+    }
+    const overview = buildHomeOverview(history, { focusMonthKey: '2026-02' })
+    expect(overview).not.toBeNull()
+    expect(overview!.focusMonthKey).toBe('2026-02')
+    expect(overview!.months.map((m) => m.monthKey)).toEqual([
+      '2026-01',
+      '2026-02',
+      '2026-03',
+    ])
+    expect(overview!.months[0]?.status).toBe('recorded')
+    expect(overview!.months[1]?.isCalendar).toBe(true)
+    expect(overview!.months[1]?.expense).toBe(1000)
+    expect(overview!.months[2]?.status).toBe('projected')
+    expect(overview!.months[2]?.expense).toBe(1100)
+  })
+
+  it('inserts an untracked calendar month before the estimate', () => {
+    const history = {
+      '2026-01': month('2026-01', 900, 300),
+    }
+    const overview = buildHomeOverview(history, { focusMonthKey: '2026-04' })
+    expect(overview!.months.map((m) => m.monthKey)).toEqual([
+      '2026-01',
+      '2026-04',
+      '2026-05',
+    ])
+    expect(overview!.months[1]?.status).toBe('untracked')
+    expect(overview!.months[1]?.isCalendar).toBe(true)
+    expect(overview!.months[2]?.status).toBe('projected')
   })
 })
 

@@ -277,7 +277,7 @@ export function MonthEditor() {
 
           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-stone-200 pt-1.5 sm:pt-3 dark:border-stone-700">
             <div className="flex items-center gap-1.5">
-              <span className="text-[11px] text-stone-500 dark:text-stone-500">
+              <span className="text-[11px] text-stone-600 dark:text-stone-400">
                 Split
               </span>
               <div className="flex gap-0.5 rounded-md bg-stone-200/80 p-0.5 dark:bg-stone-800">
@@ -362,7 +362,7 @@ function SummaryPart({
             className="min-w-0 truncate text-[12px] tabular-nums"
             title={`${m.label} ${m.value}`}
           >
-            <span className="text-stone-500 dark:text-stone-500">
+            <span className="text-stone-600 dark:text-stone-400">
               {m.shortLabel}{' '}
             </span>
             <span

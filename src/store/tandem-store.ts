@@ -74,6 +74,7 @@ interface TandemStore {
   resolveConflict: (action: 'pull' | 'overwrite') => Promise<void>
   updateState: (updater: (s: TandemState) => TandemState) => void
   saveMonth: (draft: WizardDraft) => Promise<void>
+  deleteMonth: (monthKey: string) => Promise<void>
   startTracking: (draft: WizardDraft) => void
   cancelTracking: () => void
   setWizardDraft: (draft: WizardDraft) => void
@@ -444,6 +445,25 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
     clearEncryptedDraft()
     set({ wizardDraft: null })
     await get().push(`feat: track data ${record.monthKey}`)
+  },
+
+  deleteMonth: async (monthKey) => {
+    const { state, wizardDraft } = get()
+    if (!state?.history[monthKey]) return
+    get().updateState((s) => {
+      const history = { ...s.history }
+      delete history[monthKey]
+      return {
+        ...s,
+        updatedAt: new Date().toISOString(),
+        history,
+      }
+    })
+    if (wizardDraft?.monthKey === monthKey) {
+      clearEncryptedDraft()
+      set({ wizardDraft: null })
+    }
+    await get().push(`chore: remove month ${monthKey}`)
   },
 
   startTracking: (draft) => {

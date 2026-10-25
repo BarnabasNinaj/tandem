@@ -33,7 +33,7 @@ function trendWord(slope: number): { label: string; className: string } {
     }
   return {
     label: 'steady',
-    className: 'text-stone-500 dark:text-stone-400',
+    className: 'text-stone-600 dark:text-stone-400',
   }
 }
 
@@ -115,7 +115,7 @@ export function OutlookPage() {
               <div className="overflow-x-auto border-t border-stone-300 pt-3 dark:border-stone-700">
                 <table className="w-full min-w-[28rem] text-left text-sm">
                   <thead>
-                    <tr className="text-xs tracking-wide text-stone-500 uppercase">
+                    <tr className="text-xs tracking-wide text-stone-600 uppercase dark:text-stone-400">
                       <th className="py-1.5 font-medium">Projected month</th>
                       <th className="py-1.5 font-medium text-right">Income</th>
                       <th className="py-1.5 font-medium text-right">
@@ -161,7 +161,7 @@ export function OutlookPage() {
             <div className="mt-4 overflow-x-auto border-t border-stone-300 pt-2 dark:border-stone-700">
               <table className="w-full min-w-[32rem] text-left text-sm">
                 <thead>
-                  <tr className="text-xs tracking-wide text-stone-500 uppercase">
+                  <tr className="text-xs tracking-wide text-stone-600 uppercase dark:text-stone-400">
                     <th className="pb-2 font-medium">Category</th>
                     <th className="pb-2 font-medium text-right">Average</th>
                     <th className="pb-2 font-medium text-right">Last</th>

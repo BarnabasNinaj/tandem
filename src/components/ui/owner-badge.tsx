@@ -31,9 +31,11 @@ export function OwnerBadge({
     className,
   )
 
+  // Colored letter on --surface (not same-hue tint) so WCAG contrast holds in both themes.
   const style = {
-    backgroundColor: `color-mix(in srgb, ${color} 18%, transparent)`,
+    backgroundColor: 'var(--surface)',
     color,
+    boxShadow: `inset 0 0 0 1px color-mix(in srgb, ${color} 45%, transparent)`,
   } as const
 
   if (onClick) {

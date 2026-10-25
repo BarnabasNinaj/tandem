@@ -144,6 +144,7 @@ Goal: catch vault/math regressions without a heavyweight QA program.
 | P4 | Auto-lock effect depends on whole `state` object — timer resets on any state update (may delay lock while actively editing; usually fine) |
 | P5 | ~~Defaults `sk-SK` / `€` in Settings~~ → **fixed:** money always EUR; locale not user-facing (`CURRENCY_*` in `number.ts`) |
 | P6 | Allocations + portfolio snapshot **removed** from schema (2026-10-25) — migrate strips legacy fields; History net-worth chart removed; invest via expense categories if needed |
+| P7 | ~~Light/dark contrast broken when OS theme ≠ app toggle~~ → **P7A (2026-10-25):** `@custom-variant dark` (class strategy); muted `stone-600`/`stone-400`; chart `axisTick`/`legendLabel`; darker dark-mode primary button; owner badges on `--surface` |
 
 ## Tooling findings
 

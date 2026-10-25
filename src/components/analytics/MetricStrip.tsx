@@ -26,14 +26,14 @@ export function MetricStrip({
           key={item.label}
           className="flex min-w-0 items-baseline gap-1.5"
         >
-          <span className="shrink-0 text-[10px] font-medium tracking-wide text-stone-500 uppercase">
+          <span className="shrink-0 text-[10px] font-medium tracking-wide text-stone-600 uppercase dark:text-stone-400">
             {item.label}
           </span>
           <span className="font-[family-name:var(--font-display)] text-base font-semibold tabular-nums tracking-tight text-stone-900 dark:text-stone-50">
             {item.value}
           </span>
           {item.hint ? (
-            <span className="truncate text-[10px] text-stone-500 dark:text-stone-400">
+            <span className="truncate text-[10px] text-stone-600 dark:text-stone-400">
               {item.hint}
             </span>
           ) : null}

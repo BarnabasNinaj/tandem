@@ -15,7 +15,11 @@ import {
 } from 'recharts'
 import { AnalyticsEmpty } from '@/components/analytics/AnalyticsEmpty'
 import { AnalyticsPageHeader } from '@/components/analytics/AnalyticsPageHeader'
-import { tipStyle } from '@/components/analytics/chart-theme'
+import {
+  axisTick,
+  legendLabel,
+  tipStyle,
+} from '@/components/analytics/chart-theme'
 import { MetricStrip } from '@/components/analytics/MetricStrip'
 import { Button } from '@/components/ui/button'
 import { Card, CardTitle } from '@/components/ui/card'
@@ -94,13 +98,13 @@ export function IncomesPage() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={rows}>
                     <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                    <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-                    <YAxis tick={{ fontSize: 11 }} width={56} />
+                    <XAxis dataKey="label" tick={axisTick} />
+                    <YAxis tick={axisTick} width={56} />
                     <Tooltip
                       contentStyle={tipStyle}
                       formatter={(v) => money(Number(v))}
                     />
-                    <Legend />
+                    <Legend formatter={legendLabel} />
                     <Bar
                       dataKey="partnerA"
                       name={partnerAName}
@@ -170,7 +174,7 @@ export function IncomesPage() {
               <div className="overflow-x-auto border-t border-stone-300 pt-3 dark:border-stone-700">
                 <table className="w-full min-w-[28rem] text-left text-sm">
                   <thead>
-                    <tr className="text-xs tracking-wide text-stone-500 uppercase">
+                    <tr className="text-xs tracking-wide text-stone-600 uppercase dark:text-stone-400">
                       <th className="py-2 font-medium">Month</th>
                       <th
                         className="py-2 font-medium text-right"
@@ -229,7 +233,7 @@ export function IncomesPage() {
                                   state.settings.categories,
                                 ),
                               )
-                              navigate('/')
+                              navigate('/track')
                             }}
                           >
                             Edit

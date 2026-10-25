@@ -600,7 +600,7 @@ export function Settings() {
         </div>
 
         {banks.length === 0 ? (
-          <p className="text-sm text-stone-500 dark:text-stone-400">
+          <p className="text-sm text-stone-600 dark:text-stone-400">
             No banks yet.
           </p>
         ) : (
@@ -740,7 +740,7 @@ export function Settings() {
                             onClick={() => cancelAddCard(bank.id)}
                             aria-label="Cancel add card"
                           >
-                            <X className="h-3 w-3 text-stone-500" />
+                            <X className="h-3 w-3 text-stone-600 dark:text-stone-400" />
                           </Button>
                         </div>
                       ) : (
@@ -805,7 +805,7 @@ export function Settings() {
                           }
                           aria-label="Edit bank"
                         >
-                          <Pencil className="h-3.5 w-3.5 text-stone-500" />
+                          <Pencil className="h-3.5 w-3.5 text-stone-600 dark:text-stone-400" />
                         </Button>
                       )}
                     </div>
@@ -818,14 +818,14 @@ export function Settings() {
                       <p className="text-[10px] font-semibold tracking-[0.14em] uppercase">
                         Labels → categories
                       </p>
-                      <span className="text-[10px] font-normal tracking-normal text-stone-400 normal-case dark:text-stone-500">
+                      <span className="text-[10px] font-normal tracking-normal text-stone-600 normal-case dark:text-stone-400">
                         {bankMaps.length
                           ? `${bankMaps.length} mapped`
                           : 'none yet'}
                       </span>
                     </div>
                     {bankMaps.length === 0 ? (
-                      <p className="text-xs text-stone-500 dark:text-stone-400">
+                      <p className="text-xs text-stone-600 dark:text-stone-400">
                         {editing
                           ? 'Add how this bank names spend (e.g. Lebensmittel → Groceries).'
                           : 'No labels yet — tap the pencil to add mappings.'}

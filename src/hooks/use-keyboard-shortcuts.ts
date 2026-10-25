@@ -41,7 +41,7 @@ export function useKeyboardShortcuts() {
             state.settings.categories,
           ),
         )
-        navigate('/')
+        navigate('/track')
       }
     }
 

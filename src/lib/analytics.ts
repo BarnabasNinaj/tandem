@@ -233,6 +233,114 @@ export function buildMonthOutlook(
   }
 }
 
+/** One card in the Home Overview scroller. */
+export interface HomeMonthSnap {
+  monthKey: string
+  label: string
+  /** recorded actuals · calendar month not saved · next projected from averages */
+  status: 'recorded' | 'untracked' | 'projected'
+  /** True for the calendar month (scroll focus + highlight). */
+  isCalendar: boolean
+  income: number | null
+  expense: number | null
+  leftover: number | null
+  pocketA: number | null
+  pocketB: number | null
+}
+
+/** Logo Home — chronological tracked months + next-month estimate. */
+export interface HomeOverview {
+  months: HomeMonthSnap[]
+  /** Month key to center on open (calendar month when present). */
+  focusMonthKey: string
+}
+
+function snapFromRecord(
+  record: MonthlyRecord,
+  isCalendar: boolean,
+): HomeMonthSnap {
+  return {
+    monthKey: record.monthKey,
+    label: formatMonthKey(record.monthKey),
+    status: 'recorded',
+    isCalendar,
+    income: record.computed.totalInflow,
+    expense: record.computed.totalOutflow,
+    leftover: record.computed.leftoverAfterExpenses,
+    pocketA: record.computed.personalAllowancePartnerA,
+    pocketB: record.computed.personalAllowancePartnerB,
+  }
+}
+
+/**
+ * Home overview strip: all tracked months (asc), optional untracked calendar
+ * month, then next calendar month as a trailing average estimate.
+ * Returns null when history is empty.
+ */
+export function buildHomeOverview(
+  history: Record<string, MonthlyRecord>,
+  opts?: { focusMonthKey?: string },
+): HomeOverview | null {
+  const all = Object.values(history).sort((a, b) =>
+    a.monthKey.localeCompare(b.monthKey),
+  )
+  if (all.length === 0) return null
+
+  const calendarMonthKey = opts?.focusMonthKey ?? toMonthKey()
+  const nextKey = shiftMonthKey(calendarMonthKey, 1)
+  const byKey = new Map(all.map((r) => [r.monthKey, r]))
+
+  const trailing = all.slice(-Math.min(6, all.length))
+  const avgIncome = mean(trailing.map((r) => r.computed.totalInflow))
+  const avgExpense = mean(trailing.map((r) => r.computed.totalOutflow))
+  const avgLeftover = mean(
+    trailing.map((r) => r.computed.leftoverAfterExpenses),
+  )
+  const avgPocketA = mean(
+    trailing.map((r) => r.computed.personalAllowancePartnerA),
+  )
+  const avgPocketB = mean(
+    trailing.map((r) => r.computed.personalAllowancePartnerB),
+  )
+
+  const months: HomeMonthSnap[] = all.map((r) =>
+    snapFromRecord(r, r.monthKey === calendarMonthKey),
+  )
+
+  if (!byKey.has(calendarMonthKey)) {
+    const untracked: HomeMonthSnap = {
+      monthKey: calendarMonthKey,
+      label: formatMonthKey(calendarMonthKey),
+      status: 'untracked',
+      isCalendar: true,
+      income: null,
+      expense: null,
+      leftover: null,
+      pocketA: null,
+      pocketB: null,
+    }
+    const insertAt = months.findIndex((m) => m.monthKey > calendarMonthKey)
+    if (insertAt === -1) months.push(untracked)
+    else months.splice(insertAt, 0, untracked)
+  }
+
+  if (!months.some((m) => m.monthKey === nextKey)) {
+    months.push({
+      monthKey: nextKey,
+      label: formatMonthKey(nextKey),
+      status: 'projected',
+      isCalendar: false,
+      income: avgIncome,
+      expense: avgExpense,
+      leftover: avgLeftover,
+      pocketA: avgPocketA,
+      pocketB: avgPocketB,
+    })
+  }
+
+  return { months, focusMonthKey: calendarMonthKey }
+}
+
 export interface FlowPoint {
   month: string
   monthKey: string
