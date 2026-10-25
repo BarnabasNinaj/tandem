@@ -159,15 +159,12 @@ export function HomePage() {
           revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3',
         )}
       >
-        <p className="text-[10px] font-medium tracking-[0.18em] text-stone-700 uppercase dark:text-stone-400 sm:text-xs">
-          Household
-        </p>
-        <h1 className="mt-2 font-[family-name:var(--font-display)] text-2xl font-semibold text-stone-900 dark:text-stone-50 sm:text-3xl">
+        <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-stone-900 dark:text-stone-50 sm:text-3xl">
           Overview
         </h1>
-        <p className="mt-1 max-w-lg text-sm text-stone-700 dark:text-stone-400">
-          Drag or swipe through tracked months — ends with next month’s
-          estimate.
+        <p className="text-sm text-stone-700 dark:text-stone-400">
+          Drag or swipe month cards. The last card is a rough next-month
+          estimate from your recent averages.
         </p>
       </header>
 

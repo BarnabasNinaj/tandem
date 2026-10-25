@@ -35,8 +35,7 @@ Unrecognized `v` or missing fields → hard error (`parseEnvelope`).
 |-------|---------------------|
 | `currencySymbol` | always `€` (not Settings-editable; migration overwrites) |
 | `currencyLocale` | always `sk-SK` number style (not Settings-editable; for `Intl` grouping) |
-| `dateFormat` | always `DD/MM/YYYY` (enforced) |
-| `emergencyTargetMonths` | `6` |
+| `dateFormat` | always `DD/MM/YYYY` (enforced; schema anchor, not Settings-editable) |
 | `partnerAName` / `partnerBName` | `Barney` / `Lucka` (legacy “Partner A/B” remapped on migrate) |
 | `allowanceSplit` | Splits **expenses** and **pocket**: `equal` or `income` (Barney/Lucka ratio; Other excluded) |
 | `categories` | `DEFAULT_CATEGORIES` |
@@ -69,14 +68,13 @@ Toggle (allowanceSplit) splits Y and Z:
 
 expenseSharePartnerA / B
 personalAllowancePartnerA / B   // each partner’s share of Z
-personalAllowancePerPartner     // Z/2 reference
 ```
 
 All money values rounded with `round2`.
 
 **Savings rate:** `(totalInflow − totalOutflow) / totalInflow * 100`.
 
-**Migration:** older vault months that still have `allocations` / `portfolioSnapshot` drop those fields on `normalizeHistory` and recompute.
+**Migration:** older vault months that still have `allocations` / `portfolioSnapshot` drop those fields on `normalizeHistory` and recompute. Settings drop unused `emergencyTargetMonths` (never consumed). Recomputed months omit unused `personalAllowancePerPartner` (Z/2 was always derivable from A+B or Z).
 
 ### Analytics (derived, not stored)
 
@@ -91,7 +89,7 @@ All money values rounded with `round2`.
 
 Focus month defaults to the current calendar month (`toMonthKey()`). If that month is already in `history`, Outlook shows deltas vs the trailing average.
 
-UI slices of the same history (no extra stored fields): `/history` (mixed charts), `/incomes` (`incomeMonths` — three buckets only), `/expenses` (`expenseGrid` — category columns only), `/outlook` (baselines).
+UI slices of the same history (no extra stored fields): `/history` (mixed charts), `/incomes` (`incomeMonths` — three buckets only), `/expenses` (`expenseGrid` — category rows × month columns; same mix pie as History via `PieBreakdown`), `/outlook` (baselines).
 
 ## Track draft
 

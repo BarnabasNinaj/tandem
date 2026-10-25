@@ -12,11 +12,11 @@ Private household operating system for a couple — calm, local-first, not a ban
 | Lock | Unlock with master password (no vault path shown) |
 | Home | Logo-only (`/`): **Overview** — horizontal snap scroller of all tracked months (asc), optional untracked calendar card, ending with next-month **estimate**. Opens centered on current. Thumb-drag / swipe + chevrons. Not in the main nav. Empty vault → track CTA / load samples. Active editor draft → continue banner. |
 | Track | Hub (`/track`): calendar-month CTA + tracked-month list (+ resume unsaved draft). List rows are one line: month · In/Out · pencil edit · delete (confirm + sync). Editor: inline month form (Incomes · **Expenses** card-first · optional **Notes**). Sticky footer: **Household** (expenses · left) · **partner A** · **partner B**; action row = split + **Cancel** / **Save month** (Save also flushes any unapplied card-sheet amounts). Editor bottom padding clears the sticky footer so **Add to month** stays clickable. No modal wizard. |
-| History | Charts over tracked months: category lines, income vs expense (solid actuals · sage/sand dashed projections), expense mix pie. Sticky range: 3M / 6M / 1Y / All. |
-| Incomes | Incomes only: compact metric strip + stacked bars + share pie + month table (partner A / partner B / Other). Same sticky range. **Edit** → Track editor for that month. |
-| Expenses | Expenses only: compact metric strip + stacked category bars + mix pie + month × category table. Same sticky range. **Edit** → Track editor for that month. |
+| History | Charts over tracked months: category lines, income vs expense (solid actuals · sage/sand dashed projections), expense mix (`PieBreakdown`: chart left, €/% rows right — same component as Expenses). Sticky range: 3M / 6M / 1Y / All. Click a legend item (or mix row) to hide/show that series. |
+| Incomes | Incomes only: compact metric strip + stacked bars + share pie (`PieBreakdown`) + month table (partner A / partner B / Other). Same sticky range. Legend / list click filters series. **Edit** → Track editor for that month. |
+| Expenses | Expenses only: compact metric strip + stacked category bars + expense mix (`PieBreakdown`, same as History) + category × month table (category rows, month columns; Edit under each month). Same sticky range. Legend / list click filters series. |
 | Outlook | Forward look: compact metric strip + trailing averages → next 3 months; category baselines (avg / last / €/mo slope). Same sticky range. |
-| Settings | Sticky tabs: **Household** · **Categories** · **Banks** (read-only until pencil: then rename/delete bank & cards, remap/add/delete labels) · **Vault** (GitHub data repo, invite QR) · **Security** (password) · **Data** (samples, JSON backup) |
+| Settings | Sticky tabs: **Household** (names + expense/pocket split) · **Categories** · **Banks** (read-only until pencil: then rename/delete bank & cards, remap/add/delete labels) · **Vault** (GitHub data repo, invite QR) · **Security** (auto-lock + password) · **Data** (samples, JSON backup). Brief plain-English notes on each tab and on Track / Overview / analytics headers. |
 
 Nav: **Track**, **History**, **Incomes**, **Expenses**, **Outlook** (text); **Settings** as a header icon (with sync / theme / lock). **Tandem** logo mark opens **Overview** Home (`/`) — not listed in the tab bar. Track lives at `/track`. Legacy `/trends` & `/breakdown` → History; `/analytics` → Outlook. Brand mark: **Tandem** (`Fugaz One`, teal). Loop: **overview** → **track** → **review** (History / Incomes / Expenses) → **look ahead** (Outlook).
 
@@ -39,7 +39,7 @@ Partner hexes also live in `src/lib/partners.ts` (`PARTNER_COLOR`) for charts. D
 
 Dark theme via `.dark` on root (inline boot script in `index.html` + hook `use-theme`). Tailwind `dark:` utilities are **class-based** (`@custom-variant dark` in `src/index.css`) so the in-app toggle is not fighting `prefers-color-scheme`. Setup/lock share `AuthShell` + `public/auth-shell.css` (same classes as the pre-React static lock shell — avoids layout jump on refresh). Boot: locked vault paints that full unlock shell into `#root`; React replaces it in place. Focus uses `preventScroll`. Quiet session restore stays blank until `ready`. Fonts self-hosted (`public/fonts/`, Fugaz + Jakarta preloaded).
 
-Muted UI copy uses `text-stone-600 dark:text-stone-400` (not bare `stone-500`/`stone-400`) so labels and table headers clear WCAG AA on both canvases. Chart axis ticks / legend labels use `--text-faint` / `--text-muted` via `chart-theme.ts` so pastel series fills are not used as text color.
+Muted UI copy uses `text-stone-600 dark:text-stone-400` (not bare `stone-500`/`stone-400`) so labels and table headers clear WCAG AA on both canvases. Chart axis ticks / legend labels use `--text-faint` / `--text-muted` via `chart-theme.ts` so pastel series fills are not used as text color. Chart tooltips use `tipProps` + `.recharts-default-tooltip` CSS so dark mode isn’t stuck on Recharts’ light defaults. Legend clicks filter series (`use-legend-filter.ts`); hidden labels are dimmed with strikethrough.
 
 Motion: `fadeUp` on in-app surfaces (Track, analytics); auth gate mounts without entrance animation. Prefer subtle transitions over noisy animations.
 
@@ -56,13 +56,13 @@ UI primitives: `src/components/ui/*` (button, input, select, card, label, money-
 
 - Display dates: **DD/MM/YYYY** (**Last Synced** `DD/MM/YYYY HH:mm` on the pull-icon tooltip, not in the header)
 - Header icon tooltips: Settings, sync/pull (Last Synced; notes unsaved local edits), theme (Switch to light/dark), lock (Lock)
-- Settings **Save & sync** on Household / Categories / Banks; header sync pushes dirty local edits before pull
+- Settings **Save & sync** on Household / Categories / Banks / Security (auto-lock); header sync pushes dirty local edits before pull
 - Month labels: **MM/YYYY** from `YYYY-MM` keys
 - Money: always **euro** (`formatMoney` → `€` + `sk-SK` grouping); inputs via `MoneyInput` / `parseLocaleNumber` (`,` and `.`)
 
 ## Auto-lock
 
-Idle timer from `settings.autoLockMinutes` (default 30). Events: mousemove, keydown, touchstart, click, scroll. Calls `lock()` → clears session secrets + draft.
+Idle timer from `settings.autoLockMinutes` (default 30), edited under **Settings → Security**. Events: mousemove, keydown, touchstart, click, scroll. Calls `lock()` → clears session secrets + draft.
 
 ## Partner onboarding story
 

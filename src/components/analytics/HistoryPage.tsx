@@ -3,12 +3,9 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
   Legend,
   Line,
   LineChart,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -20,9 +17,10 @@ import {
   axisTick,
   CAT_COLORS,
   CHART,
-  legendLabel,
-  tipStyle,
+  tipProps,
 } from '@/components/analytics/chart-theme'
+import { PieBreakdown } from '@/components/analytics/PieBreakdown'
+import { useLegendFilter } from '@/components/analytics/use-legend-filter'
 import { Card, CardTitle } from '@/components/ui/card'
 import { formatChartMonth } from '@/lib/dates'
 import {
@@ -39,6 +37,9 @@ export function HistoryPage() {
   const state = useTandemStore((s) => s.state)!
   const [range, setRange] = useState<AnalyticsRange>('6M')
   const money = formatMoney
+  const catLegend = useLegendFilter(range)
+  const flowLegend = useLegendFilter(range)
+  const mixLegend = useLegendFilter(range)
 
   const records = useMemo(
     () => sliceHistory(state.history, range),
@@ -60,11 +61,12 @@ export function HistoryPage() {
     [records],
   )
 
-  const categoryTotals = useMemo(
+  const mixSlices = useMemo(
     () =>
-      cats.map((c) => ({
+      cats.map((c, i) => ({
         name: c.categoryName,
         value: c.total,
+        color: CAT_COLORS[i % CAT_COLORS.length],
       })),
     [cats],
   )
@@ -73,7 +75,7 @@ export function HistoryPage() {
     <div className="animate-[fadeUp_0.4s_ease-out]">
       <AnalyticsPageHeader
         title="History"
-        subtitle="Charts over tracked months, with a light projected continuation"
+        subtitle="How income and spend moved over time — dashed lines are a simple continuation"
         range={range}
         onRangeChange={setRange}
       />
@@ -99,15 +101,16 @@ export function HistoryPage() {
                   />
                   <YAxis tick={axisTick} width={56} />
                   <Tooltip
-                    contentStyle={tipStyle}
+                    {...tipProps}
                     formatter={(v) => money(Number(v))}
                   />
-                  <Legend formatter={legendLabel} />
+                  <Legend {...catLegend.legendProps} />
                   {topCatNames.map((name, i) => (
                     <Line
                       key={name}
                       type="monotone"
                       dataKey={name}
+                      hide={catLegend.isHidden(name)}
                       stroke={CAT_COLORS[i % CAT_COLORS.length]}
                       strokeWidth={2}
                       dot={{ r: 2.5 }}
@@ -132,29 +135,32 @@ export function HistoryPage() {
                   <XAxis dataKey="month" tick={axisTick} />
                   <YAxis tick={axisTick} width={56} />
                   <Tooltip
-                    contentStyle={tipStyle}
+                    {...tipProps}
                     formatter={(v) =>
                       v == null || Number.isNaN(Number(v))
                         ? '—'
                         : money(Number(v))
                     }
                   />
-                  <Legend formatter={legendLabel} />
+                  <Legend {...flowLegend.legendProps} />
                   <Bar
                     dataKey="income"
                     name="Income"
+                    hide={flowLegend.isHidden('income')}
                     fill={CHART.income}
                     radius={[4, 4, 0, 0]}
                   />
                   <Bar
                     dataKey="expense"
                     name="Expense"
+                    hide={flowLegend.isHidden('expense')}
                     fill={CHART.expense}
                     radius={[4, 4, 0, 0]}
                   />
                   <Bar
                     dataKey="projectedIncome"
                     name="Projected income"
+                    hide={flowLegend.isHidden('projectedIncome')}
                     fill={CHART.projectedIncome}
                     stroke={CHART.income}
                     strokeWidth={1.5}
@@ -164,6 +170,7 @@ export function HistoryPage() {
                   <Bar
                     dataKey="projectedExpense"
                     name="Projected expense"
+                    hide={flowLegend.isHidden('projectedExpense')}
                     fill={CHART.projectedExpense}
                     stroke={CHART.expense}
                     strokeWidth={1.5}
@@ -178,58 +185,16 @@ export function HistoryPage() {
           <Card>
             <CardTitle>Expense mix</CardTitle>
             <p className="mt-1 text-xs text-stone-600 dark:text-stone-400">
-              Total spend by category in this range
+              Share of total spend in this range — click a row to hide or show
+              it on the chart
             </p>
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={categoryTotals}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={48}
-                      outerRadius={80}
-                      paddingAngle={2}
-                      stroke="none"
-                    >
-                      {categoryTotals.map((_, i) => (
-                        <Cell
-                          key={i}
-                          fill={CAT_COLORS[i % CAT_COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={tipStyle}
-                      formatter={(v) => money(Number(v))}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <ul className="space-y-2 self-center">
-                {categoryTotals.map((c, i) => (
-                  <li
-                    key={c.name}
-                    className="flex items-center justify-between text-sm"
-                  >
-                    <span className="flex items-center gap-2">
-                      <span
-                        className="h-2.5 w-2.5 rounded-full"
-                        style={{
-                          background: CAT_COLORS[i % CAT_COLORS.length],
-                        }}
-                      />
-                      {c.name}
-                    </span>
-                    <span className="font-medium tabular-nums">
-                      {money(c.value)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+            <div className="mt-4">
+              <PieBreakdown
+                slices={mixSlices}
+                isHidden={mixLegend.isHidden}
+                onToggle={mixLegend.toggle}
+                formatMoney={money}
+              />
             </div>
           </Card>
         </>

@@ -4,10 +4,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
   Legend,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -17,10 +14,11 @@ import { AnalyticsEmpty } from '@/components/analytics/AnalyticsEmpty'
 import { AnalyticsPageHeader } from '@/components/analytics/AnalyticsPageHeader'
 import {
   axisTick,
-  legendLabel,
-  tipStyle,
+  tipProps,
 } from '@/components/analytics/chart-theme'
 import { MetricStrip } from '@/components/analytics/MetricStrip'
+import { PieBreakdown } from '@/components/analytics/PieBreakdown'
+import { useLegendFilter } from '@/components/analytics/use-legend-filter'
 import { Button } from '@/components/ui/button'
 import { Card, CardTitle } from '@/components/ui/card'
 import {
@@ -47,6 +45,8 @@ export function IncomesPage() {
   const [range, setRange] = useState<AnalyticsRange>('6M')
   const money = formatMoney
   const { partnerAName, partnerBName } = state.settings
+  const barLegend = useLegendFilter(range)
+  const shareLegend = useLegendFilter(range)
 
   const records = useMemo(
     () => sliceHistory(state.history, range),
@@ -55,11 +55,19 @@ export function IncomesPage() {
   const rows = useMemo(() => incomeMonths(records), [records])
   const summary = useMemo(() => summarizeIncomes(rows), [rows])
 
-  const share = summary
+  const shareSlices = summary
     ? [
-        { name: partnerAName, value: summary.partnerA },
-        { name: partnerBName, value: summary.partnerB },
-        { name: 'Other', value: summary.other },
+        {
+          name: partnerAName,
+          value: summary.partnerA,
+          color: SOURCE.partnerA,
+        },
+        {
+          name: partnerBName,
+          value: summary.partnerB,
+          color: SOURCE.partnerB,
+        },
+        { name: 'Other', value: summary.other, color: SOURCE.other },
       ].filter((s) => s.value > 0)
     : []
 
@@ -67,7 +75,7 @@ export function IncomesPage() {
     <div className="animate-[fadeUp_0.4s_ease-out]">
       <AnalyticsPageHeader
         title="Incomes"
-        subtitle="Salary and other inflows only — no expenses"
+        subtitle="Who brought money in — partner salaries and Other, no expenses"
         range={range}
         onRangeChange={setRange}
       />
@@ -101,25 +109,28 @@ export function IncomesPage() {
                     <XAxis dataKey="label" tick={axisTick} />
                     <YAxis tick={axisTick} width={56} />
                     <Tooltip
-                      contentStyle={tipStyle}
+                      {...tipProps}
                       formatter={(v) => money(Number(v))}
                     />
-                    <Legend formatter={legendLabel} />
+                    <Legend {...barLegend.legendProps} />
                     <Bar
                       dataKey="partnerA"
                       name={partnerAName}
+                      hide={barLegend.isHidden('partnerA')}
                       stackId="in"
                       fill={SOURCE.partnerA}
                     />
                     <Bar
                       dataKey="partnerB"
                       name={partnerBName}
+                      hide={barLegend.isHidden('partnerB')}
                       stackId="in"
                       fill={SOURCE.partnerB}
                     />
                     <Bar
                       dataKey="other"
                       name="Other"
+                      hide={barLegend.isHidden('other')}
                       stackId="in"
                       fill={SOURCE.other}
                       radius={[4, 4, 0, 0]}
@@ -129,49 +140,28 @@ export function IncomesPage() {
               </div>
             </Card>
 
-            <div className="grid gap-6 lg:grid-cols-[16rem_1fr]">
-              <Card>
-                <CardTitle>Share of range</CardTitle>
-                <div className="mt-2 h-52">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={share}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={42}
-                        outerRadius={70}
-                        paddingAngle={2}
-                        stroke="none"
-                      >
-                        {share.map((s) => (
-                          <Cell
-                            key={s.name}
-                            fill={
-                              s.name === partnerAName
-                                ? SOURCE.partnerA
-                                : s.name === partnerBName
-                                  ? SOURCE.partnerB
-                                  : SOURCE.other
-                            }
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        contentStyle={tipStyle}
-                        formatter={(v) => money(Number(v))}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                <p className="text-center text-sm font-medium tabular-nums">
-                  {money(summary.total)} total
-                </p>
-              </Card>
+            <Card>
+              <CardTitle>Share of range</CardTitle>
+              <p className="mt-1 text-xs text-stone-600 dark:text-stone-400">
+                Who brought money in — click a row to hide or show it on the
+                chart
+              </p>
+              <div className="mt-4">
+                <PieBreakdown
+                  slices={shareSlices}
+                  isHidden={shareLegend.isHidden}
+                  onToggle={shareLegend.toggle}
+                  formatMoney={money}
+                  footer={
+                    <p className="text-sm font-medium tabular-nums text-stone-700 dark:text-stone-300">
+                      {money(summary.total)} total
+                    </p>
+                  }
+                />
+              </div>
+            </Card>
 
-              <div className="overflow-x-auto border-t border-stone-300 pt-3 dark:border-stone-700">
+            <div className="overflow-x-auto border-t border-stone-300 pt-3 dark:border-stone-700">
                 <table className="w-full min-w-[28rem] text-left text-sm">
                   <thead>
                     <tr className="text-xs tracking-wide text-stone-600 uppercase dark:text-stone-400">
@@ -261,7 +251,6 @@ export function IncomesPage() {
                     </tr>
                   </tfoot>
                 </table>
-              </div>
             </div>
           </>
         )}

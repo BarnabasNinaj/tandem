@@ -88,8 +88,9 @@ function TrackHub() {
         <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-stone-900 dark:text-stone-50 sm:text-3xl">
           Track
         </h1>
-        <p className="mt-1 max-w-lg text-sm text-stone-700 dark:text-stone-400">
-          Enter or edit a month. Review trends in History; plan ahead in Outlook.
+        <p className="text-sm text-stone-700 dark:text-stone-400">
+          Log this month’s incomes and card spend. Saved months show up on
+          Overview, History, and Outlook.
         </p>
       </header>
 

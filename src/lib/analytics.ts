@@ -452,7 +452,10 @@ export interface ExpenseGrid {
   }>
 }
 
-/** Expenses only: one row per month, one column per category that appears. */
+/**
+ * Expenses only: categories + per-month amounts.
+ * UI table: category rows × month columns (see ExpensesPage).
+ */
 export function expenseGrid(records: MonthlyRecord[]): ExpenseGrid {
   const totals = new Map<string, { name: string; total: number }>()
   const rows = records.map((r) => {

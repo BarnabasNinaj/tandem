@@ -10,7 +10,7 @@ alwaysApply: false
 
 - Logo: `logo-mark` / Fugaz One; teal `#0f766e` (light) / brighter on dark
 - Body: Plus Jakarta Sans (self-hosted `public/fonts/` + `src/lib/fonts.css`); CSS vars in `src/index.css` (`--bg`, `--surface`, `--logo`, `--partner-a/b/common/other`). Do not reintroduce Google Fonts `@import` (causes logo FOUT).
-- Theme: class `.dark` on `html` + `@custom-variant dark` in `index.css` (not `prefers-color-scheme`). Muted copy: `text-stone-600 dark:text-stone-400`. Charts: `axisTick` / `legendLabel` from `chart-theme.ts`.
+- Theme: class `.dark` on `html` + `@custom-variant dark` in `index.css` (not `prefers-color-scheme`). Muted copy: `text-stone-600 dark:text-stone-400`. Charts: `axisTick` / `legendLabel` / `tipProps` from `chart-theme.ts`; dark tooltips also forced via `.recharts-default-tooltip` in `index.css`.
 - Partner identity: blue A / rose B / violet common / amber other (not brand teal) — `src/lib/partners.ts` + `OwnerBadge`
 - Boot/setup/lock share `AuthShell` + `.logo-mark-on-light` (no flat `--bg` splash — avoids flash)
 
@@ -30,9 +30,12 @@ Never show formula letters (X / Y / Z) in UI copy — use plain words (income, e
 - Logo **Tandem** → Home Overview (`/`) only (not in tab bar). Track at `/track`
 - Track (`/track`) = hub + inline month editor (`MonthEditor`); month list = one row (In/Out + pencil + delete). Editor sticky footer = three equal metric parts (Household · partner A · partner B); split toggle on the Cancel/Save row; avoid “Pocket” on this strip. Keep editor bottom padding ≥ footer height so Expenses **Add to month** is not covered; Save flushes pending card-sheet amounts.
 - Home Overview = horizontal snap scroller (all tracked months + next estimate); no Track/History/Outlook CTAs on Home (empty vault still offers track / samples)
-- Settings uses sticky sub-tabs: Household / Categories / Banks / Vault / Security / Data
+- Settings uses sticky sub-tabs: Household / Categories / Banks / Vault / Security (auto-lock + password) / Data; keep short plain-English helper notes on confusing controls
 - Track editor sections: **Incomes**, **Expenses** (card chips + shared bank labels + month totals), optional **Notes**
 - History = charts over tracked months (varied series hues, not all teal); Outlook = planning (averages/projections)
+- Chart legends: click toggles series visibility (`useLegendFilter`); dim/strike hidden labels; reset when range changes
+- Pie charts: `PieBreakdown` (donut left, €/% rows right); same card layout on History + Expenses mix; do not rely on Recharts Legend for pie filter (shared `dataKey: "value"`)
+- Expenses table: category rows × month columns (not the reverse)
 - History/Outlook range toggle sticks under the app header while scrolling
 - Prefer existing Button/Card/Input/Select patterns and stone/teal Tailwind usage
 - Dropdowns: always `Select` from `src/components/ui/select.tsx` (appearance-none + inset ChevronDown) — no raw browser `<select>`

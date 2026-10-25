@@ -26,6 +26,7 @@ describe('migrateState', () => {
     })
     expect(migrated.settings.currencySymbol).toBe('€')
     expect(migrated.settings.currencyLocale).toBe('sk-SK')
+    expect(migrated.settings).not.toHaveProperty('emergencyTargetMonths')
     expect(migrated.settings.autoLockMinutes).toBe(30)
     expect(migrated.settings.partnerAName).toBe('Barney')
     expect(migrated.settings.partnerBName).toBe('Lucka')
@@ -80,6 +81,7 @@ describe('migrateState', () => {
     expect(jan.computed.totalInflow).toBe(1750)
     expect(jan.computed.leftoverAfterExpenses).toBe(1750)
     expect(jan.computed.expenseSharePartnerA).toBe(0)
+    expect(jan.computed).not.toHaveProperty('personalAllowancePerPartner')
     expect(jan).not.toHaveProperty('allocations')
     expect(jan).not.toHaveProperty('portfolioSnapshot')
     expect(

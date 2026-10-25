@@ -28,8 +28,6 @@ export interface MonthlyRecord {
     discretionarySurplus: number
     expenseSharePartnerA: number
     expenseSharePartnerB: number
-    /** Equal half of Z (reference). */
-    personalAllowancePerPartner: number
     /** Each partner’s share of Z after expense split. */
     personalAllowancePartnerA: number
     personalAllowancePartnerB: number
@@ -89,7 +87,6 @@ export interface TandemSettings {
   /** Always `sk-SK` number style — not user-editable. */
   currencyLocale: string
   dateFormat: 'DD/MM/YYYY'
-  emergencyTargetMonths: number
   partnerAName: string
   partnerBName: string
   /** Splits expenses + pocket: `equal` 50/50, or `income` Barney/Lucka ratio (Other excluded). */

@@ -80,10 +80,10 @@ export function InviteQr({ config }: { config: GitHubConfig }) {
         Add a device
       </CardTitle>
       <p className="text-sm text-stone-700 dark:text-stone-400">
-        QR opens Tandem in the phone browser. Sync credentials are encrypted in
-        the link — treat the link as sensitive even without the code. Your
-        partner also needs the pairing code on this screen (say it aloud or send
-        separately). Don’t screenshot the code with the QR. Hide when done.
+        Partner scans the QR (opens Tandem on their phone), types the pairing
+        code from this screen, then the same master password. Treat the link as
+        sensitive even without the code — don’t screenshot code + QR together.
+        Hide when done.
       </p>
 
       {!open ? (

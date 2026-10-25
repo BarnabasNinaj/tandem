@@ -275,7 +275,8 @@ export const CardExpenses = forwardRef<
         </div>
 
         <p className="text-xs text-stone-600 dark:text-stone-400">
-          {bank.name} labels (shared by all its cards) → household categories
+          {bank.name} labels (same on every {bank.name} card) → household
+          categories. Example: “Restaurants” → Food.
         </p>
 
         {bankMaps.length === 0 ? (

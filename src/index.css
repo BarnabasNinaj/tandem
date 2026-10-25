@@ -96,6 +96,26 @@ body {
   outline: none !important;
 }
 
+/* Default tooltip assumes light canvas (#fff / #000) — force theme tokens. */
+.recharts-default-tooltip {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+  color: var(--text) !important;
+  box-shadow: 0 10px 28px rgb(0 0 0 / 0.22);
+}
+
+.recharts-tooltip-label {
+  color: var(--text-muted) !important;
+}
+
+.recharts-tooltip-item,
+.recharts-tooltip-item-name,
+.recharts-tooltip-item-value,
+.recharts-tooltip-item-separator {
+  color: var(--text) !important;
+}
+
 .recharts-sector {
   stroke: none;
 }

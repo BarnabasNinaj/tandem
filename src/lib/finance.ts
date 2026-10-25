@@ -79,7 +79,6 @@ export function computeMonthly(
     inflows,
     allowanceSplit,
   )
-  const personalAllowancePerPartner = round2(discretionarySurplus / 2)
 
   return {
     totalInflow,
@@ -88,7 +87,6 @@ export function computeMonthly(
     discretionarySurplus,
     expenseSharePartnerA: expenseShares.partnerA,
     expenseSharePartnerB: expenseShares.partnerB,
-    personalAllowancePerPartner,
     personalAllowancePartnerA: pocketShares.partnerA,
     personalAllowancePartnerB: pocketShares.partnerB,
     allowanceSplit,

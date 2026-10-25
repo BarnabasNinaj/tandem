@@ -134,9 +134,15 @@ export function MonthEditor() {
       </header>
 
       <section className="space-y-4 border-t border-stone-300 pt-6 dark:border-stone-700">
-        <h2 className="text-xs font-medium tracking-[0.18em] text-stone-700 uppercase dark:text-stone-400">
-          Incomes
-        </h2>
+        <div>
+          <h2 className="text-xs font-medium tracking-[0.18em] text-stone-700 uppercase dark:text-stone-400">
+            Incomes
+          </h2>
+          <p className="mt-1 text-xs text-stone-600 dark:text-stone-400">
+            Partner salaries plus anything else that landed this month — gifts,
+            refunds, side work.
+          </p>
+        </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <Field label={`${settings.partnerAName} Income`} name="pa-income">
             <MoneyInput
@@ -176,9 +182,15 @@ export function MonthEditor() {
       </section>
 
       <section className="space-y-4 border-t border-stone-300 pt-6 dark:border-stone-700">
-        <h2 className="text-xs font-medium tracking-[0.18em] text-stone-700 uppercase dark:text-stone-400">
-          Expenses
-        </h2>
+        <div>
+          <h2 className="text-xs font-medium tracking-[0.18em] text-stone-700 uppercase dark:text-stone-400">
+            Expenses
+          </h2>
+          <p className="mt-1 text-xs text-stone-600 dark:text-stone-400">
+            Pick a card, type that bank’s labels, then Add to month. Totals below
+            roll into household categories.
+          </p>
+        </div>
         <CardExpenses
           key={draft.monthKey}
           ref={cardExpensesRef}
@@ -276,7 +288,10 @@ export function MonthEditor() {
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-stone-200 pt-1.5 sm:pt-3 dark:border-stone-700">
-            <div className="flex items-center gap-1.5">
+            <div
+              className="flex items-center gap-1.5"
+              title="How Pays and Keeps are shared — change the household default in Settings"
+            >
               <span className="text-[11px] text-stone-600 dark:text-stone-400">
                 Split
               </span>

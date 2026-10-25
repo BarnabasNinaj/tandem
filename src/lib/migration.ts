@@ -236,7 +236,6 @@ function normalizeV1(state: TandemState): TandemState {
       currencySymbol: CURRENCY_SYMBOL,
       currencyLocale: CURRENCY_LOCALE,
       dateFormat: 'DD/MM/YYYY',
-      emergencyTargetMonths: state.settings?.emergencyTargetMonths ?? 6,
       partnerAName: partnerName(
         state.settings?.partnerAName,
         'Partner A',
@@ -277,7 +276,6 @@ export function createInitialState(partial?: {
       currencySymbol: CURRENCY_SYMBOL,
       currencyLocale: CURRENCY_LOCALE,
       dateFormat: 'DD/MM/YYYY',
-      emergencyTargetMonths: 6,
       partnerAName: partial?.partnerAName || 'Barney',
       partnerBName: partial?.partnerBName || 'Lucka',
       allowanceSplit: 'equal',

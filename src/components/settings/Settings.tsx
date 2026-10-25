@@ -419,9 +419,15 @@ export function Settings() {
       <div className="space-y-6">
       {tab === 'household' && (
       <Card className="space-y-4">
-        <CardTitle>Household</CardTitle>
+        <div>
+          <CardTitle>Household</CardTitle>
+          <p className="mt-0.5 text-xs text-stone-700 dark:text-stone-400">
+            Names show in Track and charts. Money is always euro (€); dates use
+            DD/MM/YYYY.
+          </p>
+        </div>
         <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Barney (partner A)">
+          <Field label="Partner A">
             <Input
               value={state.settings.partnerAName}
               onChange={(e) =>
@@ -432,7 +438,7 @@ export function Settings() {
               }
             />
           </Field>
-          <Field label="Lucka (partner B)">
+          <Field label="Partner B">
             <Input
               value={state.settings.partnerBName}
               onChange={(e) =>
@@ -472,53 +478,26 @@ export function Settings() {
               ))}
             </div>
             <p className="text-xs text-stone-700 dark:text-stone-400">
-              Splits monthly expenses and leftover pocket money. By income uses
-              Barney/Lucka only (Other adds to the leftover, not the ratio).
+              How you share bills and leftover pocket money each month. Example:
+              €3,000 left with 50/50 → each keeps €1,500. “By income” uses
+              Barney/Lucka salaries only — Other income still adds to the
+              leftover, but not the split ratio.
             </p>
           </div>
-          <Field label="Emergency target (months)">
-            <Input
-              type="number"
-              min={1}
-              value={state.settings.emergencyTargetMonths}
-              onChange={(e) =>
-                updateState((s) => ({
-                  ...s,
-                  settings: {
-                    ...s.settings,
-                    emergencyTargetMonths: Number(e.target.value) || 6,
-                  },
-                }))
-              }
-            />
-          </Field>
-          <Field label="Auto-lock (minutes)">
-            <Input
-              type="number"
-              min={1}
-              value={state.settings.autoLockMinutes}
-              onChange={(e) =>
-                updateState((s) => ({
-                  ...s,
-                  settings: {
-                    ...s.settings,
-                    autoLockMinutes: Number(e.target.value) || 30,
-                  },
-                }))
-              }
-            />
-          </Field>
         </div>
-        <p className="text-xs text-stone-700 dark:text-stone-400">
-          Money is always euro (€). Dates: DD/MM/YYYY.
-        </p>
         <Button onClick={() => void saveSettings()}>Save & sync</Button>
       </Card>
       )}
 
       {tab === 'categories' && (
       <Card className="space-y-3">
-        <CardTitle>Expense categories</CardTitle>
+        <div>
+          <CardTitle>Expense categories</CardTitle>
+          <p className="mt-0.5 text-xs text-stone-700 dark:text-stone-400">
+            Household buckets for spend — groceries, rent, travel, and so on.
+            Bank labels map onto these under Banks.
+          </p>
+        </div>
         <ul className="space-y-2">
           {categories.map((c, i) => (
             <li key={c.id} className="flex items-center gap-2">
@@ -576,8 +555,10 @@ export function Settings() {
         <div>
           <CardTitle>Banks</CardTitle>
           <p className="mt-0.5 text-xs text-stone-700 dark:text-stone-400">
-            Focus: map each bank’s labels onto household categories. Cards are
-            just who pays.
+            Add a bank (e.g. Revolut), then its cards (whose card it is). Map
+            each bank’s statement labels — “Restaurants” → Food — so Track can
+            roll spend into household categories. Labels are shared by every
+            card of that bank.
           </p>
         </div>
 
@@ -962,7 +943,14 @@ export function Settings() {
       {tab === 'vault' && (
       <>
       <Card className="space-y-4">
-        <CardTitle>Private vault</CardTitle>
+        <div>
+          <CardTitle>Private vault</CardTitle>
+          <p className="mt-0.5 text-xs text-stone-700 dark:text-stone-400">
+            Your encrypted household file lives in a private GitHub repo — not
+            on any Tandem server. Keep that repo private; the PAT only needs
+            Contents read/write on it.
+          </p>
+        </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Username">
             <Input
@@ -995,8 +983,44 @@ export function Settings() {
       )}
 
       {tab === 'security' && (
+      <>
       <Card className="space-y-4">
-        <CardTitle>Change master password</CardTitle>
+        <div>
+          <CardTitle>Auto-lock</CardTitle>
+          <p className="mt-0.5 text-xs text-stone-700 dark:text-stone-400">
+            After this many quiet minutes, Tandem locks and clears the password
+            from this browser tab. Example: 30 → walk away for half an hour and
+            you’ll unlock again to open the vault.
+          </p>
+        </div>
+        <Field label="Minutes">
+          <Input
+            type="number"
+            min={1}
+            value={state.settings.autoLockMinutes}
+            onChange={(e) =>
+              updateState((s) => ({
+                ...s,
+                settings: {
+                  ...s.settings,
+                  autoLockMinutes: Number(e.target.value) || 30,
+                },
+              }))
+            }
+          />
+        </Field>
+        <Button onClick={() => void saveSettings()}>Save & sync</Button>
+      </Card>
+
+      <Card className="space-y-4">
+        <div>
+          <CardTitle>Change master password</CardTitle>
+          <p className="mt-0.5 text-xs text-stone-700 dark:text-stone-400">
+            Re-encrypts the vault with a new password. Both partners must use
+            the new one after this — share it out of band (not in the invite
+            QR).
+          </p>
+        </div>
         <Field label="Current password">
           <Input
             type="password"
@@ -1019,6 +1043,7 @@ export function Settings() {
           Re-encrypt vault
         </Button>
       </Card>
+      </>
       )}
 
       {tab === 'data' && (
@@ -1026,10 +1051,9 @@ export function Settings() {
       <Card className="space-y-4">
         <CardTitle>Sample data</CardTitle>
         <p className="text-sm text-stone-700 dark:text-stone-400">
-          Load or remove a synthetic H1 2026 pack (01/2026–06/2026) so Track,
-          History, Incomes, Expenses, and Outlook have something to show. Load overwrites those month keys;
-          delete removes only sample keys (including any leftover 09–10/2026
-          demos). Real months outside that set are left alone.
+          Fake Jan–Jun 2026 months so charts aren’t empty while you try the
+          app. Load overwrites those months only; delete removes the samples
+          (and any leftover Sep/Oct demos). Your other months stay.
         </p>
         <div className="flex flex-wrap gap-2">
           <Button
@@ -1086,8 +1110,8 @@ export function Settings() {
       <Card className="space-y-4">
         <CardTitle>Backup (unencrypted JSON)</CardTitle>
         <p className="text-sm text-stone-700 dark:text-stone-400">
-          Emergency fallback only. Store exports offline and delete after
-          restore.
+          Escape hatch if GitHub sync fails — the file is readable plaintext.
+          Keep it offline, restore if needed, then delete the file.
         </p>
         <div className="flex flex-wrap gap-2">
           <Button type="button" variant="secondary" onClick={downloadBackup}>

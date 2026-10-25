@@ -58,7 +58,7 @@ export function OutlookPage() {
     <div className="animate-[fadeUp_0.4s_ease-out]">
       <AnalyticsPageHeader
         title="Outlook"
-        subtitle="Plan the month from your trailing averages"
+        subtitle="Averages from recent months → a simple plan for the next few"
         range={range}
         onRangeChange={setRange}
       />
@@ -155,8 +155,8 @@ export function OutlookPage() {
               Category baselines
             </p>
             <p className="mt-1 text-sm text-stone-600 dark:text-stone-400">
-              Monthly mean in this range · slope is €/month from a simple trend
-              fit
+              Average spend per month in this range. Trend is a rough €/month
+              slope — e.g. rising about €20/mo means groceries creep up.
             </p>
             <div className="mt-4 overflow-x-auto border-t border-stone-300 pt-2 dark:border-stone-700">
               <table className="w-full min-w-[32rem] text-left text-sm">
