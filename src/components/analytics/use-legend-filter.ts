@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { LegendPayload, LegendProps } from 'recharts'
 import { legendLabel } from '@/components/analytics/chart-theme'
 
 /**
@@ -7,15 +8,18 @@ import { legendLabel } from '@/components/analytics/chart-theme'
  * use the slice label (`value`) instead or every click toggles the wrong key.
  */
 export function legendSeriesKey(payload: {
-  dataKey?: string | number
-  value?: string
+  dataKey?: string | number | ((obj: unknown) => unknown)
+  value?: unknown
 }): string {
+  const rawKey = payload.dataKey
   const dataKey =
-    payload.dataKey != null && payload.dataKey !== ''
-      ? String(payload.dataKey)
+    rawKey != null && typeof rawKey !== 'function' && String(rawKey) !== ''
+      ? String(rawKey)
       : ''
   const label =
-    payload.value != null && payload.value !== '' ? String(payload.value) : ''
+    payload.value != null && String(payload.value) !== ''
+      ? String(payload.value)
+      : ''
   if (dataKey && dataKey !== 'value') return dataKey
   return label || dataKey
 }
@@ -41,13 +45,19 @@ export function useLegendFilter(resetKey?: string) {
 
   const isHidden = (key: string) => hidden.has(key)
 
-  const legendProps = {
-    formatter: (value: string, entry: { dataKey?: string | number }) =>
-      legendLabel(String(value), hidden.has(legendSeriesKey({ ...entry, value }))),
-    onClick: (payload: { dataKey?: string | number; value?: string }) => {
-      toggle(legendSeriesKey(payload))
+  const legendProps: Pick<
+    LegendProps,
+    'formatter' | 'onClick' | 'wrapperStyle'
+  > = {
+    formatter: (value, entry) =>
+      legendLabel(
+        String(value),
+        hidden.has(legendSeriesKey({ dataKey: entry.dataKey, value })),
+      ),
+    onClick: (payload: LegendPayload) => {
+      toggle(legendSeriesKey({ dataKey: payload.dataKey, value: payload.value }))
     },
-    wrapperStyle: { cursor: 'pointer' as const },
+    wrapperStyle: { cursor: 'pointer' },
   }
 
   return { toggle, isHidden, legendProps }

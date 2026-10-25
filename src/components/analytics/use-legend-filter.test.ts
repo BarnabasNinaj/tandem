@@ -14,4 +14,11 @@ describe('legendSeriesKey', () => {
   it('uses slice label when pie dataKey is value', () => {
     expect(legendSeriesKey({ dataKey: 'value', value: 'Food' })).toBe('Food')
   })
+
+  it('falls back to label when dataKey is a function', () => {
+    expect(
+      legendSeriesKey({ dataKey: () => 'x', value: 'Food' }),
+    ).toBe('Food')
+  })
 })
+
