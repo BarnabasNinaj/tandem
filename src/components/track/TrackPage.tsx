@@ -154,7 +154,7 @@ function TrackHub() {
         <SectionHeading title="Tracked months" />
         {months.length === 0 ? (
           <p className="mt-4 border-t border-stone-300 pt-6 text-sm text-stone-600 dark:border-stone-700 dark:text-stone-400">
-            No months yet. Track {formatMonthKey(currentKey)}, or load H1 samples
+            No months yet. Track {formatMonthKey(currentKey)}, or load 2026 samples
             to explore the rest of the app.
           </p>
         ) : (

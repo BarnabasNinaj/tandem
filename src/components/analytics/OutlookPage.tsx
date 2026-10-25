@@ -163,7 +163,7 @@ export function OutlookPage() {
 
       <div className="space-y-8">
         {records.length === 0 ? (
-          <AnalyticsEmpty blurb="No months yet. Track a month (or load H1 samples) to build averages and forward projections." />
+          <AnalyticsEmpty blurb="No months yet. Track a month (or load 2026 samples) to build averages and forward projections." />
         ) : (
           <>
             {outlook && (

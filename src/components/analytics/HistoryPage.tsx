@@ -82,7 +82,7 @@ export function HistoryPage() {
 
       <div className="space-y-6">
       {records.length === 0 ? (
-        <AnalyticsEmpty blurb="No months yet. Track a month (or load H1 samples) to see category lines, flow, and expense mix." />
+        <AnalyticsEmpty blurb="No months yet. Track a month (or load 2026 samples) to see category lines, flow, and expense mix." />
       ) : (
         <>
           <Card>

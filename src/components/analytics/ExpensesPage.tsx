@@ -85,7 +85,7 @@ export function ExpensesPage() {
 
       <div className="space-y-6">
         {grid.rows.length === 0 ? (
-          <AnalyticsEmpty blurb="No months yet. Track expenses (or load H1 samples) to see the breakdown." />
+          <AnalyticsEmpty blurb="No months yet. Track expenses (or load 2026 samples) to see the breakdown." />
         ) : (
           <>
             <MetricStrip

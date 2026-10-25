@@ -82,7 +82,7 @@ export function IncomesPage() {
 
       <div className="space-y-6">
         {rows.length === 0 || !summary ? (
-          <AnalyticsEmpty blurb="No months yet. Track incomes (or load H1 samples) to see the breakdown." />
+          <AnalyticsEmpty blurb="No months yet. Track incomes (or load 2026 samples) to see the breakdown." />
         ) : (
           <>
             <MetricStrip

@@ -309,7 +309,7 @@ export function createInitialState(partial?: {
       categoryMappings: [],
       autoLockMinutes: 30,
     },
-    // Production vaults start empty; H1 samples via Settings loadDemoData / clearDemoData
+    // Production vaults start empty; FY 2026 samples via Settings loadDemoData / clearDemoData
     // or explicit withDemoData: true (tests / intentional seed).
     history: partial?.withDemoData === true ? buildDemoHistory() : {},
   }

@@ -38,7 +38,7 @@ There is **no automatic merge** of `history` months. Last writer wins on overwri
 | `saveMonth` | Write history key → push with `feat: track data …` |
 | `changePassword` | Re-encrypt → push |
 | `importJson` | Replace state → push |
-| `loadDemoData` | Strip old samples, merge H1 2026 → push |
+| `loadDemoData` | Strip old samples, merge FY 2026 → push |
 | `clearDemoData` | Remove sample month keys → push |
 
 Quiet unlock (`boot` with session password): prefer `sessionStorage` vault cache, then refresh GitHub in background (network errors ignored). Background refresh **skips** if `localDirty` so unsynced settings are not wiped.
@@ -52,7 +52,7 @@ Used as GitHub commit messages on the **data** repo, not this app repo:
 - `feat: track data YYYY-MM`
 - `security: rotate master password`
 - `chore: import JSON backup`
-- `chore: load sample months (H1 2026)`
+- `chore: load sample months (2026)`
 - `chore: remove sample months`
 - `chore: update settings`
 - force path appends ` (force overwrite)`

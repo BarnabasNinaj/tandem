@@ -556,10 +556,10 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
     get().updateState((s) => ({
       ...s,
       updatedAt: new Date().toISOString(),
-      // Drop legacy Sep/Oct samples, then merge H1 pack (names from current categories).
+      // Drop prior sample keys, then merge FY 2026 pack (names from current categories).
       history: { ...stripDemoMonths(s.history), ...demo },
     }))
-    await get().push('chore: load sample months (H1 2026)')
+    await get().push('chore: load sample months (2026)')
   },
 
   clearDemoData: async () => {

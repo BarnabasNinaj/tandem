@@ -132,6 +132,6 @@ Unsupported `version` → throw (fail closed).
 
 ## Demo history
 
-`buildDemoHistory()` seeds **H1 2026** (`2026-01` … `2026-06`) with synthetic data. Keys: `DEMO_MONTH_KEYS` in `demo-data.ts`. Legacy Sep/Oct (`2026-09`, `2026-10`) are stripped on load/clear via `stripDemoMonths`.
+`buildDemoHistory()` seeds **full-year 2026** (`2026-01` … `2026-12`) with synthetic data — partner A/B salaries, Other, and every expense category vary month to month (mid-year income dip, summer travel spike, Dec holiday peak). Keys: `DEMO_MONTH_KEYS` in `demo-data.ts`. `stripDemoMonths` removes the current pack keys on load/clear.
 
-**C3A (2026-10-23):** `createInitialState()` defaults to **empty** `history`. Demo only when `withDemoData: true` or Settings → Load H1 / Delete sample data (`loadDemoData` / `clearDemoData`, then push). Setup / empty-remote unlock create empty vaults.
+**C3A (2026-10-23):** `createInitialState()` defaults to **empty** `history`. Demo only when `withDemoData: true` or Settings → Load 2026 / Delete sample data (`loadDemoData` / `clearDemoData`, then push). Setup / empty-remote unlock create empty vaults.

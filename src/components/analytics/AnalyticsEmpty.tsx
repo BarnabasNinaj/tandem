@@ -25,7 +25,7 @@ export function AnalyticsEmpty({ blurb }: { blurb: string }) {
         disabled={syncing || loadingDemo}
         onClick={() => void onLoadDemo()}
       >
-        {loadingDemo || syncing ? 'Loading & syncing…' : 'Load H1 sample data'}
+        {loadingDemo || syncing ? 'Loading & syncing…' : 'Load 2026 sample data'}
       </Button>
     </Card>
   )

@@ -191,7 +191,7 @@ export function HomePage() {
         >
           <p className="max-w-md text-sm text-stone-700 dark:text-stone-400">
             No months tracked yet. Start with {formatMonthKey(calendarKey)}, or
-            load H1 samples to fill the overview.
+            load 2026 samples to fill the overview.
           </p>
           <div className="flex flex-wrap gap-2">
             <Button

@@ -84,4 +84,4 @@ Idle timer from `settings.autoLockMinutes` (default 30), edited under **Settings
 
 ## Empty / demo states
 
-New vaults start with empty history. Track hub offers loading samples when empty or **Track month**; Settings can **load** or **delete** synthetic H1 2026 (`2026-01`–`2026-06`). See [DATA-MODEL.md](./DATA-MODEL.md).
+New vaults start with empty history. Track hub offers loading samples when empty or **Track month**; Settings can **load** or **delete** synthetic full-year 2026 (`2026-01`–`2026-12`) with varied incomes and category spend. See [DATA-MODEL.md](./DATA-MODEL.md).

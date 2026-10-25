@@ -1051,9 +1051,9 @@ export function Settings() {
       <Card className="space-y-4">
         <CardTitle>Sample data</CardTitle>
         <p className="text-sm text-stone-700 dark:text-stone-400">
-          Fake Jan–Jun 2026 months so charts aren’t empty while you try the
-          app. Load overwrites those months only; delete removes the samples
-          (and any leftover Sep/Oct demos). Your other months stay.
+          Fake Jan–Dec 2026 months with varied incomes and expenses so charts
+          aren’t empty while you try the app. Load overwrites those twelve
+          months only; delete removes the samples. Your other months stay.
         </p>
         <div className="flex flex-wrap gap-2">
           <Button
@@ -1064,7 +1064,7 @@ export function Settings() {
               void (async () => {
                 try {
                   await loadDemoData()
-                  setMsg('H1 2026 sample months loaded and synced.')
+                  setMsg('2026 sample months loaded and synced.')
                 } catch (e) {
                   setErr(
                     e instanceof Error ? e.message : 'Failed to load demo data',
@@ -1073,7 +1073,7 @@ export function Settings() {
               })()
             }}
           >
-            Load H1 sample data
+            Load 2026 sample data
           </Button>
           <Button
             type="button"
@@ -1082,7 +1082,7 @@ export function Settings() {
             onClick={() => {
               if (
                 !window.confirm(
-                  'Remove all sample months (H1 2026 and any old Sep/Oct demos)? Other months stay.',
+                  'Remove all 2026 sample months? Other months stay.',
                 )
               ) {
                 return

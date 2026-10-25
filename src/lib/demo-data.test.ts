@@ -8,16 +8,46 @@ import {
 import { DEFAULT_CATEGORIES } from '@/types/tandem'
 
 describe('demo-data', () => {
-  it('builds six H1 2026 months', () => {
+  it('builds twelve 2026 months', () => {
     const history = buildDemoHistory()
     expect(Object.keys(history).sort()).toEqual([...DEMO_MONTH_KEYS])
+    expect(DEMO_MONTH_KEYS).toHaveLength(12)
     for (const key of DEMO_MONTH_KEYS) {
-      expect(history[key]?.notes).toMatch(/demo data/)
+      expect(history[key]?.notes).toMatch(/demo 2026/)
       expect(history[key]?.computed.totalInflow).toBeGreaterThan(0)
       expect(
         history[key]?.outflows.some((o) => o.categoryId === 'investments'),
       ).toBe(true)
     }
+  })
+
+  it('varies partner incomes and category spend across the year', () => {
+    const history = buildDemoHistory()
+    const aSalaries = DEMO_MONTH_KEYS.map(
+      (k) => history[k]!.inflows.partnerASalary,
+    )
+    const bIncomes = DEMO_MONTH_KEYS.map(
+      (k) => history[k]!.inflows.partnerBIncome,
+    )
+    const groceries = DEMO_MONTH_KEYS.map(
+      (k) =>
+        history[k]!.outflows.find((o) => o.categoryId === 'groceries')!.amount,
+    )
+    const housing = DEMO_MONTH_KEYS.map(
+      (k) =>
+        history[k]!.outflows.find((o) => o.categoryId === 'housing')!.amount,
+    )
+    expect(new Set(aSalaries).size).toBeGreaterThan(3)
+    expect(new Set(bIncomes).size).toBeGreaterThan(5)
+    expect(new Set(groceries).size).toBeGreaterThan(8)
+    expect(new Set(housing).size).toBeGreaterThan(1)
+    // Mid-year maternity-lean dip vs year-end
+    expect(history['2026-07']!.inflows.partnerBIncome).toBeLessThan(
+      history['2026-01']!.inflows.partnerBIncome,
+    )
+    expect(history['2026-12']!.computed.totalOutflow).toBeGreaterThan(
+      history['2026-02']!.computed.totalOutflow,
+    )
   })
 
   it('uses current category names and ids (not list index)', () => {
@@ -27,17 +57,19 @@ describe('demo-data', () => {
     const jan = buildDemoHistory(cats)['2026-01']!
     const dining = jan.outflows.find((o) => o.categoryId === 'dining')
     expect(dining?.categoryName).toBe('Restaurants')
-    expect(dining?.amount).toBe(90)
+    expect(dining?.amount).toBe(78)
     const kids = jan.outflows.find((o) => o.categoryId === 'kids')
-    expect(kids?.amount).toBe(160)
+    expect(kids?.amount).toBe(155)
   })
 
-  it('stripDemoMonths removes current and legacy sample keys only', () => {
-    const june = buildDemoHistory()['2026-06']!
+  it('stripDemoMonths removes sample keys only', () => {
     const history = {
       ...buildDemoHistory(),
-      '2026-09': { ...june, monthKey: '2026-09', notes: 'legacy demo' },
-      '2025-12': { ...june, monthKey: '2025-12', notes: 'real month' },
+      '2025-12': {
+        ...buildDemoHistory()['2026-06']!,
+        monthKey: '2025-12',
+        notes: 'real month',
+      },
     }
 
     const stripped = stripDemoMonths(history)
