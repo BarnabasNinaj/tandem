@@ -137,22 +137,23 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
   },
 
   completeSetup: async ({ github, password }) => {
-    saveGitHubConfig(github)
-    // Household details (partner names, etc.) live in Settings after setup
+    // Household details (partner names, etc.) live in Settings after setup.
+    // Persist PAT + session secrets only after vault decrypt/create succeeds
+    // so a failed attempt does not leave credentials on disk.
     const initial = createInitialState({ withDemoData: false })
-    setSessionPassword(password)
-    setSessionUnlocked(true)
-
-    // Check if remote vault already exists
-    set({ syncing: true, error: null, github })
+    set({ syncing: true, error: null })
     try {
       const remote = await fetchRemoteVault(github)
       if (remote) {
         const envelope = parseEnvelope(remote.content)
         const decrypted = migrateState(await decryptEnvelope(envelope, password))
+        saveGitHubConfig(github)
+        setSessionPassword(password)
+        setSessionUnlocked(true)
         saveSessionVaultCache(remote.content, remote.sha)
         set({
           state: decrypted,
+          github,
           remoteSha: remote.sha,
           phase: 'ready',
           syncing: false,
@@ -169,9 +170,13 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
         'chore: initialize Tandem vault',
         null,
       )
+      saveGitHubConfig(github)
+      setSessionPassword(password)
+      setSessionUnlocked(true)
       saveSessionVaultCache(content, sha)
       set({
         state: initial,
+        github,
         remoteSha: sha,
         phase: 'ready',
         syncing: false,
@@ -182,6 +187,7 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
       set({
         syncing: false,
         phase: 'setup',
+        github: null,
         error: e instanceof Error ? e.message : 'Setup failed',
       })
       throw e

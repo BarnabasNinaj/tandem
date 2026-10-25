@@ -57,6 +57,22 @@ export interface RemoteVault {
   sha: string
 }
 
+/** Map GitHub HTTP failures to safe UI copy (never dump response bodies — may be noisy). */
+export function githubErrorMessage(status: number, action: 'fetch' | 'push'): string {
+  if (status === 401 || status === 403) {
+    return 'Invalid PAT or insufficient permissions.'
+  }
+  if (status === 404) {
+    return action === 'fetch'
+      ? 'Vault file or repository not found.'
+      : 'Repository not found or not writable.'
+  }
+  if (status === 429) {
+    return 'GitHub rate limit hit. Try again in a minute.'
+  }
+  return `GitHub ${action} failed (${status}).`
+}
+
 export async function fetchRemoteVault(
   config: GitHubConfig,
 ): Promise<RemoteVault | null> {
@@ -66,8 +82,7 @@ export async function fetchRemoteVault(
     })
     if (res.status === 404) return null
     if (!res.ok) {
-      const body = await res.text()
-      throw new Error(`GitHub fetch failed (${res.status}): ${body}`)
+      throw new Error(githubErrorMessage(res.status, 'fetch'))
     }
     const data = (await res.json()) as {
       content: string
@@ -128,8 +143,7 @@ export async function pushRemoteVault(
     }
 
     if (!res.ok) {
-      const text = await res.text()
-      throw new Error(`GitHub push failed (${res.status}): ${text}`)
+      throw new Error(githubErrorMessage(res.status, 'push'))
     }
 
     const data = (await res.json()) as { content: { sha: string } }

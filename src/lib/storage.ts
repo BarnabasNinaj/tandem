@@ -87,4 +87,6 @@ export function clearSessionSecrets(): void {
   sessionStorage.removeItem(PW_KEY)
   sessionStorage.removeItem(SESSION_FLAG)
   sessionStorage.removeItem(VAULT_CACHE_KEY)
+  // Stashed invite ciphertext (pairing not completed)
+  sessionStorage.removeItem('tandem.invite.pending')
 }

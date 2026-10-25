@@ -8,7 +8,7 @@ Private household operating system for a couple — calm, local-first, not a ban
 
 | Surface | Purpose |
 |---------|---------|
-| Setup | Join via invite QR **or** manual GitHub + PAT + password |
+| Setup | Join via invite link/QR + pairing code, or manual GitHub + PAT (token step must pass repo connection before password); password step is **unlock** if vault exists, **create** only if repo has no vault yet |
 | Lock | Unlock with master password (no vault path shown) |
 | Track | Hub: calendar-month CTA + tracked-month list (+ resume unsaved draft). Editor: inline month form (Incomes · **Expenses** card-first · optional **Notes**). Sticky footer: **Household** (expenses · left) · **partner A** · **partner B**; action row = split + **Cancel** / **Save month** (Save also flushes any unapplied card-sheet amounts). Editor bottom padding clears the sticky footer so **Add to month** stays clickable. No modal wizard. |
 | History | Charts over tracked months: category lines, income vs expense (solid actuals · sage/sand dashed projections), expense mix pie. Sticky range: 3M / 6M / 1Y / All. |
@@ -64,9 +64,10 @@ Idle timer from `settings.autoLockMinutes` (default 30). Events: mousemove, keyd
 ## Partner onboarding story
 
 1. Partner A creates private data repo + PAT, completes manual setup, sets password.
-2. Partner A opens Settings → Add a device → Show invite QR.
-3. Partner B scans on setup, enters **same** master password, unlocks existing vault.
-4. Both edit months; pull when needed; resolve conflicts consciously.
+2. Partner A opens Settings → Add a device → Show invite QR (shows QR + pairing code; treat the link as sensitive).
+3. Partner B scans with the phone camera (opens Tandem) or uses in-app Scan / paste link → enters the **pairing code** from A’s screen → then the **same** master password.
+4. Manual GitHub + PAT also works: setup detects an existing vault and asks to unlock, not create a new password.
+5. Both edit months; pull when needed; resolve conflicts consciously.
 
 ## Empty / demo states
 

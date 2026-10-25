@@ -34,9 +34,9 @@ One encrypted blob + SHA locking is correct; there is no per-month merge. Overwr
 
 Unlocked session holds password, PAT, and plaintext state. GitHub never sees plaintext, but **same-origin JS does**. Impact: malicious script or supply-chain hit on the deployed app origin exfiltrates everything. **Stance:** accept for local-first Web Crypto; shrink attack surface (no analytics SDKs, prefer self-hosted fonts, optional CSP).
 
-#### S2 — Device invite embeds PAT (High, operational)
+#### S2 — Device invite carries PAT (High, operational) — mitigated S2A/S2B
 
-Invite encodes `{ username, repo, pat }` — intentionally not the master password. Impact: a photo of the QR is data-repo write access. **Stance:** by design for zero-backend pairing; warn in UI; show briefly; rotate PAT after pairing; never paste invites into Slack/email/docs. Redesigning to short-lived setup codes is a larger product change.
+Invite still conveys `{ username, repo, pat }` after unlock (needed for zero-backend sync). **S2A:** HTTPS `#i=` AES-GCM blob + on-screen pairing code. **S2B:** 10-char code / 300k PBKDF2 (iteration field whitelisted — no attacker downgrade); hash consume at app bootstrap; reject `?i=`; `no-referrer`; `completeSetup` persists PAT only after success; start-over clears in-memory GitHub fields; legacy cleartext needs double-confirm; pairing failures use online backoff. Residual: offline brute-force of captured ciphertext (~50-bit code at 300k). Impact of link+code (or screenshot of both): data-repo write access. **Stance:** warn; hide when done; rotate PAT after pairing.
 
 #### T1 — No automated tests (Tooling gap)
 
@@ -113,7 +113,7 @@ Goal: catch vault/math regressions without a heavyweight QA program.
 | ID | Severity | Finding | Notes |
 |----|----------|---------|--------|
 | S1 | High (inherent) | XSS on app origin ⇒ password + PAT + vault | Accept for browser crypto apps; avoid third-party scripts; keep CSP in mind if ever added |
-| S2 | High (ops) | Device invite embeds PAT | By design; UI warns; agents must not soften this |
+| S2 | High (ops) | Device invite carries PAT | **S2A/S2B:** encrypted hash invite + 10-char/300k pairing; bootstrap hash strip; no `?i=`; setup save-after-success; start-over zeros PAT state. Link+code still = write access |
 | S3 | Medium | PAT in `localStorage` | Survives tab close; any XSS / shared browser profile can read it |
 | S4 | Medium | Password in `sessionStorage` | Cleared on lock; still readable to same-origin script while unlocked |
 | S5 | Medium | JSON export is plaintext | Documented as emergency-only; treat as secret file |
@@ -139,7 +139,7 @@ Goal: catch vault/math regressions without a heavyweight QA program.
 | ID | Notes |
 |----|--------|
 | P1 | Strong brand/visual tokens; Track as month entry (overview Home removed — review lives on History / Incomes / Expenses / Outlook) |
-| P2 | Invite path skips password confirm (correct — joining existing vault) |
+| P2 | **P2A–P2C** fixed (join probe, encrypted invite, connection gate). **P2D:** bootstrap hash strip; no query invites; stronger pairing; setup save-after-success; abort clears PAT state; sanitized GitHub errors; legacy double-confirm |
 | P3 | Wizard autosave encrypted — good |
 | P4 | Auto-lock effect depends on whole `state` object — timer resets on any state update (may delay lock while actively editing; usually fine) |
 | P5 | ~~Defaults `sk-SK` / `€` in Settings~~ → **fixed:** money always EUR; locale not user-facing (`CURRENCY_*` in `number.ts`) |

@@ -12,6 +12,10 @@ import { SetupWizard } from '@/components/setup/SetupWizard'
 import { useAutoLock } from '@/hooks/use-auto-lock'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { useTheme } from '@/hooks/use-theme'
+import {
+  clearPendingInviteHash,
+  consumeInviteHashFromLocation,
+} from '@/lib/device-invite'
 import { useTandemStore } from '@/store/tandem-store'
 
 function AuthenticatedApp() {
@@ -41,6 +45,13 @@ export default function App() {
   useTheme()
 
   useEffect(() => {
+    // Always strip invite hash from the address bar (even on lock/ready).
+    // Only setup can apply it; otherwise drop the stash so ciphertext doesn’t linger.
+    const pending = consumeInviteHashFromLocation()
+    if (pending) {
+      const p = useTandemStore.getState().phase
+      if (p !== 'setup' && p !== 'booting') clearPendingInviteHash()
+    }
     void boot()
   }, [boot])
 

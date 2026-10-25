@@ -16,7 +16,7 @@ Do not treat the data repo as “optional secrets.” It **is** the sync store.
 ## Non-negotiables
 
 1. No server, SaaS DB, or third-party auth unless the user explicitly redesigns the product.
-2. Never commit PATs, passwords, invites (`tandem-device:…`), or real vault JSON.
+2. Never commit PATs, passwords, invite links / pairing codes, or real vault JSON.
 3. Never suggest making the **data** repo public.
 4. Crypto/sync/schema changes go through `crypto.ts` / `github.ts` / `migration.ts` / `types/tandem.ts` — preserve envelope `v: 1` and SHA locking.
 5. UI dates: **DD/MM/YYYY**. Month keys: `YYYY-MM`. Money: `round2` / `finance.ts`.

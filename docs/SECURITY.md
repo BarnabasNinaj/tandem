@@ -18,7 +18,7 @@ This is **zero-knowledge relative to GitHub**, not “immune to XSS on the app o
 
 1. **App origin (Vercel / localhost)** — full trust while unlocked. XSS ⇒ PAT + password + vault.
 2. **Data repo** — ciphertext + operational metadata. Must stay **private**.
-3. **Device invite** — encodes PAT. Equivalent to handing someone write access to the vault file. Show briefly; don’t screenshot into chat.
+3. **Device invite** — QR is an HTTPS deep link; PAT/username/repo sit in an AES-GCM blob in the **hash** (never query string), unlocked with a 10-char pairing code (PBKDF2 300k) shown beside the QR. Camera/search of the QR alone must not reveal the PAT; treat the **link alone** as sensitive (offline brute-force residual). Hash stripped at bootstrap; `no-referrer`. Link+code together = repo write access; show briefly; don’t screenshot code with QR.
 4. **JSON export** — **plaintext** emergency backup. Offline only; delete after restore.
 
 ## Crypto parameters (`src/lib/crypto.ts`)

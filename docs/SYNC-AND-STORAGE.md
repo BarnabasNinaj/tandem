@@ -8,9 +8,9 @@ Uses Contents API:
 
 | Function | Behavior |
 |----------|----------|
-| `fetchRemoteVault` | Returns `{ content, sha }` or `null` on 404 |
+| `fetchRemoteVault` | Returns `{ content, sha }` or `null` on 404 (404 is ambiguous: missing file vs missing/forbidden repo) |
 | `pushRemoteVault` | PUT with base64 body; optional `sha` for update |
-| `testGitHubConnection` | GET repo metadata (setup “Test connection”) |
+| `testGitHubConnection` | GET repo metadata — setup **Continue** on the token step must pass this before password; optional “Test connection” uses the same check |
 
 Retries: 3 attempts, exponential backoff from 400ms. **Does not retry** `GitHubConflictError` / `GitHubNotFoundError`.
 
@@ -59,9 +59,11 @@ Used as GitHub commit messages on the **data** repo, not this app repo:
 
 ## Device invite (`device-invite.ts`)
 
-Format: `tandem-device:` + base64url(JSON `{ v:1, u, r, p }`).
+**v2 (current):** QR encodes `https://{app-origin}/#i=TANDEM2.{encrypted}` (**hash only** — query `?i=` rejected). Payload is AES-256-GCM (PBKDF2 300k from a 10-char pairing code shown next to the QR, not in the QR). Phone cameras open the app; credentials are not cleartext. App bootstrap always strips the hash into `sessionStorage` (`tandem.invite.pending`); unused pending is cleared on lock/ready. Document `Referrer-Policy: no-referrer`.
 
-Setup: scan QR or paste → fills GitHub fields → partner enters **shared master password** separately.
+Setup: open invite / scan / paste → pairing code (exponential backoff on failures) → GitHub fields. Token **Continue** requires `testGitHubConnection`. Then `fetchRemoteVault`: existing → unlock; missing → create. `completeSetup` writes PAT/session secrets **only after** success. Abort/start-over zeros username/repo/PAT in memory.
+
+Legacy cleartext `TANDEM1.` / `tandem-device:` need a second paste confirm; new QR codes never emit them.
 
 ## Track draft autosave
 
