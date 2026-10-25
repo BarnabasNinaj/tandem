@@ -5,6 +5,7 @@ import {
   DEMO_MONTH_KEYS,
   stripDemoMonths,
 } from './demo-data'
+import { DEFAULT_CATEGORIES } from '@/types/tandem'
 
 describe('demo-data', () => {
   it('builds six H1 2026 months', () => {
@@ -13,7 +14,22 @@ describe('demo-data', () => {
     for (const key of DEMO_MONTH_KEYS) {
       expect(history[key]?.notes).toMatch(/demo data/)
       expect(history[key]?.computed.totalInflow).toBeGreaterThan(0)
+      expect(
+        history[key]?.outflows.some((o) => o.categoryId === 'investments'),
+      ).toBe(true)
     }
+  })
+
+  it('uses current category names and ids (not list index)', () => {
+    const cats = DEFAULT_CATEGORIES.map((c) =>
+      c.id === 'dining' ? { ...c, name: 'Restaurants' } : c,
+    )
+    const jan = buildDemoHistory(cats)['2026-01']!
+    const dining = jan.outflows.find((o) => o.categoryId === 'dining')
+    expect(dining?.categoryName).toBe('Restaurants')
+    expect(dining?.amount).toBe(90)
+    const kids = jan.outflows.find((o) => o.categoryId === 'kids')
+    expect(kids?.amount).toBe(160)
   })
 
   it('stripDemoMonths removes current and legacy sample keys only', () => {

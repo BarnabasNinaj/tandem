@@ -28,6 +28,7 @@ import {
 } from '@/lib/storage'
 import {
   alignDraftToCategories,
+  alignHistoryToCategories,
   buildMonthlyRecord,
   type WizardDraft,
 } from '@/lib/finance'
@@ -421,7 +422,19 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
   updateState: (updater) => {
     const { state, wizardDraft } = get()
     if (!state) return
-    const next = updater(state)
+    let next = updater(state)
+    const alignedHistory = alignHistoryToCategories(
+      next.history,
+      next.settings.categories,
+      next.settings.allowanceSplit,
+    )
+    if (alignedHistory !== next.history) {
+      next = {
+        ...next,
+        history: alignedHistory,
+        updatedAt: new Date().toISOString(),
+      }
+    }
     const alignedDraft = wizardDraft
       ? alignDraftToCategories(wizardDraft, next.settings.categories)
       : null
@@ -538,11 +551,12 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
   },
 
   loadDemoData: async () => {
-    const demo = buildDemoHistory()
+    const cats = get().state?.settings.categories
+    const demo = buildDemoHistory(cats)
     get().updateState((s) => ({
       ...s,
       updatedAt: new Date().toISOString(),
-      // Drop legacy Sep/Oct samples, then merge H1 pack.
+      // Drop legacy Sep/Oct samples, then merge H1 pack (names from current categories).
       history: { ...stripDemoMonths(s.history), ...demo },
     }))
     await get().push('chore: load sample months (H1 2026)')

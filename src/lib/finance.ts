@@ -226,6 +226,34 @@ export function alignDraftToCategories(
 }
 
 /**
+ * Rewrite every saved month’s outflows to match current categories
+ * (refresh names, drop removed ids, add new at €0) and recompute totals.
+ * Returns the same `history` reference when nothing changed.
+ */
+export function alignHistoryToCategories(
+  history: Record<string, MonthlyRecord>,
+  categories: TandemSettings['categories'],
+  allowanceSplit: AllowanceSplit = 'equal',
+): Record<string, MonthlyRecord> {
+  let changed = false
+  const next: Record<string, MonthlyRecord> = {}
+  for (const [key, record] of Object.entries(history)) {
+    if (outflowsMatchCategories(record.outflows, categories)) {
+      next[key] = record
+      continue
+    }
+    changed = true
+    const outflows = alignOutflowsToCategories(record.outflows, categories)
+    next[key] = {
+      ...record,
+      outflows,
+      computed: computeMonthly(record.inflows, outflows, allowanceSplit),
+    }
+  }
+  return changed ? next : history
+}
+
+/**
  * Draft for a month key: load saved record if present, otherwise empty
  * (seeded from the latest prior month when available).
  */

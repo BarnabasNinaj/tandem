@@ -36,7 +36,7 @@ export function AppShell() {
   const { theme, toggle } = useTheme()
 
   return (
-    <div className="min-h-dvh bg-[var(--bg)] text-stone-900 dark:text-stone-100">
+    <div className="min-h-dvh overflow-x-hidden bg-[var(--bg)] text-stone-900 dark:text-stone-100">
       <div
         className="pointer-events-none fixed inset-0 -z-10 opacity-80"
         style={{
@@ -46,18 +46,18 @@ export function AppShell() {
       />
 
       <header className="sticky top-0 z-40 border-b border-stone-300 bg-[var(--surface)]/85 backdrop-blur-md dark:border-stone-800">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">
-          <div className="flex items-center gap-6">
+        <div className="mx-auto flex h-14 min-w-0 max-w-6xl items-center justify-between gap-2 px-5 sm:gap-4 sm:px-8">
+          <div className="flex min-w-0 items-center gap-3 sm:gap-6">
             <NavLink
               to="/"
               end
-              className="logo-mark cursor-pointer text-xl"
+              className="logo-mark shrink-0 cursor-pointer text-xl"
               title="Home"
               aria-label="Home"
             >
               Tandem
             </NavLink>
-            <nav className="hidden items-center gap-1 sm:flex">
+            <nav className="hidden min-w-0 items-center gap-1 sm:flex">
               {NAV.map(({ to, label, end }) => (
                 <NavLink
                   key={to}
@@ -65,7 +65,7 @@ export function AppShell() {
                   end={end}
                   className={({ isActive }) =>
                     cn(
-                      'inline-flex cursor-pointer items-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors',
+                      'inline-flex shrink-0 cursor-pointer items-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors',
                       isActive
                         ? 'bg-teal-700/10 text-teal-900 dark:bg-teal-400/10 dark:text-teal-200'
                         : 'text-stone-700 hover:bg-stone-200/70 dark:text-stone-400 dark:hover:bg-stone-800',
@@ -77,7 +77,7 @@ export function AppShell() {
               ))}
             </nav>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
             <NavLink
               to="/settings"
               title="Settings"
@@ -150,13 +150,13 @@ export function AppShell() {
           </div>
         </div>
         {error && (
-          <div className="border-t border-red-200 bg-red-50 px-4 py-1.5 text-center text-xs text-red-800 dark:border-red-900 dark:bg-red-950/50 dark:text-red-300">
+          <div className="border-t border-red-200 bg-red-50 px-5 py-1.5 text-center text-xs text-red-800 dark:border-red-900 dark:bg-red-950/50 dark:text-red-300 sm:px-8">
             {error}
           </div>
         )}
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-6 pb-24 sm:pb-6">
+      <main className="mx-auto min-w-0 max-w-6xl px-5 py-6 pb-24 sm:px-8 sm:pb-6">
         <Outlet />
       </main>
 

@@ -146,6 +146,9 @@ Goal: catch vault/math regressions without a heavyweight QA program.
 | P6 | Allocations + portfolio snapshot **removed** from schema (2026-10-25) — migrate strips legacy fields; History net-worth chart removed; invest via expense categories if needed |
 | P7 | ~~Light/dark contrast broken when OS theme ≠ app toggle~~ → **P7A (2026-10-25):** `@custom-variant dark` (class strategy); muted `stone-600`/`stone-400`; chart `axisTick`/`legendLabel`; darker dark-mode primary button; owner badges on `--surface` |
 | P8 | ~~Dead Settings `emergencyTargetMonths` + unused `personalAllowancePerPartner`~~ → **P8A (2026-10-25):** removed from schema/UI/compute; migrate drops them. Kept: `currencySymbol` / `currencyLocale` / `dateFormat` as non-editable schema anchors |
+| P9 | ~~Home-screen PWA icons were solid teal placeholders~~ → **P9A (2026-10-25):** regenerated `pwa-192` / `pwa-512` / `pwa-512-maskable` / `apple-touch-icon` from favicon mark (`npm run icons`) |
+| P10 | ~~Outlook Pocket + Savings duplicated Z~~ → **P10A (2026-10-25):** one Pocket tile (€ + savings %). **P10B:** range “Left over” = Σ pocket from data (not bank balances) |
+| P11 | ~~Settings category rename left stale names on history / demo; Investments missing from defaults; demo mapped by list index~~ → **P11A (2026-10-26):** `alignHistoryToCategories` on update/migrate; `ensureDefaultCategories` adds `investments`; demo keyed by id + current names |
 
 ## Tooling findings
 

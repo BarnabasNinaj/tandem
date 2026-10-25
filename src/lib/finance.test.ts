@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   alignDraftToCategories,
+  alignHistoryToCategories,
   alignOutflowsToCategories,
   buildMonthlyRecord,
   computeMonthly,
@@ -154,6 +155,36 @@ describe('alignOutflowsToCategories / alignDraftToCategories', () => {
       aligned.outflows.find((o) => o.categoryId === draft.outflows[0]!.categoryId)
         ?.amount,
     ).toBe(120)
+  })
+
+  it('alignHistoryToCategories refreshes stored names on rename', () => {
+    const month = buildMonthlyRecord({
+      ...emptyDraft('2026-01', DEFAULT_CATEGORIES),
+      inflows: {
+        partnerASalary: 2000,
+        partnerBIncome: 1000,
+        otherInflows: 0,
+      },
+      outflows: DEFAULT_CATEGORIES.map((c) => ({
+        categoryId: c.id,
+        categoryName: c.name,
+        amount: c.id === 'dining' ? 100 : 0,
+      })),
+    })
+    const renamed = DEFAULT_CATEGORIES.map((c) =>
+      c.id === 'dining' ? { ...c, name: 'Restaurants' } : c,
+    )
+    const history = alignHistoryToCategories(
+      { '2026-01': month },
+      renamed,
+      'equal',
+    )
+    expect(history).not.toBeNull()
+    const dining = history['2026-01']!.outflows.find(
+      (o) => o.categoryId === 'dining',
+    )
+    expect(dining?.categoryName).toBe('Restaurants')
+    expect(dining?.amount).toBe(100)
   })
 })
 

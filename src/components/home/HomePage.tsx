@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/button'
 import {
   buildHomeOverview,
@@ -152,22 +153,13 @@ export function HomePage() {
   const hasHistory = Object.keys(state.history).length > 0
 
   return (
-    <div className="space-y-10 pb-4">
-      <header
-        className={cn(
-          'transition-all duration-700',
-          revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3',
-        )}
-      >
-        <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-stone-900 dark:text-stone-50 sm:text-3xl">
-          Overview
-        </h1>
-        <p className="text-sm text-stone-700 dark:text-stone-400">
-          Drag or swipe month cards. The last card is a rough next-month
-          estimate from your recent averages.
-        </p>
-      </header>
+    <div className="pb-4">
+      <PageHeader
+        title="Overview"
+        subtitle="Drag or swipe month cards. The last card is a rough next-month estimate from your recent averages."
+      />
 
+      <div className="space-y-10">
       {wizardDraft && (
         <section
           className={cn(
@@ -222,7 +214,7 @@ export function HomePage() {
             revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3',
           )}
         >
-          <div className="relative">
+          <div className="relative min-w-0">
             <Button
               type="button"
               variant="secondary"
@@ -255,7 +247,7 @@ export function HomePage() {
             <div
               ref={scrollerRef}
               className={cn(
-                'flex cursor-grab snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain px-1 pb-3 select-none',
+                'flex min-w-0 cursor-grab snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain px-1 pb-3 select-none',
                 '[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
                 'sm:px-12',
               )}
@@ -305,6 +297,7 @@ export function HomePage() {
           </div>
         </section>
       ) : null}
+      </div>
     </div>
   )
 }

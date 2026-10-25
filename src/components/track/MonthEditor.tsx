@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { ArrowLeft, Loader2 } from 'lucide-react'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -88,27 +89,28 @@ export function MonthEditor() {
   const leftoverNegative = computed.leftoverAfterExpenses < 0
 
   return (
-    <div className="space-y-8 pb-[calc(11rem+4.5rem)] animate-[fadeUp_0.35s_ease-out] sm:pb-52">
-      <header className="flex flex-wrap items-center gap-3">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="-ml-2"
-          onClick={cancelTracking}
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Months
-        </Button>
-        <div className="min-w-0 flex-1">
-          <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-stone-900 dark:text-stone-50 sm:text-3xl">
-            {formatMonthKey(draft.monthKey)}
-          </h1>
-          <p className="text-sm text-stone-700 dark:text-stone-400">
+    <div className="pb-[calc(11rem+4.5rem)] animate-[fadeUp_0.35s_ease-out] sm:pb-52">
+      <PageHeader
+        title={formatMonthKey(draft.monthKey)}
+        subtitle={
+          <>
             {editingSaved ? 'Editing saved month' : 'New month'}
             {' · '}
             autosaves while you work
-          </p>
-        </div>
+          </>
+        }
+        leading={
+          <Button
+            variant="ghost"
+            size="sm"
+            className="-ml-2 shrink-0 self-center"
+            onClick={cancelTracking}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Months
+          </Button>
+        }
+      >
         <label className="sr-only" htmlFor="track-month">
           Month
         </label>
@@ -131,9 +133,10 @@ export function MonthEditor() {
             </option>
           ))}
         </Select>
-      </header>
+      </PageHeader>
 
-      <section className="space-y-4 border-t border-stone-300 pt-6 dark:border-stone-700">
+      <div className="space-y-8">
+      <section className="space-y-4">
         <div>
           <h2 className="text-xs font-medium tracking-[0.18em] text-stone-700 uppercase dark:text-stone-400">
             Incomes
@@ -232,10 +235,11 @@ export function MonthEditor() {
           />
         </div>
       </section>
+      </div>
 
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-stone-300 bg-[var(--surface)]/95 backdrop-blur-md dark:border-stone-700">
         {/* Sit above mobile bottom nav */}
-        <div className="mx-auto flex max-w-6xl flex-col gap-1.5 px-4 py-2 pb-[calc(0.5rem+4.5rem)] sm:gap-3 sm:py-3 sm:pb-3">
+        <div className="mx-auto flex max-w-6xl flex-col gap-1.5 px-5 py-2 pb-[calc(0.5rem+4.5rem)] sm:gap-3 sm:px-8 sm:py-3 sm:pb-3">
           <div className="flex flex-col gap-1 sm:grid sm:grid-cols-3 sm:gap-0 sm:divide-x sm:divide-stone-200 dark:sm:divide-stone-700">
             <SummaryPart
               title="Household"

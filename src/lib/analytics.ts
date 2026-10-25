@@ -141,6 +141,8 @@ export interface MonthOutlook {
   avgPocket: number
   avgLeftover: number
   avgSavingsRate: number
+  /** Sum of pocket (Z) over the range — leftover from tracked data, not bank cash. */
+  totalPocket: number
   /** Calendar month being planned (usually "now"). */
   focusMonthKey: string
   focusLabel: string
@@ -183,7 +185,9 @@ export function buildMonthOutlook(
 
   const avgIncome = mean(records.map((r) => r.computed.totalInflow))
   const avgExpense = mean(records.map((r) => r.computed.totalOutflow))
-  const avgPocket = mean(records.map((r) => r.computed.discretionarySurplus))
+  const pockets = records.map((r) => r.computed.discretionarySurplus)
+  const avgPocket = mean(pockets)
+  const totalPocket = round2(pockets.reduce((s, n) => s + n, 0))
   const avgLeftover = mean(records.map((r) => r.computed.leftoverAfterExpenses))
   const rates = records
     .filter((r) => r.computed.totalInflow > 0)
@@ -220,6 +224,7 @@ export function buildMonthOutlook(
     avgPocket,
     avgLeftover,
     avgSavingsRate,
+    totalPocket,
     focusMonthKey,
     focusLabel: formatMonthKey(focusMonthKey),
     focusRecorded: Boolean(focus),

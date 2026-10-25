@@ -27,7 +27,7 @@ No Vercel env vars are required for core function. Secrets are entered at runtim
 - Navigations: Workbox **NetworkFirst** (`tandem-html` cache, 3s timeout) so online loads get the current HTML → current hashed bundles.
 - Stale chunk after deploy: `vite:preloadError` triggers one guarded reload.
 
-Icons under `public/` (`pwa-192.png`, `pwa-512.png`, etc.). Logo/body fonts are self-hosted under `public/fonts/` (preloaded Fugaz One).
+Icons under `public/` (`pwa-192.png`, `pwa-512.png`, `pwa-512-maskable.png`, `apple-touch-icon.png`) — rendered from the favicon mark via `npm run icons` (`scripts/generate-pwa-icons.mjs`). Do not ship solid-color placeholders; Android/iOS home-screen tiles will look like a blank teal square. Logo/body fonts are self-hosted under `public/fonts/` (preloaded Fugaz One).
 
 ### Local
 

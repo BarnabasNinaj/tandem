@@ -5,14 +5,25 @@ import {
   type CardOwner,
   type ExpenseBank,
   type ExpenseCard,
+  type ExpenseCategory,
   type MonthlyRecord,
   type TandemState,
 } from '@/types/tandem'
 import { normalizeBankLabel } from './card-expenses'
 import { generateSalt } from './crypto'
 import { buildDemoHistory } from './demo-data'
-import { computeMonthly } from './finance'
+import { alignHistoryToCategories, computeMonthly } from './finance'
 import { CURRENCY_LOCALE, CURRENCY_SYMBOL, round2 } from './number'
+
+/** Keep household order; append any missing stock defaults (e.g. Investments). */
+export function ensureDefaultCategories(
+  categories: ExpenseCategory[],
+): ExpenseCategory[] {
+  if (!categories.length) return [...DEFAULT_CATEGORIES]
+  const have = new Set(categories.map((c) => c.id))
+  const missing = DEFAULT_CATEGORIES.filter((c) => !have.has(c.id))
+  return missing.length ? [...categories, ...missing] : categories
+}
 
 type AnyState = Record<string, unknown>
 
@@ -227,6 +238,11 @@ function normalizeV1(state: TandemState): TandemState {
   const allowanceSplit = normalizeAllowanceSplit(
     state.settings?.allowanceSplit,
   )
+  const categories = ensureDefaultCategories(
+    state.settings?.categories?.length > 0
+      ? state.settings.categories
+      : [...DEFAULT_CATEGORIES],
+  )
   return {
     version: '1.0',
     updatedAt: state.updatedAt || new Date().toISOString(),
@@ -247,10 +263,7 @@ function normalizeV1(state: TandemState): TandemState {
         'Lucka',
       ),
       allowanceSplit,
-      categories:
-        state.settings?.categories?.length > 0
-          ? state.settings.categories
-          : DEFAULT_CATEGORIES,
+      categories,
       ...normalizeBanksCardsMappings(
         state.settings?.banks,
         state.settings?.cards,
@@ -258,7 +271,11 @@ function normalizeV1(state: TandemState): TandemState {
       ),
       autoLockMinutes: state.settings?.autoLockMinutes ?? 30,
     },
-    history: normalizeHistory(state.history, allowanceSplit),
+    history: alignHistoryToCategories(
+      normalizeHistory(state.history, allowanceSplit),
+      categories,
+      allowanceSplit,
+    ),
   }
 }
 

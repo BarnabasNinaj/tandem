@@ -106,6 +106,9 @@ describe('buildMonthOutlook', () => {
     expect(outlook).not.toBeNull()
     expect(outlook!.sampleSize).toBe(3)
     expect(outlook!.avgExpense).toBe(1200)
+    // 3000 income − 1200 expenses = 1800 pocket × 3 months
+    expect(outlook!.avgPocket).toBe(1800)
+    expect(outlook!.totalPocket).toBe(5400)
     expect(outlook!.focusRecorded).toBe(false)
     expect(outlook!.projected).toHaveLength(2)
     expect(outlook!.projected[0]!.monthKey).toBe('2026-04')

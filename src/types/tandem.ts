@@ -131,6 +131,7 @@ export const DEFAULT_CATEGORIES: ExpenseCategory[] = [
   { id: 'transport', name: 'Transport', isDefault: true },
   { id: 'dining', name: 'Dining/Leisure', isDefault: true },
   { id: 'utilities', name: 'Utilities', isDefault: true },
+  { id: 'investments', name: 'Investments', isDefault: true },
   { id: 'misc', name: 'Misc', isDefault: true },
 ]
 

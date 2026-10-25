@@ -38,6 +38,7 @@ Do not treat the data repo as “optional secrets.” It **is** the sync store.
 | Partner / owner colors | `src/lib/partners.ts`, `OwnerBadge` |
 | Migrations | `src/lib/migration.ts` |
 | Device invite | `src/lib/device-invite.ts` |
+| Page title band | `src/components/layout/PageHeader.tsx` (sticky under app nav; analytics adds range via `AnalyticsPageHeader`) |
 | Auth canvas (boot/setup/lock) | `src/components/lock/AuthShell.tsx` + `public/auth-shell.css` |
 | Self-hosted fonts | `public/fonts/` + `src/lib/fonts.css` |
 | Routes / phases | `src/App.tsx` (`/` Home, `/track`, `/history`, `/incomes`, `/expenses`, `/outlook`, `/settings`) |
@@ -53,6 +54,7 @@ npm run build
 npm run lint     # oxlint
 npm test         # vitest (lib suite — T1A). After edits: run → report → fix → re-run until green
 npm run preview
+npm run icons    # regenerate public/pwa-*.png + apple-touch-icon.png from favicon mark
 ```
 
 ## Docs index

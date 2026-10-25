@@ -1,5 +1,9 @@
 import { buildMonthlyRecord } from './finance'
-import { DEFAULT_CATEGORIES, type MonthlyRecord } from '@/types/tandem'
+import {
+  DEFAULT_CATEGORIES,
+  type ExpenseCategory,
+  type MonthlyRecord,
+} from '@/types/tandem'
 
 /** Current sample pack: full H1 2026 (Jan–Jun). */
 export const DEMO_MONTH_KEYS = [
@@ -24,16 +28,19 @@ type MonthSpec = {
   partnerBIncome: number
   otherInflows: number
   groceries: number
+  kids: number
   dining: number
   transport: number
-  entertainment: number
-  shopping: number
+  utilities: number
+  investments: number
+  misc: number
   label: string
 }
 
 /**
  * Synthetic H1 2026 closes for exploring Track, History, Incomes, Expenses & Outlook.
  * Numbers are fictional — never real household data.
+ * Amounts are keyed by category **id** (not list index) so Settings renames stick.
  */
 const H1_SPECS: MonthSpec[] = [
   {
@@ -41,10 +48,12 @@ const H1_SPECS: MonthSpec[] = [
     partnerBIncome: 2100,
     otherInflows: 0,
     groceries: 380,
-    dining: 160,
+    kids: 160,
+    dining: 90,
     transport: 140,
-    entertainment: 90,
-    shopping: 120,
+    utilities: 120,
+    investments: 400,
+    misc: 55,
     label: 'January',
   },
   {
@@ -52,10 +61,12 @@ const H1_SPECS: MonthSpec[] = [
     partnerBIncome: 2100,
     otherInflows: 80,
     groceries: 360,
-    dining: 145,
+    kids: 145,
+    dining: 70,
     transport: 135,
-    entertainment: 70,
-    shopping: 95,
+    utilities: 95,
+    investments: 400,
+    misc: 40,
     label: 'February',
   },
   {
@@ -63,10 +74,12 @@ const H1_SPECS: MonthSpec[] = [
     partnerBIncome: 2200,
     otherInflows: 0,
     groceries: 400,
-    dining: 180,
+    kids: 180,
+    dining: 110,
     transport: 150,
-    entertainment: 110,
-    shopping: 160,
+    utilities: 160,
+    investments: 450,
+    misc: 60,
     label: 'March',
   },
   {
@@ -74,10 +87,12 @@ const H1_SPECS: MonthSpec[] = [
     partnerBIncome: 2200,
     otherInflows: 40,
     groceries: 390,
-    dining: 170,
+    kids: 170,
+    dining: 85,
     transport: 145,
-    entertainment: 85,
-    shopping: 130,
+    utilities: 130,
+    investments: 450,
+    misc: 50,
     label: 'April',
   },
   {
@@ -85,10 +100,12 @@ const H1_SPECS: MonthSpec[] = [
     partnerBIncome: 2250,
     otherInflows: 0,
     groceries: 410,
-    dining: 195,
+    kids: 195,
+    dining: 100,
     transport: 155,
-    entertainment: 100,
-    shopping: 140,
+    utilities: 140,
+    investments: 500,
+    misc: 55,
     label: 'May',
   },
   {
@@ -96,10 +113,12 @@ const H1_SPECS: MonthSpec[] = [
     partnerBIncome: 2250,
     otherInflows: 100,
     groceries: 420,
-    dining: 210,
+    kids: 210,
+    dining: 130,
     transport: 160,
-    entertainment: 130,
-    shopping: 175,
+    utilities: 175,
+    investments: 500,
+    misc: 70,
     label: 'June',
   },
 ]
@@ -110,11 +129,52 @@ function lastDayIso(monthKey: string): string {
   return last.toISOString()
 }
 
-export function buildDemoHistory(): Record<string, MonthlyRecord> {
-  const cats = DEFAULT_CATEGORIES
+function catName(
+  categories: ExpenseCategory[],
+  id: string,
+): string {
+  return categories.find((c) => c.id === id)?.name ?? id
+}
+
+function outflow(
+  categories: ExpenseCategory[],
+  id: string,
+  amount: number,
+) {
+  return {
+    categoryId: id,
+    categoryName: catName(categories, id),
+    amount,
+  }
+}
+
+/**
+ * Build H1 sample months. Pass current `settings.categories` so renamed
+ * labels (e.g. Dining → Restaurants) appear in History / Expenses.
+ * Unknown default ids are skipped if the household removed that category.
+ */
+export function buildDemoHistory(
+  categories: ExpenseCategory[] = DEFAULT_CATEGORIES,
+): Record<string, MonthlyRecord> {
+  const have = new Set(categories.map((c) => c.id))
   const history: Record<string, MonthlyRecord> = {}
 
   for (const spec of H1_SPECS) {
+    const amounts: Record<string, number> = {
+      housing: 950,
+      groceries: spec.groceries,
+      kids: spec.kids,
+      subscriptions: 65,
+      transport: spec.transport,
+      dining: spec.dining,
+      utilities: spec.utilities,
+      investments: spec.investments,
+      misc: spec.misc,
+    }
+    const outflows = Object.entries(amounts)
+      .filter(([id]) => have.has(id))
+      .map(([id, amount]) => outflow(categories, id, amount))
+
     const record = buildMonthlyRecord({
       monthKey: spec.monthKey,
       inflows: {
@@ -122,36 +182,7 @@ export function buildDemoHistory(): Record<string, MonthlyRecord> {
         partnerBIncome: spec.partnerBIncome,
         otherInflows: spec.otherInflows + 320,
       },
-      outflows: [
-        { categoryId: cats[0]!.id, categoryName: cats[0]!.name, amount: 950 },
-        {
-          categoryId: cats[1]!.id,
-          categoryName: cats[1]!.name,
-          amount: spec.groceries,
-        },
-        {
-          categoryId: cats[2]!.id,
-          categoryName: cats[2]!.name,
-          amount: spec.dining,
-        },
-        { categoryId: cats[3]!.id, categoryName: cats[3]!.name, amount: 65 },
-        {
-          categoryId: cats[4]!.id,
-          categoryName: cats[4]!.name,
-          amount: spec.transport,
-        },
-        {
-          categoryId: cats[5]!.id,
-          categoryName: cats[5]!.name,
-          amount: spec.entertainment,
-        },
-        {
-          categoryId: cats[6]!.id,
-          categoryName: cats[6]!.name,
-          amount: spec.shopping,
-        },
-        { categoryId: cats[7]!.id, categoryName: cats[7]!.name, amount: 55 },
-      ],
+      outflows,
       notes: `Sample ${spec.label} close — demo data (H1 2026)`,
     })
     record.updatedAt = lastDayIso(spec.monthKey)

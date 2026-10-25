@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ArrowRight, Pencil, Trash2 } from 'lucide-react'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { MonthEditor } from '@/components/track/MonthEditor'
 import { Button } from '@/components/ui/button'
 import {
@@ -78,22 +79,13 @@ function TrackHub() {
   }
 
   return (
-    <div className="space-y-10 pb-4">
-      <header
-        className={cn(
-          'transition-all duration-700',
-          revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3',
-        )}
-      >
-        <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-stone-900 dark:text-stone-50 sm:text-3xl">
-          Track
-        </h1>
-        <p className="text-sm text-stone-700 dark:text-stone-400">
-          Log this month’s incomes and card spend. Saved months show up on
-          Overview, History, and Outlook.
-        </p>
-      </header>
+    <div className="pb-4">
+      <PageHeader
+        title="Track"
+        subtitle="Log this month’s incomes and card spend. Saved months show up on Overview, History, and Outlook."
+      />
 
+      <div className="space-y-10">
       {resumeDraft && (
         <section
           className={cn(
@@ -238,6 +230,7 @@ function TrackHub() {
           </ul>
         )}
       </section>
+      </div>
     </div>
   )
 }

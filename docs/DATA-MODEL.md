@@ -85,7 +85,9 @@ All money values rounded with `round2`.
 | Range slice | Last 3 / 6 / 12 months or all |
 | Category average | Mean monthly spend (missing month = €0) |
 | Category trend | OLS slope €/month over the range |
-| Month outlook | Trailing means for income, expenses, leftover/pocket (Z), savings rate → project next 3 calendar months |
+| Month outlook | Trailing means for income, expenses, leftover/pocket (Z); `totalPocket` = sum of Z over the range (UI: “Left over”); Pocket tile shows avg € and `(Z/X)%` → project next 3 calendar months |
+
+**Not in the model:** partner bank balances / cash-on-hand. Months are cashflow (in/out), not a balance sheet. Range “Left over” is Σ(income − expenses) since tracking in that slice — opening cash and untracked movements are invisible. A current as-of snapshot could live in Settings later for runway; it must not be projected onto past month keys.
 
 Focus month defaults to the current calendar month (`toMonthKey()`). If that month is already in `history`, Outlook shows deltas vs the trailing average.
 
@@ -97,7 +99,9 @@ UI slices of the same history (no extra stored fields): `/history` (mixed charts
 
 `draftForMonth(history, monthKey, categories)` loads an existing `MonthlyRecord` for edit, or `emptyDraft` seeded from the prior month. Saving overwrites `history[monthKey]` and clears the encrypted draft.
 
-While a draft is open, `updateState` realigns `wizardDraft.outflows` to current `settings.categories` (`alignDraftToCategories`) so Settings add/remove/rename shows up in Track expenses month totals without restarting the draft.
+`updateState` realigns both the open draft (`alignDraftToCategories`) and **all saved months** (`alignHistoryToCategories`) to current `settings.categories` — renames refresh `categoryName` on history (so History / Expenses / Outlook match Settings); removed ids drop; new ids appear at €0. Unlock/`migrateState` also appends any missing stock defaults (e.g. `investments`) via `ensureDefaultCategories`, then realigns history.
+
+Sample months (`buildDemoHistory(categories)`) key amounts by category **id** and use the household’s current names — reload samples after a rename to refresh demo labels.
 
 ## GitHubConfig (browser only — not in vault)
 

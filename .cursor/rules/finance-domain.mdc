@@ -22,6 +22,8 @@ No allocations or portfolio snapshot on `MonthlyRecord` (dropped; migrate strips
 
 Banks live in `settings.banks`; cards in `settings.cards` (`bankId` required). Card `owner`: `partnerA` | `partnerB` | `common`. Labels → categories are `settings.categoryMappings` scoped by `bankId` (shared across all cards of that bank — e.g. every Revolut card). Track expenses are **card-first** (`CardExpenses`): clickable cards → that bank’s label amounts → merge into `outflows` via `card-expenses.ts`; month category totals are a read-only rollup (no manual category grid). Sheet remounts when the editor `monthKey` changes (clears unapplied amounts); **Save month** / Ctrl+S flush any still-pending sheet via `CardExpensesHandle.flush`.
 
+Category rename/add/remove via Settings: `updateState` runs `alignHistoryToCategories` + `alignDraftToCategories` (names on months follow Settings; analytics reads those names). Stock defaults include `investments`; migrate appends missing defaults. Demo months key by category id and take current names from `buildDemoHistory(categories)`.
+
 - Savings rate = (X − Y) / X
 - Month keys: `YYYY-MM`
 

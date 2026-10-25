@@ -13,7 +13,61 @@ describe('migrateState', () => {
     expect(migrated.settings.partnerAName).toBe('Ada')
     expect(migrated.settings.dateFormat).toBe('DD/MM/YYYY')
     expect(migrated.settings.categories.length).toBeGreaterThan(0)
+    expect(
+      migrated.settings.categories.some((c) => c.id === 'investments'),
+    ).toBe(true)
     expect(migrated.history).toEqual({})
+  })
+
+  it('appends missing default categories and refreshes outflow names', () => {
+    const migrated = migrateState({
+      version: '1.0',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+      salt: 'ab'.repeat(16),
+      settings: {
+        categories: [
+          { id: 'housing', name: 'Housing', isDefault: true },
+          { id: 'dining', name: 'Restaurants', isDefault: true },
+        ],
+      },
+      history: {
+        '2026-01': {
+          monthKey: '2026-01',
+          updatedAt: '2026-01-31T00:00:00.000Z',
+          inflows: {
+            partnerASalary: 2000,
+            partnerBIncome: 1000,
+            otherInflows: 0,
+          },
+          outflows: [
+            {
+              categoryId: 'dining',
+              categoryName: 'Dining/Leisure',
+              amount: 80,
+            },
+          ],
+          computed: {
+            totalInflow: 3000,
+            totalOutflow: 80,
+            leftoverAfterExpenses: 2920,
+            discretionarySurplus: 2920,
+            expenseSharePartnerA: 40,
+            expenseSharePartnerB: 40,
+            personalAllowancePartnerA: 1460,
+            personalAllowancePartnerB: 1460,
+            allowanceSplit: 'equal',
+          },
+        },
+      },
+    })
+    expect(
+      migrated.settings.categories.some((c) => c.id === 'investments'),
+    ).toBe(true)
+    const dining = migrated.history['2026-01']!.outflows.find(
+      (o) => o.categoryId === 'dining',
+    )
+    expect(dining?.categoryName).toBe('Restaurants')
+    expect(dining?.amount).toBe(80)
   })
 
   it('fills missing settings with defaults', () => {
