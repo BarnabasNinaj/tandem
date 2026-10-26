@@ -153,7 +153,7 @@ export function OutlookPage() {
       : 0
 
   return (
-    <div className="animate-[fadeUp_0.4s_ease-out]">
+    <>
       <AnalyticsPageHeader
         title="Outlook"
         subtitle="What the months kept → what the next ones look like"
@@ -161,7 +161,7 @@ export function OutlookPage() {
         onRangeChange={setRange}
       />
 
-      <div className="space-y-8">
+      <div className="space-y-8 animate-[fadeUp_0.4s_ease-out]">
         {records.length === 0 ? (
           <AnalyticsEmpty blurb="No months yet. Track a month (or load 2026 samples) to build averages and forward projections." />
         ) : (
@@ -315,6 +315,6 @@ export function OutlookPage() {
           </>
         )}
       </div>
-    </div>
+    </>
   )
 }

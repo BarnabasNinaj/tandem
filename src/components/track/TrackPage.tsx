@@ -37,14 +37,8 @@ function TrackHub() {
     b.monthKey.localeCompare(a.monthKey),
   )
 
-  const [revealed, setRevealed] = useState(false)
   const [resumeDraft, setResumeDraft] = useState<WizardDraft | null>(null)
   const [deletingKey, setDeletingKey] = useState<string | null>(null)
-
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setRevealed(true))
-    return () => cancelAnimationFrame(id)
-  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -86,14 +80,9 @@ function TrackHub() {
         subtitle="Log this month’s incomes and card spend. Saved months show up on Home, History, and Outlook."
       />
 
-      <div className="space-y-10">
+      <div className="space-y-10 animate-[fadeUp_0.4s_ease-out]">
       {resumeDraft && (
-        <section
-          className={cn(
-            'rounded-xl border border-teal-200 bg-teal-50/80 px-4 py-3 dark:border-teal-900 dark:bg-teal-950/40 transition-all duration-700 delay-75',
-            revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3',
-          )}
-        >
+        <section className="rounded-xl border border-teal-200 bg-teal-50/80 px-4 py-3 dark:border-teal-900 dark:bg-teal-950/40">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-teal-950 dark:text-teal-100">
               Unsaved draft for{' '}
@@ -109,12 +98,7 @@ function TrackHub() {
         </section>
       )}
 
-      <section
-        className={cn(
-          'transition-all duration-700 delay-100',
-          revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3',
-        )}
-      >
+      <section>
         <div className="flex flex-col gap-4 border-t border-stone-300 pt-6 dark:border-stone-700 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <SectionHeading title="This calendar month" />
@@ -145,12 +129,7 @@ function TrackHub() {
         </div>
       </section>
 
-      <section
-        className={cn(
-          'transition-all duration-700 delay-200',
-          revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3',
-        )}
-      >
+      <section>
         <SectionHeading title="Tracked months" />
         {months.length === 0 ? (
           <p className="mt-4 border-t border-stone-300 pt-6 text-sm text-stone-600 dark:border-stone-700 dark:text-stone-400">

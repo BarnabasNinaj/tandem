@@ -55,7 +55,7 @@ export function AppShell() {
   const { theme, toggle } = useTheme()
 
   return (
-    <div className="min-h-dvh overflow-x-hidden bg-[var(--bg)] text-stone-900 dark:text-stone-100">
+    <div className="min-h-dvh overflow-x-clip bg-[var(--bg)] text-stone-900 dark:text-stone-100">
       <div
         className="pointer-events-none fixed inset-0 -z-10 opacity-80"
         style={{

@@ -51,7 +51,7 @@ Muted UI copy uses `text-stone-600 dark:text-stone-400` (not bare `stone-500`/`s
 
 Outlook “In this range” / “Looking ahead” / “Category baselines”, Track hub sections, and MonthEditor Incomes / Expenses / Notes use `SectionHeading`. Income · Expenses · Pocket inside Looking ahead stay `MetaLabel`.
 
-Motion: `fadeUp` on in-app surfaces (Track, analytics); auth gate mounts without entrance animation. Prefer subtle transitions over noisy animations. Layout: no page-level horizontal scroll — avoid negative-margin full-bleed; shell / `html` clip `overflow-x`; Home month scroller uses `min-w-0`. Do not set `scrollbar-gutter: stable` on `html` — it leaves a dead right strip on short pages when the scrollbar is absent.
+Motion: sticky `PageHeader` (and analytics range / Settings tabs) soft-loads with opacity-only `fadeIn` — never wrap sticky chrome in `fadeUp` (transform ancestors break sticky). Page body uses `fadeUp`. Auth gate mounts without entrance animation. Layout: no page-level horizontal scroll — avoid negative-margin full-bleed; shell / `html` use `overflow-x: clip` (not `hidden`, which also breaks sticky); Home month scroller uses `min-w-0`. Do not set `scrollbar-gutter: stable` on `html` — it leaves a dead right strip on short pages when the scrollbar is absent.
 
 UI primitives: `src/components/ui/*` (button, input, select, card, label, money-input, progress). Native `<select>` goes through `Select` (custom inset chevron, not the browser-flush arrow). Clickable controls use `cursor-pointer` (hand) on hover, not the default arrow.
 

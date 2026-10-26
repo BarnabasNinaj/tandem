@@ -72,7 +72,7 @@ export function HistoryPage() {
   )
 
   return (
-    <div className="animate-[fadeUp_0.4s_ease-out]">
+    <>
       <AnalyticsPageHeader
         title="History"
         subtitle="How income and spend moved over time — dashed lines are a simple continuation"
@@ -80,7 +80,7 @@ export function HistoryPage() {
         onRangeChange={setRange}
       />
 
-      <div className="space-y-6">
+      <div className="space-y-6 animate-[fadeUp_0.4s_ease-out]">
       {records.length === 0 ? (
         <AnalyticsEmpty blurb="No months yet. Track a month (or load 2026 samples) to see category lines, flow, and expense mix." />
       ) : (
@@ -200,6 +200,6 @@ export function HistoryPage() {
         </>
       )}
       </div>
-    </div>
+    </>
   )
 }

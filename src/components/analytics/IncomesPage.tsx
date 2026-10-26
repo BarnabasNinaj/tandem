@@ -72,7 +72,7 @@ export function IncomesPage() {
     : []
 
   return (
-    <div className="animate-[fadeUp_0.4s_ease-out]">
+    <>
       <AnalyticsPageHeader
         title="Incomes"
         subtitle="Who brought money in — partner salaries and Other, no expenses"
@@ -80,7 +80,7 @@ export function IncomesPage() {
         onRangeChange={setRange}
       />
 
-      <div className="space-y-6">
+      <div className="space-y-6 animate-[fadeUp_0.4s_ease-out]">
         {rows.length === 0 || !summary ? (
           <AnalyticsEmpty blurb="No months yet. Track incomes (or load 2026 samples) to see the breakdown." />
         ) : (
@@ -255,6 +255,6 @@ export function IncomesPage() {
           </>
         )}
       </div>
-    </div>
+    </>
   )
 }

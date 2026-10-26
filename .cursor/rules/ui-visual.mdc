@@ -28,7 +28,7 @@ Never show formula letters (X / Y / Z) in UI copy — use plain words (income, e
 - Primitives: `src/components/ui/*`
 - Nav: Home, Track, History, Incomes, Expenses, Outlook (text); Settings as header icon with sync/theme/lock
 - Logo **Tandem** → Home (`/`); Home also first nav tab. Track at `/track`
-- Page titles: shared sticky `PageHeader` (`layout/PageHeader.tsx`) under the app nav for Home, Track (hub + editor), History / Incomes / Expenses / Outlook — same band and type; analytics wraps it with the range toggle. Do not use negative horizontal margins for full-bleed bands (causes page-level horizontal scroll); keep shell `overflow-x-hidden` + `min-w-0` on main/scrollers
+- Page titles: shared sticky `PageHeader` (`layout/PageHeader.tsx`) under the app nav for Home, Track (hub + editor), History / Incomes / Expenses / Outlook — same band and type; analytics wraps it with the range toggle. Soft-load header with `fadeIn` (opacity only); put `fadeUp` on body content only so sticky range/header keeps working. Do not use negative horizontal margins for full-bleed bands; keep shell `overflow-x-clip` + `min-w-0` on main/scrollers
 - Type hierarchy: **Page** `PageHeader` → **Section** `SectionHeading` / `CardTitle` (sentence case, display weight) → **Meta** `MetaLabel` / table th / form Label (tiny uppercase only). Never use MetaLabel styling for major section titles (Outlook Looking ahead, Track hub, MonthEditor Incomes/Expenses/Notes, etc.)
 - Track (`/track`) = hub + inline month editor (`MonthEditor`); month list = month · fixed-width left-aligned In/Out/Left (label over amount; negative Left uses Outlook pocket orange) · pencil · delete. Editor sticky footer = three equal metric parts (Household · partner A · partner B); split toggle on the Cancel/Save row; avoid “Pocket” on this strip. Keep editor bottom padding ≥ footer height so Expenses **Add to month** is not covered; Save flushes pending card-sheet amounts.
 - Home = horizontal snap scroller (all tracked months + next estimate); thumb-drag follows the strip then smooth-settles; leftover + partner **Keeps** use Outlook orange when negative; partner **Income** + **Pays** + **Keeps** on cards; settle line when card payment data exists; no Track/History/Outlook CTAs on Home (empty vault still offers track / samples)
@@ -40,11 +40,11 @@ Never show formula letters (X / Y / Z) in UI copy — use plain words (income, e
 - Chart legends: click toggles series visibility (`useLegendFilter`); dim/strike hidden labels; reset when range changes
 - Pie charts: `PieBreakdown` (donut left, €/% rows fill remaining width; two columns when ≥5 slices); same card layout on History + Expenses mix; do not rely on Recharts Legend for pie filter (shared `dataKey: "value"`)
 - Expenses table: category rows × month columns (not the reverse)
-- History/Outlook range toggle sticks under the app header while scrolling
+- History/Incomes/Expenses/Outlook range toggle sticks under the app header while scrolling (`PageHeader` + `overflow-x: clip`)
 - Prefer existing Button/Card/Input/Select patterns and stone/teal Tailwind usage
 - Dropdowns: always `Select` from `src/components/ui/select.tsx` (appearance-none + inset ChevronDown) — no raw browser `<select>`
 - Clickable controls: `cursor-pointer` on hover (Button base + nav / raw `<button>`s)
-- Motion: subtle (`fadeUp`, hero reveal) — not noisy
+- Motion: subtle (`fadeIn` on sticky headers, `fadeUp` on page body) — not noisy
 
 ## Shortcuts (preserve)
 

@@ -374,8 +374,8 @@ export function Settings() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl animate-[fadeUp_0.4s_ease-out]">
-      <div className="sticky top-14 z-30 -mx-4 mb-6 border-b border-stone-300/70 bg-[var(--bg)]/90 px-4 py-3 backdrop-blur-md dark:border-stone-800/70">
+    <div className="mx-auto max-w-2xl">
+      <div className="sticky top-14 z-30 -mx-4 mb-6 border-b border-stone-300/70 bg-[var(--bg)]/90 px-4 py-3 backdrop-blur-md dark:border-stone-800/70 animate-[fadeIn_0.35s_ease-out]">
         <div className="mb-3">
           <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-stone-900 dark:text-stone-50 sm:text-3xl">
             Settings
@@ -407,6 +407,7 @@ export function Settings() {
         </div>
       </div>
 
+      <div className="animate-[fadeUp_0.4s_ease-out]">
       {(msg || err) && (
         <p
           className={`mb-4 text-sm ${err ? 'text-red-700 dark:text-red-400' : 'text-teal-800 dark:text-teal-300'}`}
@@ -1138,6 +1139,7 @@ export function Settings() {
       </Card>
       </>
       )}
+      </div>
       </div>
     </div>
   )

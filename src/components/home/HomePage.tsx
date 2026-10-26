@@ -29,14 +29,8 @@ export function HomePage() {
   )
 
   const scrollerRef = useRef<HTMLDivElement>(null)
-  const [revealed, setRevealed] = useState(false)
   const [canPrev, setCanPrev] = useState(false)
   const [canNext, setCanNext] = useState(false)
-
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setRevealed(true))
-    return () => cancelAnimationFrame(id)
-  }, [])
 
   useEffect(() => {
     const root = scrollerRef.current
@@ -300,14 +294,9 @@ export function HomePage() {
         subtitle="Drag or swipe month cards. The last card is a rough next-month estimate from your recent averages."
       />
 
-      <div className="space-y-10">
+      <div className="space-y-10 animate-[fadeUp_0.4s_ease-out]">
       {wizardDraft && (
-        <section
-          className={cn(
-            'rounded-xl border border-teal-200 bg-teal-50/80 px-4 py-3 dark:border-teal-900 dark:bg-teal-950/40 transition-all duration-700 delay-75',
-            revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3',
-          )}
-        >
+        <section className="rounded-xl border border-teal-200 bg-teal-50/80 px-4 py-3 dark:border-teal-900 dark:bg-teal-950/40">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-teal-950 dark:text-teal-100">
               Editing{' '}
@@ -324,12 +313,7 @@ export function HomePage() {
       )}
 
       {!hasHistory ? (
-        <section
-          className={cn(
-            'space-y-4 border-t border-stone-300 pt-8 dark:border-stone-700 transition-all duration-700 delay-100',
-            revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3',
-          )}
-        >
+        <section className="space-y-4 border-t border-stone-300 pt-8 dark:border-stone-700">
           <p className="max-w-md text-sm text-stone-700 dark:text-stone-400">
             No months tracked yet. Start with {formatMonthKey(calendarKey)}, or
             load 2026 samples to fill the overview.
@@ -349,12 +333,7 @@ export function HomePage() {
           </div>
         </section>
       ) : overview ? (
-        <section
-          className={cn(
-            'border-t border-stone-300 pt-8 dark:border-stone-700 transition-all duration-700 delay-100',
-            revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3',
-          )}
-        >
+        <section className="border-t border-stone-300 pt-8 dark:border-stone-700">
           <div className="relative min-w-0">
             <Button
               type="button"

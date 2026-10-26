@@ -61,7 +61,8 @@ body,
 #root {
   min-height: 100%;
   max-width: 100%;
-  overflow-x: hidden;
+  /* clip (not hidden) — hidden makes sticky PageHeader / range filter fail */
+  overflow-x: clip;
 }
 
 body {
@@ -81,6 +82,16 @@ body {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Opacity-only — safe on sticky PageHeader (transform ancestors kill sticky). */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 

@@ -117,7 +117,7 @@ export function MonthEditor() {
   const leftoverNegative = computed.leftoverAfterExpenses < 0
 
   return (
-    <div className="pb-[calc(11rem+4.5rem)] animate-[fadeUp_0.35s_ease-out] sm:pb-52">
+    <div className="pb-[calc(11rem+4.5rem)] sm:pb-52">
       <PageHeader
         title={formatMonthKey(draft.monthKey)}
         subtitle={
@@ -163,7 +163,7 @@ export function MonthEditor() {
         </Select>
       </PageHeader>
 
-      <div className="space-y-8">
+      <div className="space-y-8 animate-[fadeUp_0.4s_ease-out]">
       <section className="space-y-4">
         <SectionHeading
           title="Incomes"

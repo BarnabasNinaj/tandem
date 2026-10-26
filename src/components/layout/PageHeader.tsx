@@ -22,6 +22,7 @@ export function PageHeader({
     <div
       className={cn(
         'sticky top-14 z-30 mb-6 border-b border-stone-300/70 bg-[var(--bg)]/90 py-3 backdrop-blur-md dark:border-stone-800/70',
+        'animate-[fadeIn_0.35s_ease-out]',
         className,
       )}
     >
