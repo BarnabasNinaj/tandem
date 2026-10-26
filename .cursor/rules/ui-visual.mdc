@@ -20,7 +20,7 @@ Never show formula letters (X / Y / Z) in UI copy — use plain words (income, e
 ## Dates & money
 
 - UI dates: **DD/MM/YYYY** via `src/lib/dates.ts`
-- Month labels: **MM/YYYY**
+- Month labels: **MM/YYYY** compact; Home cards + Track hub list titles **MMMM YYYY** (`formatMonthName`) so they don’t look like money
 - Money: always euro — `formatMoney` / `MoneyInput` / `parseLocaleNumber` (no currency Settings)
 
 ## Structure
@@ -28,11 +28,11 @@ Never show formula letters (X / Y / Z) in UI copy — use plain words (income, e
 - Primitives: `src/components/ui/*`
 - Nav: Home, Track, History, Incomes, Expenses, Outlook (text); Settings as header icon with sync/theme/lock
 - Logo **Tandem** → Home (`/`); Home also first nav tab. Track at `/track`
-- Page titles: shared sticky `PageHeader` (`layout/PageHeader.tsx`) under the app nav for Home, Track (hub + editor), History / Incomes / Expenses / Outlook — same band and type; analytics wraps it with the range toggle. Soft-load header with `fadeIn` (opacity only); put `fadeUp` on body content only so sticky range/header keeps working. Do not use negative horizontal margins for full-bleed bands; keep shell `overflow-x-clip` + `min-w-0` on main/scrollers
+- Page titles: shared sticky `PageHeader`; pages wrap in `PageShell` (body `z-0`, no `isolate`). Sticky title/Settings: no `transform` / fade / box-shadow (GPU layers blur text on mobile scroll); absolute fill seal + app-header strip; subtitle `14px/20px`. `overflow-x: clip` on `html` only. Sticky chrome + mobile nav + Track editor footer stay **opaque**.
 - Type hierarchy: **Page** `PageHeader` → **Section** `SectionHeading` / `CardTitle` (sentence case, display weight) → **Meta** `MetaLabel` / table th / form Label (tiny uppercase only). Never use MetaLabel styling for major section titles (Outlook Looking ahead, Track hub, MonthEditor Incomes/Expenses/Notes, etc.)
-- Track (`/track`) = hub + inline month editor (`MonthEditor`); month list = month · fixed-width left-aligned In/Out/Left (label over amount; negative Left uses Outlook pocket orange) · pencil · delete. Editor sticky footer = three equal metric parts (Household · partner A · partner B); split toggle on the Cancel/Save row; avoid “Pocket” on this strip. Keep editor bottom padding ≥ footer height so Expenses **Add to month** is not covered; Save flushes pending card-sheet amounts.
-- Home = horizontal snap scroller (all tracked months + next estimate); thumb-drag follows the strip then smooth-settles; leftover + partner **Keeps** use Outlook orange when negative; partner **Income** + **Pays** + **Keeps** on cards; settle line when card payment data exists; no Track/History/Outlook CTAs on Home (empty vault still offers track / samples)
-- Track hub list: calendar month in teal (no “current” label)
+- Track (`/track`) = hub + inline month editor (`MonthEditor`); month list = month · left-aligned In/Out/Left (label over amount; negative Left uses Outlook pocket orange) · pencil · delete. Narrow: metrics on a second row under month + actions; `sm+`: one row with fixed-width money columns. Editor sticky footer = three equal metric parts (Household · partner A · partner B); split toggle on the Cancel/Save row; avoid “Pocket” on this strip. Keep editor bottom padding ≥ footer height so Expenses **Add to month** is not covered; Save flushes pending card-sheet amounts.
+- Home = horizontal snap scroller (all tracked months + next estimate); thumb-drag follows the strip then smooth-settles; card top meta always Tracked / Estimate / Not tracked (no “Current” — calendar month is teal); leftover + partner **Keeps** use Outlook orange when negative; partner **Income** + **Pays** + **Keeps** on cards; settle line when card payment data exists; no Track/History/Outlook CTAs on Home (empty vault still offers track / samples)
+- Track hub list: full month name (`October 2026`) in display type; calendar month in teal (no “current” label)
 - Track footer: Pays = fair share of bills (not card charge); settlement line when `paymentByOwner` has data
 - Settings uses sticky sub-tabs: Household / Categories / Banks / Vault / Security (auto-lock + password) / Data; keep short plain-English helper notes on confusing controls
 - Track editor sections: **Incomes**, **Expenses** (card chips + shared bank labels + month totals), optional **Notes**
@@ -44,7 +44,7 @@ Never show formula letters (X / Y / Z) in UI copy — use plain words (income, e
 - Prefer existing Button/Card/Input/Select patterns and stone/teal Tailwind usage
 - Dropdowns: always `Select` from `src/components/ui/select.tsx` (appearance-none + inset ChevronDown) — no raw browser `<select>`
 - Clickable controls: `cursor-pointer` on hover (Button base + nav / raw `<button>`s)
-- Motion: subtle (`fadeIn` on sticky headers, `fadeUp` on page body) — not noisy
+- Motion: subtle on page bodies only — never animate opacity/transform on sticky title bands (mobile blur)
 
 ## Shortcuts (preserve)
 

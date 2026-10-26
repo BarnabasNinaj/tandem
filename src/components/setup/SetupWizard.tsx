@@ -289,11 +289,15 @@ export function SetupWizard() {
       ? 'Join with a partner invite, or set up sync yourself.'
       : mode === 'pair'
         ? 'Enter the pairing code shown next to your partner’s QR.'
-        : joiningExisting
-          ? 'Vault found — enter the shared master password.'
-          : fromInvite
-            ? 'Invite applied — enter the shared master password.'
-            : 'Connect your private vault, then set a master password.'
+        : fromInvite && probing
+          ? 'Invite unlocked — checking the vault…'
+          : fromInvite && step !== 2
+            ? 'Couldn’t reach the vault for this invite.'
+            : joiningExisting
+              ? 'Vault found — enter the shared master password.'
+              : fromInvite
+                ? 'Invite applied — enter the shared master password.'
+                : 'Connect your private vault, then set a master password.'
 
   return (
     <AuthShell tagline={tagline}>
@@ -448,7 +452,38 @@ export function SetupWizard() {
                 </div>
               )}
 
-              {step === 0 && (
+              {/* Invite path: never show GitHub/token fields — probe then password. */}
+              {fromInvite && step !== 2 && (
+                <div className="space-y-4">
+                  {probing ? (
+                    <div className="flex flex-col items-center gap-3 py-6 text-stone-700 dark:text-stone-300">
+                      <Loader2 className="h-6 w-6 animate-spin text-teal-800" />
+                      <p className="text-sm">Checking vault…</p>
+                    </div>
+                  ) : (
+                    <>
+                      <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
+                        Couldn’t connect
+                      </h2>
+                      <p className="text-sm text-stone-700 dark:text-stone-400">
+                        Invite unlocked, but GitHub didn’t accept the vault
+                        connection. Start over or ask your partner for a fresh
+                        invite.
+                      </p>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="w-full"
+                        onClick={resetToChoose}
+                      >
+                        Start over
+                      </Button>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {!fromInvite && step === 0 && (
                 <div className="space-y-4">
                   <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
                     GitHub
@@ -477,7 +512,7 @@ export function SetupWizard() {
                 </div>
               )}
 
-              {step === 1 && (
+              {!fromInvite && step === 1 && (
                 <div className="space-y-4">
                   <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
                     Token
@@ -523,9 +558,9 @@ export function SetupWizard() {
                   </h2>
                   {joiningExisting ? (
                     <p className="text-sm text-stone-700 dark:text-stone-400">
-                      Connected to {username}/{repo}. An encrypted vault is
-                      already there — enter the same password your household
-                      already uses.
+                      {fromInvite
+                        ? 'An encrypted vault is already there — enter the same password your household already uses.'
+                        : `Connected to ${username}/${repo}. An encrypted vault is already there — enter the same password your household already uses.`}
                     </p>
                   ) : (
                     <p className="text-sm text-stone-700 dark:text-stone-400">
@@ -574,7 +609,7 @@ export function SetupWizard() {
                 </form>
               )}
 
-              {step < 2 && (
+              {!fromInvite && step < 2 && (
                 <div className="mt-6 flex justify-between">
                   <Button
                     type="button"

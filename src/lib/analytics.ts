@@ -1,4 +1,4 @@
-import { formatMonthKey, toMonthKey } from './dates'
+import { formatMonthKey, formatMonthName, toMonthKey } from './dates'
 import {
   normalizePaymentByOwner,
   settleExpenseShares,
@@ -266,7 +266,7 @@ function snapFromRecord(
   )
   return {
     monthKey: record.monthKey,
-    label: formatMonthKey(record.monthKey),
+    label: formatMonthName(record.monthKey),
     status: 'recorded',
     isCalendar,
     income: record.computed.totalInflow,
@@ -333,7 +333,7 @@ export function buildHomeOverview(
   if (!byKey.has(calendarMonthKey)) {
     const untracked: HomeMonthSnap = {
       monthKey: calendarMonthKey,
-      label: formatMonthKey(calendarMonthKey),
+      label: formatMonthName(calendarMonthKey),
       status: 'untracked',
       isCalendar: true,
       income: null,
@@ -355,7 +355,7 @@ export function buildHomeOverview(
   if (!months.some((m) => m.monthKey === nextKey)) {
     months.push({
       monthKey: nextKey,
-      label: formatMonthKey(nextKey),
+      label: formatMonthName(nextKey),
       status: 'projected',
       isCalendar: false,
       income: avgIncome,

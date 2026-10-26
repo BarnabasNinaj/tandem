@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { PageShell } from '@/components/layout/PageShell'
 import { SectionHeading } from '@/components/layout/SectionHeading'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -117,53 +118,57 @@ export function MonthEditor() {
   const leftoverNegative = computed.leftoverAfterExpenses < 0
 
   return (
-    <div className="pb-[calc(11rem+4.5rem)] sm:pb-52">
-      <PageHeader
-        title={formatMonthKey(draft.monthKey)}
-        subtitle={
-          <>
-            {editingSaved ? 'Editing saved month' : 'New month'}
-            {' · '}
-            autosaves while you work
-          </>
-        }
-        leading={
-          <Button
-            variant="ghost"
-            size="sm"
-            className="-ml-2 shrink-0 self-center"
-            onClick={cancelTracking}
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Months
-          </Button>
-        }
-      >
-        <label className="sr-only" htmlFor="track-month">
-          Month
-        </label>
-        <Select
-          id="track-month"
-          wrapperClassName="shrink-0 w-auto"
-          title={
-            editingSaved
-              ? 'Editing saved month — save to overwrite'
-              : 'New month — pick a saved one to edit'
+    <>
+    <PageShell
+      className="pb-[calc(11rem+4.5rem)] sm:pb-52"
+      bodyClassName="space-y-8"
+      header={
+        <PageHeader
+          title={formatMonthKey(draft.monthKey)}
+          subtitle={
+            <>
+              {editingSaved ? 'Editing saved month' : 'New month'}
+              {' · '}
+              autosaves while you work
+            </>
           }
-          className="h-9 max-w-[10rem] rounded-md border-stone-300 pr-7 pl-2 text-sm text-stone-800 dark:text-stone-100"
-          value={draft.monthKey}
-          onChange={(e) => loadMonth(e.target.value)}
+          leading={
+            <Button
+              variant="ghost"
+              size="sm"
+              className="-ml-2 shrink-0 self-center"
+              onClick={cancelTracking}
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Months
+            </Button>
+          }
         >
-          {monthOptions.map((k) => (
-            <option key={k} value={k}>
-              {formatMonthKey(k)}
-              {state.history[k] ? ' · saved' : ''}
-            </option>
-          ))}
-        </Select>
-      </PageHeader>
-
-      <div className="space-y-8 animate-[fadeUp_0.4s_ease-out]">
+          <label className="sr-only" htmlFor="track-month">
+            Month
+          </label>
+          <Select
+            id="track-month"
+            wrapperClassName="shrink-0 w-auto"
+            title={
+              editingSaved
+                ? 'Editing saved month — save to overwrite'
+                : 'New month — pick a saved one to edit'
+            }
+            className="h-9 max-w-[10rem] rounded-md border-stone-300 pr-7 pl-2 text-sm text-stone-800 dark:text-stone-100"
+            value={draft.monthKey}
+            onChange={(e) => loadMonth(e.target.value)}
+          >
+            {monthOptions.map((k) => (
+              <option key={k} value={k}>
+                {formatMonthKey(k)}
+                {state.history[k] ? ' · saved' : ''}
+              </option>
+            ))}
+          </Select>
+        </PageHeader>
+      }
+    >
       <section className="space-y-4">
         <SectionHeading
           title="Incomes"
@@ -262,9 +267,9 @@ export function MonthEditor() {
           />
         </div>
       </section>
-      </div>
+    </PageShell>
 
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-stone-300 bg-[var(--surface)]/95 backdrop-blur-md dark:border-stone-700">
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-stone-300 bg-[var(--surface)] dark:border-stone-700">
         {/* Sit above mobile bottom nav */}
         <div className="mx-auto flex max-w-6xl flex-col gap-1.5 px-5 py-2 pb-[calc(0.5rem+4.5rem)] sm:gap-3 sm:px-8 sm:py-3 sm:pb-3">
           <div className="flex flex-col gap-1 sm:grid sm:grid-cols-3 sm:gap-0 sm:divide-x sm:divide-stone-200 dark:sm:divide-stone-700">
@@ -397,7 +402,7 @@ export function MonthEditor() {
           </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }
 

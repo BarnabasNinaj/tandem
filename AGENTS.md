@@ -39,6 +39,7 @@ Do not treat the data repo as “optional secrets.” It **is** the sync store.
 | Migrations | `src/lib/migration.ts` |
 | Device invite | `src/lib/device-invite.ts` |
 | Page title band | `src/components/layout/PageHeader.tsx` (sticky under app nav; analytics adds range via `AnalyticsPageHeader`) |
+| Page frame (sticky above body) | `src/components/layout/PageShell.tsx` — wrap every ready-phase page (`isolate` + body `z-0`) |
 | Section / meta type | `src/components/layout/SectionHeading.tsx` (`SectionHeading` + `MetaLabel`; in-card titles use `CardTitle`) |
 | Auth canvas (boot/setup/lock) | `src/components/lock/AuthShell.tsx` + `public/auth-shell.css` |
 | Self-hosted fonts | `public/fonts/` + `src/lib/fonts.css` |

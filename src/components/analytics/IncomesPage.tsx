@@ -12,6 +12,7 @@ import {
 } from 'recharts'
 import { AnalyticsEmpty } from '@/components/analytics/AnalyticsEmpty'
 import { AnalyticsPageHeader } from '@/components/analytics/AnalyticsPageHeader'
+import { PageShell } from '@/components/layout/PageShell'
 import {
   axisTick,
   tipProps,
@@ -72,15 +73,17 @@ export function IncomesPage() {
     : []
 
   return (
-    <>
-      <AnalyticsPageHeader
-        title="Incomes"
-        subtitle="Who brought money in — partner salaries and Other, no expenses"
-        range={range}
-        onRangeChange={setRange}
-      />
-
-      <div className="space-y-6 animate-[fadeUp_0.4s_ease-out]">
+    <PageShell
+      bodyClassName="space-y-6"
+      header={
+        <AnalyticsPageHeader
+          title="Incomes"
+          subtitle="Who brought money in — partner salaries and Other, no expenses"
+          range={range}
+          onRangeChange={setRange}
+        />
+      }
+    >
         {rows.length === 0 || !summary ? (
           <AnalyticsEmpty blurb="No months yet. Track incomes (or load 2026 samples) to see the breakdown." />
         ) : (
@@ -254,7 +257,6 @@ export function IncomesPage() {
             </div>
           </>
         )}
-      </div>
-    </>
+    </PageShell>
   )
 }

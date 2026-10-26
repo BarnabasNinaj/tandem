@@ -61,7 +61,7 @@ Used as GitHub commit messages on the **data** repo, not this app repo:
 
 **v2 (current):** QR encodes `https://{app-origin}/#i=TANDEM2.{encrypted}` (**hash only** — query `?i=` rejected). Payload is AES-256-GCM (PBKDF2 300k from a 10-char pairing code shown next to the QR, not in the QR). Phone cameras open the app; credentials are not cleartext. App bootstrap always strips the hash into `sessionStorage` (`tandem.invite.pending`); unused pending is cleared on lock/ready. Document `Referrer-Policy: no-referrer`.
 
-Setup: open invite / scan / paste → pairing code (exponential backoff on failures) → GitHub fields. Token **Continue** requires `testGitHubConnection`. Then `fetchRemoteVault`: existing → unlock; missing → create. `completeSetup` writes PAT/session secrets **only after** success. Abort/start-over zeros username/repo/PAT in memory.
+Setup invite path: open invite / scan / paste → pairing code (exponential backoff on failures) → silent `testGitHubConnection` + `fetchRemoteVault` (loading UI only — no username/repo form) → master password. Manual path still shows GitHub + token steps; token **Continue** requires `testGitHubConnection`, then vault probe. Existing vault → unlock; missing → create. `completeSetup` writes PAT/session secrets **only after** success. Abort/start-over zeros username/repo/PAT in memory.
 
 Legacy cleartext `TANDEM1.` / `tandem-device:` need a second paste confirm; new QR codes never emit them.
 

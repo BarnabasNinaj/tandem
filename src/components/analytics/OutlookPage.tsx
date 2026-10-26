@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { AnalyticsEmpty } from '@/components/analytics/AnalyticsEmpty'
 import { AnalyticsPageHeader } from '@/components/analytics/AnalyticsPageHeader'
 import { CAT_COLORS } from '@/components/analytics/chart-theme'
+import { PageShell } from '@/components/layout/PageShell'
 import {
   MetaLabel,
   SectionHeading,
@@ -153,15 +154,17 @@ export function OutlookPage() {
       : 0
 
   return (
-    <>
-      <AnalyticsPageHeader
-        title="Outlook"
-        subtitle="What the months kept → what the next ones look like"
-        range={range}
-        onRangeChange={setRange}
-      />
-
-      <div className="space-y-8 animate-[fadeUp_0.4s_ease-out]">
+    <PageShell
+      bodyClassName="space-y-8"
+      header={
+        <AnalyticsPageHeader
+          title="Outlook"
+          subtitle="What the months kept → what the next ones look like"
+          range={range}
+          onRangeChange={setRange}
+        />
+      }
+    >
         {records.length === 0 ? (
           <AnalyticsEmpty blurb="No months yet. Track a month (or load 2026 samples) to build averages and forward projections." />
         ) : (
@@ -314,7 +317,6 @@ export function OutlookPage() {
             </section>
           </>
         )}
-      </div>
-    </>
+    </PageShell>
   )
 }

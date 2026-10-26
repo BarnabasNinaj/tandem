@@ -13,6 +13,7 @@ import {
 } from 'recharts'
 import { AnalyticsEmpty } from '@/components/analytics/AnalyticsEmpty'
 import { AnalyticsPageHeader } from '@/components/analytics/AnalyticsPageHeader'
+import { PageShell } from '@/components/layout/PageShell'
 import {
   axisTick,
   CAT_COLORS,
@@ -72,15 +73,17 @@ export function HistoryPage() {
   )
 
   return (
-    <>
-      <AnalyticsPageHeader
-        title="History"
-        subtitle="How income and spend moved over time — dashed lines are a simple continuation"
-        range={range}
-        onRangeChange={setRange}
-      />
-
-      <div className="space-y-6 animate-[fadeUp_0.4s_ease-out]">
+    <PageShell
+      bodyClassName="space-y-6"
+      header={
+        <AnalyticsPageHeader
+          title="History"
+          subtitle="How income and spend moved over time — dashed lines are a simple continuation"
+          range={range}
+          onRangeChange={setRange}
+        />
+      }
+    >
       {records.length === 0 ? (
         <AnalyticsEmpty blurb="No months yet. Track a month (or load 2026 samples) to see category lines, flow, and expense mix." />
       ) : (
@@ -199,7 +202,6 @@ export function HistoryPage() {
           </Card>
         </>
       )}
-      </div>
-    </>
+    </PageShell>
   )
 }

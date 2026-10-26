@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { PageShell } from '@/components/layout/PageShell'
 import { Button } from '@/components/ui/button'
 import {
   buildHomeOverview,
@@ -288,13 +289,16 @@ export function HomePage() {
   const hasHistory = Object.keys(state.history).length > 0
 
   return (
-    <div className="pb-4">
-      <PageHeader
-        title="Home"
-        subtitle="Drag or swipe month cards. The last card is a rough next-month estimate from your recent averages."
-      />
-
-      <div className="space-y-10 animate-[fadeUp_0.4s_ease-out]">
+    <PageShell
+      className="pb-4"
+      bodyClassName="space-y-10"
+      header={
+        <PageHeader
+          title="Home"
+          subtitle="Drag or swipe month cards. The last card is a rough next-month estimate from your recent averages."
+        />
+      }
+    >
       {wizardDraft && (
         <section className="rounded-xl border border-teal-200 bg-teal-50/80 px-4 py-3 dark:border-teal-900 dark:bg-teal-950/40">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -417,8 +421,7 @@ export function HomePage() {
           </div>
         </section>
       ) : null}
-      </div>
-    </div>
+    </PageShell>
   )
 }
 
@@ -433,19 +436,14 @@ function MonthCard({
   partnerBName: string
   money: (n: number) => string
 }) {
-  const eyebrow =
-    snap.status === 'projected'
-      ? 'Next'
-      : snap.isCalendar
-        ? 'Current'
-        : null
-
+  // Top meta on every card (no empty reserved slot). Calendar month is teal —
+  // no separate “Current” label.
   const statusLabel =
     snap.status === 'recorded'
-      ? 'tracked'
+      ? 'Tracked'
       : snap.status === 'projected'
-        ? 'estimate'
-        : 'not tracked'
+        ? 'Estimate'
+        : 'Not tracked'
 
   return (
     <article
@@ -458,25 +456,18 @@ function MonthCard({
           : 'border-stone-300/80 bg-[var(--surface)] dark:border-stone-700 dark:bg-stone-900/40',
       )}
     >
-      <div className="min-h-[1rem]">
-        {eyebrow ? (
-          <p className="text-[10px] font-medium tracking-[0.14em] text-stone-600 uppercase dark:text-stone-400">
-            {eyebrow}
-          </p>
-        ) : null}
-      </div>
+      <p className="text-[10px] font-medium tracking-[0.14em] text-stone-600 uppercase dark:text-stone-400">
+        {statusLabel}
+      </p>
       <p
         className={cn(
-          'mt-1 font-[family-name:var(--font-display)] text-xl font-semibold tabular-nums tracking-tight sm:text-2xl',
+          'mt-1 font-[family-name:var(--font-display)] text-xl font-semibold tracking-tight sm:text-2xl',
           snap.isCalendar
             ? 'text-stone-950 dark:text-stone-50'
             : 'text-stone-800 dark:text-stone-100',
         )}
       >
         {snap.label}
-      </p>
-      <p className="mt-0.5 text-xs text-stone-600 dark:text-stone-400">
-        {statusLabel}
       </p>
 
       {snap.leftover === null ? (

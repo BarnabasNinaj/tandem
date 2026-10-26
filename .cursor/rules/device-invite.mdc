@@ -10,6 +10,6 @@ alwaysApply: false
 - **Pairing code:** 10-char Crockford alphabet; PBKDF2 300k for invite KDF. Shown next to QR only. Treat link alone as sensitive.
 - Strip invite hash at **app bootstrap** (not only setup). Clear pending stash on lock / unused lock-ready path.
 - Do **not** emit cleartext `TANDEM1.` / `tandem-device:` (legacy decode + double-confirm only). Never use a custom `scheme:` URI.
-- Setup: open link / scan / paste → pairing code → `testGitHubConnection` → vault probe → master password. Abort paths must zero username/repo/PAT state.
+- Setup invite path: open link / scan / paste → pairing code → silent `testGitHubConnection` + vault probe (loading, not GitHub username/repo fields) → master password. Abort paths must zero username/repo/PAT state.
 - UI: don’t screenshot code with QR; hide when done; link is sensitive even without code.
 - Do not put invite URLs, pairing codes, or PATs in logs, README examples, or commits.

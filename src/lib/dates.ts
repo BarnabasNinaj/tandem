@@ -5,11 +5,18 @@ export function toMonthKey(date: Date = new Date()): string {
   return format(date, 'yyyy-MM')
 }
 
-/** UI month label: MM/YYYY */
+/** UI month label: MM/YYYY (compact — charts, selects, dense rows) */
 export function formatMonthKey(monthKey: string): string {
   const [y, m] = monthKey.split('-')
   if (!y || !m) return monthKey
   return `${m}/${y}`
+}
+
+/** UI month title: October 2026 (list headings — words, not digit runs) */
+export function formatMonthName(monthKey: string): string {
+  const d = monthKeyToDate(monthKey)
+  if (!isValid(d)) return monthKey
+  return format(d, 'MMMM yyyy')
 }
 
 /** UI date: DD/MM/YYYY */

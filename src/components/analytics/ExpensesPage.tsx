@@ -12,6 +12,7 @@ import {
 } from 'recharts'
 import { AnalyticsEmpty } from '@/components/analytics/AnalyticsEmpty'
 import { AnalyticsPageHeader } from '@/components/analytics/AnalyticsPageHeader'
+import { PageShell } from '@/components/layout/PageShell'
 import {
   axisTick,
   CAT_COLORS,
@@ -75,15 +76,17 @@ export function ExpensesPage() {
   }))
 
   return (
-    <>
-      <AnalyticsPageHeader
-        title="Expenses"
-        subtitle="Where the money went by category — groceries, rent, and the rest"
-        range={range}
-        onRangeChange={setRange}
-      />
-
-      <div className="space-y-6 animate-[fadeUp_0.4s_ease-out]">
+    <PageShell
+      bodyClassName="space-y-6"
+      header={
+        <AnalyticsPageHeader
+          title="Expenses"
+          subtitle="Where the money went by category — groceries, rent, and the rest"
+          range={range}
+          onRangeChange={setRange}
+        />
+      }
+    >
         {grid.rows.length === 0 ? (
           <AnalyticsEmpty blurb="No months yet. Track expenses (or load 2026 samples) to see the breakdown." />
         ) : (
@@ -236,7 +239,6 @@ export function ExpensesPage() {
             </div>
           </>
         )}
-      </div>
-    </>
+    </PageShell>
   )
 }

@@ -55,7 +55,9 @@ export function AppShell() {
   const { theme, toggle } = useTheme()
 
   return (
-    <div className="min-h-dvh overflow-x-clip bg-[var(--bg)] text-stone-900 dark:text-stone-100">
+    // No overflow-x-clip here — nested clip + sticky leaves 1px compositor seams
+    // on mobile where teal CTAs ghost at the app-header edge. Clip stays on html/body.
+    <div className="min-h-dvh bg-[var(--bg)] text-stone-900 dark:text-stone-100">
       <div
         className="pointer-events-none fixed inset-0 -z-10 opacity-80"
         style={{
@@ -64,7 +66,7 @@ export function AppShell() {
         }}
       />
 
-      <header className="sticky top-0 z-40 border-b border-stone-300 bg-[var(--surface)]/85 backdrop-blur-md dark:border-stone-800">
+      <header className="relative sticky top-0 z-40 border-b border-stone-300 bg-[var(--surface)] dark:border-stone-800">
         <div className="mx-auto flex h-14 min-w-0 max-w-6xl items-center justify-between gap-2 px-5 sm:gap-4 sm:px-8">
           <div className="flex min-w-0 items-center gap-3 sm:gap-6">
             <NavLink
@@ -169,13 +171,18 @@ export function AppShell() {
             {error}
           </div>
         )}
+        {/* Seal 1px compositor gaps under sticky chrome (teal CTA corners). */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-full h-1 bg-[var(--surface)]"
+        />
       </header>
 
-      <main className="mx-auto min-w-0 max-w-6xl px-5 py-6 pb-24 sm:px-8 sm:pb-6">
+      <main className="mx-auto min-w-0 max-w-6xl px-5 pt-6 pb-24 sm:px-8 sm:pb-6">
         <Outlet />
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-stone-300 bg-[var(--surface)]/95 backdrop-blur-md dark:border-stone-800 sm:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-stone-300 bg-[var(--surface)] dark:border-stone-800 sm:hidden">
         {NAV.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}

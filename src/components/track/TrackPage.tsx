@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { ArrowRight, Pencil, Trash2 } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { PageShell } from '@/components/layout/PageShell'
 import { SectionHeading } from '@/components/layout/SectionHeading'
 import { MonthEditor } from '@/components/track/MonthEditor'
 import { Button } from '@/components/ui/button'
 import {
   formatDateDDMMYYYY,
   formatMonthKey,
+  formatMonthName,
   toMonthKey,
 } from '@/lib/dates'
 import { draftForMonth, type WizardDraft } from '@/lib/finance'
@@ -74,13 +76,16 @@ function TrackHub() {
   }
 
   return (
-    <div className="pb-4">
-      <PageHeader
-        title="Track"
-        subtitle="Log this month’s incomes and card spend. Saved months show up on Home, History, and Outlook."
-      />
-
-      <div className="space-y-10 animate-[fadeUp_0.4s_ease-out]">
+    <PageShell
+      className="pb-4"
+      bodyClassName="space-y-10"
+      header={
+        <PageHeader
+          title="Track"
+          subtitle="Log this month’s incomes and card spend. Saved months show up on Home, History, and Outlook."
+        />
+      }
+    >
       {resumeDraft && (
         <section className="rounded-xl border border-teal-200 bg-teal-50/80 px-4 py-3 dark:border-teal-900 dark:bg-teal-950/40">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -102,8 +107,8 @@ function TrackHub() {
         <div className="flex flex-col gap-4 border-t border-stone-300 pt-6 dark:border-stone-700 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <SectionHeading title="This calendar month" />
-            <p className="mt-2 font-[family-name:var(--font-display)] text-4xl font-semibold tabular-nums tracking-tight text-stone-900 dark:text-stone-50 sm:text-5xl">
-              {formatMonthKey(currentKey)}
+            <p className="mt-2 font-[family-name:var(--font-display)] text-4xl font-semibold tracking-tight text-stone-900 dark:text-stone-50 sm:text-5xl">
+              {formatMonthName(currentKey)}
             </p>
             <p className="mt-2 text-sm text-stone-600 dark:text-stone-400">
               {currentSaved
@@ -140,61 +145,29 @@ function TrackHub() {
           <ul className="mt-4 divide-y divide-stone-300 border-t border-stone-300 dark:divide-stone-700 dark:border-stone-700">
             {months.map((record) => {
               const busy = deletingKey === record.monthKey || syncing
+              const leftNegative = record.computed.leftoverAfterExpenses < 0
               return (
                 <li
                   key={record.monthKey}
-                  className="flex items-center gap-3 py-2.5 sm:gap-4"
+                  className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-2 py-3 sm:flex sm:gap-4 sm:py-2.5"
                 >
-                  <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+                  <div className="flex min-w-0 items-center gap-2 sm:flex-1 sm:gap-3">
                     <span
                       className={cn(
-                        'shrink-0 font-medium tabular-nums',
+                        'font-[family-name:var(--font-display)] text-lg font-semibold tracking-tight',
                         record.monthKey === currentKey
                           ? 'text-teal-800 dark:text-teal-300'
-                          : 'text-stone-900 dark:text-stone-100',
+                          : 'text-stone-900 dark:text-stone-50',
                       )}
                     >
-                      {formatMonthKey(record.monthKey)}
+                      {formatMonthName(record.monthKey)}
                     </span>
                     <span className="hidden min-w-0 truncate text-xs text-stone-600 sm:inline dark:text-stone-400">
                       {formatDateDDMMYYYY(record.updatedAt)}
                     </span>
                   </div>
 
-                  <div className="flex shrink-0 gap-3 text-sm tabular-nums sm:gap-5">
-                    <span className="flex w-[5.75rem] flex-col items-start text-left sm:w-24">
-                      <span className="text-[10px] font-medium tracking-wide text-stone-600 uppercase dark:text-stone-400">
-                        In
-                      </span>
-                      <span className="text-stone-800 dark:text-stone-200">
-                        {money(record.computed.totalInflow)}
-                      </span>
-                    </span>
-                    <span className="flex w-[5.75rem] flex-col items-start text-left sm:w-24">
-                      <span className="text-[10px] font-medium tracking-wide text-stone-600 uppercase dark:text-stone-400">
-                        Out
-                      </span>
-                      <span className="text-stone-800 dark:text-stone-200">
-                        {money(record.computed.totalOutflow)}
-                      </span>
-                    </span>
-                    <span className="flex w-[5.75rem] flex-col items-start text-left sm:w-24">
-                      <span className="text-[10px] font-medium tracking-wide text-stone-600 uppercase dark:text-stone-400">
-                        Left
-                      </span>
-                      <span
-                        className={
-                          record.computed.leftoverAfterExpenses < 0
-                            ? 'text-orange-800 dark:text-orange-300'
-                            : 'text-stone-800 dark:text-stone-200'
-                        }
-                      >
-                        {money(record.computed.leftoverAfterExpenses)}
-                      </span>
-                    </span>
-                  </div>
-
-                  <div className="flex shrink-0 items-center gap-0.5">
+                  <div className="flex shrink-0 items-center gap-0.5 sm:order-last">
                     <Button
                       type="button"
                       variant="ghost"
@@ -220,13 +193,46 @@ function TrackHub() {
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
+
+                  <div className="col-span-2 grid grid-cols-3 gap-2 text-sm tabular-nums sm:col-span-1 sm:flex sm:w-auto sm:shrink-0 sm:gap-5">
+                    <span className="flex min-w-0 flex-col items-start text-left sm:w-24">
+                      <span className="text-[10px] font-medium tracking-wide text-stone-600 uppercase dark:text-stone-400">
+                        In
+                      </span>
+                      <span className="truncate font-normal text-stone-700 dark:text-stone-300">
+                        {money(record.computed.totalInflow)}
+                      </span>
+                    </span>
+                    <span className="flex min-w-0 flex-col items-start text-left sm:w-24">
+                      <span className="text-[10px] font-medium tracking-wide text-stone-600 uppercase dark:text-stone-400">
+                        Out
+                      </span>
+                      <span className="truncate font-normal text-stone-700 dark:text-stone-300">
+                        {money(record.computed.totalOutflow)}
+                      </span>
+                    </span>
+                    <span className="flex min-w-0 flex-col items-start text-left sm:w-24">
+                      <span className="text-[10px] font-medium tracking-wide text-stone-600 uppercase dark:text-stone-400">
+                        Left
+                      </span>
+                      <span
+                        className={cn(
+                          'truncate font-normal',
+                          leftNegative
+                            ? 'text-orange-800 dark:text-orange-300'
+                            : 'text-stone-700 dark:text-stone-300',
+                        )}
+                      >
+                        {money(record.computed.leftoverAfterExpenses)}
+                      </span>
+                    </span>
+                  </div>
                 </li>
               )
             })}
           </ul>
         )}
       </section>
-      </div>
-    </div>
+    </PageShell>
   )
 }

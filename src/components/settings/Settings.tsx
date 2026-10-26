@@ -14,6 +14,7 @@ import {
   X,
 } from 'lucide-react'
 import { InviteQr } from '@/components/invite/InviteQr'
+import { PageShell } from '@/components/layout/PageShell'
 import { Button } from '@/components/ui/button'
 import { Card, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -374,40 +375,46 @@ export function Settings() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <div className="sticky top-14 z-30 -mx-4 mb-6 border-b border-stone-300/70 bg-[var(--bg)]/90 px-4 py-3 backdrop-blur-md dark:border-stone-800/70 animate-[fadeIn_0.35s_ease-out]">
-        <div className="mb-3">
-          <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-stone-900 dark:text-stone-50 sm:text-3xl">
-            Settings
-          </h1>
-          <p className="text-sm text-stone-700 dark:text-stone-400">
-            Last synced:{' '}
-            {lastSyncedAt ? formatDateTimeDDMMYYYY(lastSyncedAt) : '—'}
-          </p>
+    <PageShell
+      className="mx-auto max-w-2xl"
+      header={
+        <div className="relative sticky top-14 z-30 -mx-5 mb-6 border-b border-stone-300/70 bg-[var(--bg)] px-5 py-3 sm:-mx-8 sm:px-8 dark:border-stone-800/70">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 bottom-full h-2 bg-[var(--bg)]"
+          />
+          <div className="relative mb-3">
+            <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold leading-8 text-stone-900 dark:text-stone-50 sm:text-3xl sm:leading-9">
+              Settings
+            </h1>
+            <p className="text-[14px] leading-5 text-stone-700 dark:text-stone-400">
+              Last synced:{' '}
+              {lastSyncedAt ? formatDateTimeDDMMYYYY(lastSyncedAt) : '—'}
+            </p>
+          </div>
+          <div className="relative flex gap-1 overflow-x-auto rounded-lg bg-stone-100 p-1 dark:bg-stone-800">
+            {TABS.map(({ id, label }) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => {
+                  setTab(id)
+                  setMsg(null)
+                  setErr(null)
+                }}
+                className={`cursor-pointer shrink-0 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                  tab === id
+                    ? 'bg-white text-stone-900 shadow-sm dark:bg-stone-700 dark:text-stone-50'
+                    : 'text-stone-700 dark:text-stone-400'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="flex gap-1 overflow-x-auto rounded-lg bg-stone-100 p-1 dark:bg-stone-800">
-          {TABS.map(({ id, label }) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => {
-                setTab(id)
-                setMsg(null)
-                setErr(null)
-              }}
-              className={`cursor-pointer shrink-0 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                tab === id
-                  ? 'bg-white text-stone-900 shadow-sm dark:bg-stone-700 dark:text-stone-50'
-                  : 'text-stone-700 dark:text-stone-400'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="animate-[fadeUp_0.4s_ease-out]">
+      }
+    >
       {(msg || err) && (
         <p
           className={`mb-4 text-sm ${err ? 'text-red-700 dark:text-red-400' : 'text-teal-800 dark:text-teal-300'}`}
@@ -1140,8 +1147,7 @@ export function Settings() {
       </>
       )}
       </div>
-      </div>
-    </div>
+    </PageShell>
   )
 }
 

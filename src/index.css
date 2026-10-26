@@ -56,13 +56,17 @@
   color: #0f766e;
 }
 
-html,
+html {
+  max-width: 100%;
+  /* clip only on the root scroller — nested clip on body/#root + sticky
+     titles causes mobile text to blur/reflow on every scroll frame. */
+  overflow-x: clip;
+}
+
 body,
 #root {
   min-height: 100%;
   max-width: 100%;
-  /* clip (not hidden) — hidden makes sticky PageHeader / range filter fail */
-  overflow-x: clip;
 }
 
 body {
@@ -74,14 +78,17 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/*
+ * Page body entrance — opacity only.
+ * Avoid transform here: a transformed sibling creates a stacking context that can
+ * paint over sticky PageHeader (teal Edit-month corners ghosting next to titles).
+ */
 @keyframes fadeUp {
   from {
     opacity: 0;
-    transform: translateY(12px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
