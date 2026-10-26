@@ -29,6 +29,9 @@ describe('demo-data', () => {
     const bIncomes = DEMO_MONTH_KEYS.map(
       (k) => history[k]!.inflows.partnerBIncome,
     )
+    const leftovers = DEMO_MONTH_KEYS.map(
+      (k) => history[k]!.computed.leftoverAfterExpenses,
+    )
     const groceries = DEMO_MONTH_KEYS.map(
       (k) =>
         history[k]!.outflows.find((o) => o.categoryId === 'groceries')!.amount,
@@ -41,13 +44,17 @@ describe('demo-data', () => {
     expect(new Set(bIncomes).size).toBeGreaterThan(5)
     expect(new Set(groceries).size).toBeGreaterThan(8)
     expect(new Set(housing).size).toBeGreaterThan(1)
-    // Mid-year maternity-lean dip vs year-end
+    // Mid-year leave dip vs year-end; Dec is the spend peak
     expect(history['2026-07']!.inflows.partnerBIncome).toBeLessThan(
       history['2026-01']!.inflows.partnerBIncome,
     )
     expect(history['2026-12']!.computed.totalOutflow).toBeGreaterThan(
       history['2026-02']!.computed.totalOutflow,
     )
+    // Some months finish in the red; surplus months still exist
+    expect(leftovers.some((z) => z < 0)).toBe(true)
+    expect(leftovers.some((z) => z > 0)).toBe(true)
+    expect(Math.max(...leftovers) - Math.min(...leftovers)).toBeGreaterThan(3000)
   })
 
   it('uses current category names and ids (not list index)', () => {
@@ -57,9 +64,9 @@ describe('demo-data', () => {
     const jan = buildDemoHistory(cats)['2026-01']!
     const dining = jan.outflows.find((o) => o.categoryId === 'dining')
     expect(dining?.categoryName).toBe('Restaurants')
-    expect(dining?.amount).toBe(78)
+    expect(dining?.amount).toBe(55)
     const kids = jan.outflows.find((o) => o.categoryId === 'kids')
-    expect(kids?.amount).toBe(155)
+    expect(kids?.amount).toBe(95)
   })
 
   it('stripDemoMonths removes sample keys only', () => {

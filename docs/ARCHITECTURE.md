@@ -42,7 +42,7 @@ Defined in `src/store/tandem-store.ts` / gated in `src/App.tsx`:
 
 | Path | Screen |
 |------|--------|
-| `/` | Home (`HomePage` — Overview month scroller; logo only) |
+| `/` | Home (`HomePage` — month scroller; logo + first nav tab) |
 | `/track` | Track (`TrackPage` hub ↔ `MonthEditor` when a draft is active; delete month via store) |
 | `/history` | History (`HistoryPage` — history charts) |
 | `/incomes` | Incomes (`IncomesPage` — income buckets only) |

@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 
 /**
  * Shared page title band — same sticky position under the app header for
- * Overview, Track, History, Incomes, Expenses, Outlook.
+ * Home, Track, History, Incomes, Expenses, Outlook.
  */
 export function PageHeader({
   title,

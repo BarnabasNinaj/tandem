@@ -78,7 +78,7 @@ expenseSharePartnerA / B          // fair “Pays” share of Y
 personalAllowancePartnerA / B     // each partner’s share of Z (“Keeps”)
 ```
 
-**Settlement** (derived in `settleExpenseShares`, not stored): effective paid = personal bucket + that partner’s split of `common` (same `splitByMode`). Net = effectivePaid − expenseShare. Positive for A ⇒ transfer B → A. Shown on Track footer + Overview when `paymentByOwner` has data.
+**Settlement** (derived in `settleExpenseShares`, not stored): effective paid = personal bucket + that partner’s split of `common` (same `splitByMode`). Net = effectivePaid − expenseShare. Positive for A ⇒ transfer B → A. Shown on Track footer + Home when `paymentByOwner` has data.
 
 All money values rounded with `round2`.
 
@@ -132,6 +132,6 @@ Unsupported `version` → throw (fail closed).
 
 ## Demo history
 
-`buildDemoHistory()` seeds **full-year 2026** (`2026-01` … `2026-12`) with synthetic data — partner A/B salaries, Other, and every expense category vary month to month (mid-year income dip, summer travel spike, Dec holiday peak). Keys: `DEMO_MONTH_KEYS` in `demo-data.ts`. `stripDemoMonths` removes the current pack keys on load/clear.
+`buildDemoHistory()` seeds **full-year 2026** (`2026-01` … `2026-12`) with synthetic data — partner A/B salaries, Other, and every expense category vary widely month to month (mid-year leave dip, summer travel + back-to-school deficits, spring/autumn surplus, Dec holiday overshoot). Several months finish with **negative** leftover so Home / History / Outlook show deficit months. Keys: `DEMO_MONTH_KEYS` in `demo-data.ts`. `stripDemoMonths` removes the current pack keys on load/clear.
 
 **C3A (2026-10-23):** `createInitialState()` defaults to **empty** `history`. Demo only when `withDemoData: true` or Settings → Load 2026 / Delete sample data (`loadDemoData` / `clearDemoData`, then push). Setup / empty-remote unlock create empty vaults.

@@ -147,11 +147,15 @@ describe('buildHomeOverview', () => {
     expect(overview!.months[0]?.status).toBe('recorded')
     expect(overview!.months[1]?.isCalendar).toBe(true)
     expect(overview!.months[1]?.expense).toBe(1000)
+    expect(overview!.months[1]?.incomeA).toBe(2000)
+    expect(overview!.months[1]?.incomeB).toBe(1000)
     expect(overview!.months[1]?.paysA).toBe(500)
     expect(overview!.months[1]?.paysB).toBe(500)
     expect(overview!.months[1]?.settlement).toBeNull()
     expect(overview!.months[2]?.status).toBe('projected')
     expect(overview!.months[2]?.expense).toBe(1100)
+    expect(overview!.months[2]?.incomeA).toBe(2000)
+    expect(overview!.months[2]?.incomeB).toBe(1000)
   })
 
   it('inserts an untracked calendar month before the estimate', () => {

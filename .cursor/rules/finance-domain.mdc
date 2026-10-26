@@ -35,4 +35,4 @@ Category rename/add/remove via Settings: `updateState` runs `alignHistoryToCateg
 
 ## Demo data
 
-Synthetic full-year 2026 (`2026-01`–`2026-12`) with month-to-month income/expense variability. Load/clear via store; never replace with real household numbers in repo.
+Synthetic full-year 2026 (`2026-01`–`2026-12`) with wide income/expense swings and some negative-leftover months. Load/clear via store; never replace with real household numbers in repo.

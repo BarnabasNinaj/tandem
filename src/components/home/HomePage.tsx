@@ -77,23 +77,90 @@ export function HomePage() {
     }
   }, [overview])
 
-  // Thumb / pointer drag — native overflow can lose horizontal pans to the page.
+  // Thumb drag: cards slide with the finger (snap off while dragging), then
+  // smooth-settle to a card — same motion as the chevron / Earlier·Later buttons.
   useEffect(() => {
     const root = scrollerRef.current
     if (!root || !overview) return
 
     let pointerId: number | null = null
     let startX = 0
+    let startY = 0
     let startScroll = 0
+    let startIndex = 0
+    let lastX = 0
+    let lastT = 0
+    let velocity = 0
     let dragging = false
+    let axis: 'undecided' | 'x' | 'y' = 'undecided'
+    let snapTimer = 0
+
+    const cards = () =>
+      Array.from(root.querySelectorAll<HTMLElement>('[data-month-card]'))
+
+    const cardStep = () => {
+      const card = cards()[0]
+      return (card?.offsetWidth ?? 280) + 12
+    }
+
+    /** Index of the card whose center is closest to the scroller midpoint. */
+    const nearestIndex = () => {
+      const list = cards()
+      if (list.length === 0) return 0
+      const mid = root.getBoundingClientRect().left + root.clientWidth / 2
+      let best = 0
+      let bestDist = Infinity
+      list.forEach((card, i) => {
+        const r = card.getBoundingClientRect()
+        const dist = Math.abs(r.left + r.width / 2 - mid)
+        if (dist < bestDist) {
+          bestDist = dist
+          best = i
+        }
+      })
+      return best
+    }
+
+    const scrollToIndex = (index: number) => {
+      const list = cards()
+      if (list.length === 0) return
+      const i = Math.max(0, Math.min(list.length - 1, index))
+      const card = list[i]!
+      const rootRect = root.getBoundingClientRect()
+      const cardRect = card.getBoundingClientRect()
+      // Match mobile snap-center; on sm+ cards use snap-start but centering still reads well.
+      const delta =
+        cardRect.left -
+        rootRect.left -
+        (root.clientWidth - cardRect.width) / 2
+      root.scrollTo({
+        left: root.scrollLeft + delta,
+        behavior: 'smooth',
+      })
+      window.clearTimeout(snapTimer)
+      snapTimer = window.setTimeout(() => {
+        root.style.scrollSnapType = ''
+      }, 380)
+    }
+
+    const restoreSnap = () => {
+      root.style.scrollSnapType = ''
+    }
 
     const onPointerDown = (e: PointerEvent) => {
       if (e.pointerType === 'mouse' && e.button !== 0) return
       pointerId = e.pointerId
-      startX = e.clientX
+      startX = lastX = e.clientX
+      startY = e.clientY
       startScroll = root.scrollLeft
+      startIndex = nearestIndex()
+      lastT = performance.now()
+      velocity = 0
       dragging = false
-      root.classList.add('cursor-grabbing')
+      axis = 'undecided'
+      window.clearTimeout(snapTimer)
+      // Mandatory CSS snap jumps mid-drag; turn it off while the finger moves.
+      root.style.scrollSnapType = 'none'
       try {
         root.setPointerCapture(e.pointerId)
       } catch {
@@ -104,14 +171,42 @@ export function HomePage() {
     const onPointerMove = (e: PointerEvent) => {
       if (pointerId !== e.pointerId) return
       const dx = e.clientX - startX
-      if (!dragging && Math.abs(dx) < 8) return
-      dragging = true
+      const dy = e.clientY - startY
+
+      if (axis === 'undecided') {
+        if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return
+        axis = Math.abs(dx) >= Math.abs(dy) ? 'x' : 'y'
+        if (axis === 'y') {
+          pointerId = null
+          restoreSnap()
+          try {
+            root.releasePointerCapture(e.pointerId)
+          } catch {
+            /* ignore */
+          }
+          return
+        }
+        dragging = true
+        root.classList.add('cursor-grabbing')
+      }
+
+      if (axis !== 'x') return
+
+      const now = performance.now()
+      const dt = Math.max(1, now - lastT)
+      velocity = (e.clientX - lastX) / dt
+      lastX = e.clientX
+      lastT = now
+
       root.scrollLeft = startScroll - dx
       e.preventDefault()
     }
 
     const endDrag = (e: PointerEvent) => {
       if (pointerId !== e.pointerId) return
+      const wasDragging = dragging
+      const dx = e.clientX - startX
+      const vx = velocity
       pointerId = null
       root.classList.remove('cursor-grabbing')
       try {
@@ -119,6 +214,24 @@ export function HomePage() {
       } catch {
         /* ignore */
       }
+
+      if (!wasDragging || axis !== 'x') {
+        restoreSnap()
+        return
+      }
+
+      const step = cardStep()
+      const flick = Math.abs(vx) > 0.35
+      let index = startIndex
+      if (flick) {
+        // Finger left (vx < 0) → later months.
+        index = startIndex + (vx < 0 ? 1 : -1)
+      } else if (Math.abs(dx) > step * 0.22) {
+        index = startIndex + (dx < 0 ? 1 : -1)
+      } else {
+        index = nearestIndex()
+      }
+      scrollToIndex(index)
     }
 
     root.addEventListener('pointerdown', onPointerDown)
@@ -126,6 +239,7 @@ export function HomePage() {
     root.addEventListener('pointerup', endDrag)
     root.addEventListener('pointercancel', endDrag)
     return () => {
+      window.clearTimeout(snapTimer)
       root.removeEventListener('pointerdown', onPointerDown)
       root.removeEventListener('pointermove', onPointerMove)
       root.removeEventListener('pointerup', endDrag)
@@ -136,10 +250,37 @@ export function HomePage() {
   const scrollByCard = (dir: -1 | 1) => {
     const root = scrollerRef.current
     if (!root) return
-    const card = root.querySelector<HTMLElement>('[data-month-card]')
-    const gap = 12
-    const step = (card?.offsetWidth ?? 280) + gap
-    root.scrollBy({ left: dir * step, behavior: 'smooth' })
+    const list = Array.from(
+      root.querySelectorAll<HTMLElement>('[data-month-card]'),
+    )
+    if (list.length === 0) return
+    const mid = root.getBoundingClientRect().left + root.clientWidth / 2
+    let current = 0
+    let bestDist = Infinity
+    list.forEach((card, i) => {
+      const r = card.getBoundingClientRect()
+      const dist = Math.abs(r.left + r.width / 2 - mid)
+      if (dist < bestDist) {
+        bestDist = dist
+        current = i
+      }
+    })
+    const next = Math.max(0, Math.min(list.length - 1, current + dir))
+    const card = list[next]!
+    const rootRect = root.getBoundingClientRect()
+    const cardRect = card.getBoundingClientRect()
+    const delta =
+      cardRect.left -
+      rootRect.left -
+      (root.clientWidth - cardRect.width) / 2
+    root.style.scrollSnapType = 'none'
+    root.scrollTo({
+      left: root.scrollLeft + delta,
+      behavior: 'smooth',
+    })
+    window.setTimeout(() => {
+      root.style.scrollSnapType = ''
+    }, 380)
   }
 
   const openTrackMonth = (monthKey: string) => {
@@ -155,7 +296,7 @@ export function HomePage() {
   return (
     <div className="pb-4">
       <PageHeader
-        title="Overview"
+        title="Home"
         subtitle="Drag or swipe month cards. The last card is a rough next-month estimate from your recent averages."
       />
 
@@ -367,8 +508,11 @@ function MonthCard({
         <>
           <p
             className={cn(
-              'mt-5 font-[family-name:var(--font-display)] font-semibold tabular-nums tracking-tight text-stone-900 dark:text-stone-50',
+              'mt-5 font-[family-name:var(--font-display)] font-semibold tabular-nums tracking-tight',
               snap.isCalendar ? 'text-3xl sm:text-4xl' : 'text-2xl sm:text-3xl',
+              snap.leftover < 0
+                ? 'text-orange-800 dark:text-orange-300'
+                : 'text-stone-900 dark:text-stone-50',
             )}
           >
             {money(snap.leftover)}
@@ -405,6 +549,12 @@ function MonthCard({
                 {partnerAName}
               </p>
               <p className="mt-0.5 text-xs text-stone-600 dark:text-stone-400">
+                Income{' '}
+                <span className="font-medium tabular-nums text-stone-900 dark:text-stone-50">
+                  {money(snap.incomeA!)}
+                </span>
+              </p>
+              <p className="mt-0.5 text-xs text-stone-600 dark:text-stone-400">
                 Pays{' '}
                 <span className="font-medium tabular-nums text-stone-900 dark:text-stone-50">
                   {money(snap.paysA!)}
@@ -412,7 +562,14 @@ function MonthCard({
               </p>
               <p className="mt-0.5 text-xs text-stone-600 dark:text-stone-400">
                 Keeps{' '}
-                <span className="font-medium tabular-nums text-stone-900 dark:text-stone-50">
+                <span
+                  className={cn(
+                    'font-medium tabular-nums',
+                    snap.pocketA! < 0
+                      ? 'text-orange-800 dark:text-orange-300'
+                      : 'text-stone-900 dark:text-stone-50',
+                  )}
+                >
                   {money(snap.pocketA!)}
                 </span>
               </p>
@@ -425,6 +582,12 @@ function MonthCard({
                 {partnerBName}
               </p>
               <p className="mt-0.5 text-xs text-stone-600 dark:text-stone-400">
+                Income{' '}
+                <span className="font-medium tabular-nums text-stone-900 dark:text-stone-50">
+                  {money(snap.incomeB!)}
+                </span>
+              </p>
+              <p className="mt-0.5 text-xs text-stone-600 dark:text-stone-400">
                 Pays{' '}
                 <span className="font-medium tabular-nums text-stone-900 dark:text-stone-50">
                   {money(snap.paysB!)}
@@ -432,7 +595,14 @@ function MonthCard({
               </p>
               <p className="mt-0.5 text-xs text-stone-600 dark:text-stone-400">
                 Keeps{' '}
-                <span className="font-medium tabular-nums text-stone-900 dark:text-stone-50">
+                <span
+                  className={cn(
+                    'font-medium tabular-nums',
+                    snap.pocketB! < 0
+                      ? 'text-orange-800 dark:text-orange-300'
+                      : 'text-stone-900 dark:text-stone-50',
+                  )}
+                >
                   {money(snap.pocketB!)}
                 </span>
               </p>

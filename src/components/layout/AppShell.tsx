@@ -2,6 +2,7 @@ import { NavLink, Outlet } from 'react-router-dom'
 import {
   BarChart3,
   Compass,
+  LayoutDashboard,
   Lock,
   Moon,
   PenLine,
@@ -19,7 +20,8 @@ import { cn } from '@/lib/utils'
 import { useTandemStore } from '@/store/tandem-store'
 
 const NAV = [
-  { to: '/track', label: 'Track', icon: PenLine, end: true },
+  { to: '/', label: 'Home', icon: LayoutDashboard, end: true },
+  { to: '/track', label: 'Track', icon: PenLine },
   { to: '/history', label: 'History', icon: BarChart3 },
   { to: '/incomes', label: 'Incomes', icon: Wallet },
   { to: '/expenses', label: 'Expenses', icon: Receipt },

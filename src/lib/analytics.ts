@@ -229,6 +229,9 @@ export interface HomeMonthSnap {
   income: number | null
   expense: number | null
   leftover: number | null
+  /** Partner salaries (Income) — Other excluded. */
+  incomeA: number | null
+  incomeB: number | null
   /** Fair share of bills (Pays). */
   paysA: number | null
   paysB: number | null
@@ -269,6 +272,8 @@ function snapFromRecord(
     income: record.computed.totalInflow,
     expense: record.computed.totalOutflow,
     leftover: record.computed.leftoverAfterExpenses,
+    incomeA: record.inflows.partnerASalary,
+    incomeB: record.inflows.partnerBIncome,
     paysA: record.computed.expenseSharePartnerA,
     paysB: record.computed.expenseSharePartnerB,
     pocketA: record.computed.personalAllowancePartnerA,
@@ -306,6 +311,8 @@ export function buildHomeOverview(
   const avgLeftover = mean(
     trailing.map((r) => r.computed.leftoverAfterExpenses),
   )
+  const avgIncomeA = mean(trailing.map((r) => r.inflows.partnerASalary))
+  const avgIncomeB = mean(trailing.map((r) => r.inflows.partnerBIncome))
   const avgPaysA = mean(
     trailing.map((r) => r.computed.expenseSharePartnerA),
   )
@@ -332,6 +339,8 @@ export function buildHomeOverview(
       income: null,
       expense: null,
       leftover: null,
+      incomeA: null,
+      incomeB: null,
       paysA: null,
       paysB: null,
       pocketA: null,
@@ -352,6 +361,8 @@ export function buildHomeOverview(
       income: avgIncome,
       expense: avgExpense,
       leftover: avgLeftover,
+      incomeA: avgIncomeA,
+      incomeB: avgIncomeB,
       paysA: avgPaysA,
       paysB: avgPaysB,
       pocketA: avgPocketA,

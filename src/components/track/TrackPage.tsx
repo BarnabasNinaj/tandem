@@ -83,7 +83,7 @@ function TrackHub() {
     <div className="pb-4">
       <PageHeader
         title="Track"
-        subtitle="Log this month’s incomes and card spend. Saved months show up on Overview, History, and Outlook."
+        subtitle="Log this month’s incomes and card spend. Saved months show up on Home, History, and Outlook."
       />
 
       <div className="space-y-10">
@@ -167,31 +167,51 @@ function TrackHub() {
                   className="flex items-center gap-3 py-2.5 sm:gap-4"
                 >
                   <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
-                    <span className="shrink-0 font-medium tabular-nums text-stone-900 dark:text-stone-100">
+                    <span
+                      className={cn(
+                        'shrink-0 font-medium tabular-nums',
+                        record.monthKey === currentKey
+                          ? 'text-teal-800 dark:text-teal-300'
+                          : 'text-stone-900 dark:text-stone-100',
+                      )}
+                    >
                       {formatMonthKey(record.monthKey)}
                     </span>
-                    {record.monthKey === currentKey && (
-                      <span className="shrink-0 text-[10px] font-medium tracking-wide text-teal-800 uppercase dark:text-teal-300">
-                        current
-                      </span>
-                    )}
                     <span className="hidden min-w-0 truncate text-xs text-stone-600 sm:inline dark:text-stone-400">
                       {formatDateDDMMYYYY(record.updatedAt)}
                     </span>
                   </div>
 
-                  <div className="flex shrink-0 items-baseline gap-3 text-sm tabular-nums sm:gap-5">
-                    <span className="text-stone-800 dark:text-stone-200">
-                      <span className="mr-1 text-[10px] font-medium tracking-wide text-stone-600 uppercase dark:text-stone-400">
+                  <div className="flex shrink-0 gap-3 text-sm tabular-nums sm:gap-5">
+                    <span className="flex w-[5.75rem] flex-col items-start text-left sm:w-24">
+                      <span className="text-[10px] font-medium tracking-wide text-stone-600 uppercase dark:text-stone-400">
                         In
                       </span>
-                      {money(record.computed.totalInflow)}
+                      <span className="text-stone-800 dark:text-stone-200">
+                        {money(record.computed.totalInflow)}
+                      </span>
                     </span>
-                    <span className="text-stone-800 dark:text-stone-200">
-                      <span className="mr-1 text-[10px] font-medium tracking-wide text-stone-600 uppercase dark:text-stone-400">
+                    <span className="flex w-[5.75rem] flex-col items-start text-left sm:w-24">
+                      <span className="text-[10px] font-medium tracking-wide text-stone-600 uppercase dark:text-stone-400">
                         Out
                       </span>
-                      {money(record.computed.totalOutflow)}
+                      <span className="text-stone-800 dark:text-stone-200">
+                        {money(record.computed.totalOutflow)}
+                      </span>
+                    </span>
+                    <span className="flex w-[5.75rem] flex-col items-start text-left sm:w-24">
+                      <span className="text-[10px] font-medium tracking-wide text-stone-600 uppercase dark:text-stone-400">
+                        Left
+                      </span>
+                      <span
+                        className={
+                          record.computed.leftoverAfterExpenses < 0
+                            ? 'text-orange-800 dark:text-orange-300'
+                            : 'text-stone-800 dark:text-stone-200'
+                        }
+                      >
+                        {money(record.computed.leftoverAfterExpenses)}
+                      </span>
                     </span>
                   </div>
 
