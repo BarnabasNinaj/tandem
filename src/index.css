@@ -61,6 +61,18 @@ html {
   /* clip only on the root scroller — nested clip on body/#root + sticky
      titles causes mobile text to blur/reflow on every scroll frame. */
   overflow-x: clip;
+  /*
+   * Hide the root scrollbar chrome. Classic OS bars steal ~15px of width and
+   * jump the layout when a page gains/loses overflow; scrollbar-gutter:stable
+   * leaves a dead canvas stripe instead. Overlay-hide keeps full width always.
+   * Wheel / touch / keyboard still scroll; nested overflow regions keep theirs.
+   */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar {
+  display: none;
 }
 
 body,
