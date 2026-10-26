@@ -33,6 +33,7 @@ Do not treat the data repo as “optional secrets.” It **is** the sync store.
 | GitHub vault I/O | `src/lib/github.ts` |
 | Browser keys | `src/lib/storage.ts` |
 | Month math + settlement | `src/lib/finance.ts` (`settleExpenseShares`, `paymentByOwner`) |
+| Split presets (Pays / Net share) | `src/lib/allowance-split.ts` + `allowanceSplit` (`equal` \| `income` \| `incomeEqualNet`) |
 | Analytics (averages, trends, outlook) | `src/lib/analytics.ts` |
 | Bank label mappings + card merge | `src/lib/card-expenses.ts` |
 | Partner / owner colors | `src/lib/partners.ts`, `OwnerBadge` |

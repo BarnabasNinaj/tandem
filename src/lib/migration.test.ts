@@ -92,6 +92,21 @@ describe('migrateState', () => {
     expect(migrated.settings.allowanceSplit).toBe('equal')
   })
 
+  it('preserves incomeEqualNet allowanceSplit', () => {
+    const migrated = migrateState({
+      version: '1.0',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+      salt: 'ab'.repeat(16),
+      settings: {
+        partnerAName: 'Barney',
+        partnerBName: 'Lucka',
+        allowanceSplit: 'incomeEqualNet',
+      },
+      history: {},
+    })
+    expect(migrated.settings.allowanceSplit).toBe('incomeEqualNet')
+  })
+
   it('folds legacy childSupport into otherInflows', () => {
     const migrated = migrateState({
       version: '1.0',

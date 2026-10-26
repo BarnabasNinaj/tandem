@@ -6,7 +6,7 @@ export interface CategoryExpense {
 
 /**
  * Additive totals of card-sheet amounts by card owner (who paid).
- * Common is split by allowanceSplit when computing settlement.
+ * Common is split by the expense side of allowanceSplit when settling.
  */
 export interface PaymentByOwner {
   partnerA: number
@@ -37,13 +37,13 @@ export interface MonthlyRecord {
     /** Z = X − Y (left after expenses) */
     leftoverAfterExpenses: number
     /**
-     * What gets split between partners as “keeps” — same as Z.
-     * Name kept for analytics (“pocket”) continuity.
+     * Household leftover pool (same as Z / UI Net).
+     * Split into personalAllowance* (“Net share”) by allowanceSplit’s Net rule.
      */
     discretionarySurplus: number
     expenseSharePartnerA: number
     expenseSharePartnerB: number
-    /** Each partner’s share of Z after expense split. */
+    /** Each partner’s fair Net share of Z (not their bank balance). */
     personalAllowancePartnerA: number
     personalAllowancePartnerB: number
     allowanceSplit: AllowanceSplit
@@ -51,8 +51,16 @@ export interface MonthlyRecord {
   notes?: string
 }
 
-/** Splits expenses (Y) and leftover (Z): 50/50 or by income. */
-export type AllowanceSplit = 'equal' | 'income'
+/**
+ * How Pays (Y) and Net share (Z) are split:
+ * - `equal` — both 50/50
+ * - `income` — both ∝ partner salaries (Other excluded from ratio)
+ * - `incomeEqualNet` — Pays by income, Net share 50/50
+ */
+export type AllowanceSplit = 'equal' | 'income' | 'incomeEqualNet'
+
+/** Ratio used for a single split of an amount (expenses or Net). */
+export type SplitRatio = 'equal' | 'income'
 
 export interface ExpenseCategory {
   id: string
@@ -104,7 +112,7 @@ export interface TandemSettings {
   dateFormat: 'DD/MM/YYYY'
   partnerAName: string
   partnerBName: string
-  /** Splits expenses + pocket: `equal` 50/50, or `income` Barney/Lucka ratio (Other excluded). */
+  /** Pays + Net share rule: `equal` | `income` | `incomeEqualNet` (Pays by income, Net 50/50). */
   allowanceSplit: AllowanceSplit
   categories: ExpenseCategory[]
   /** Banks (each with its own label taxonomy). */

@@ -37,7 +37,7 @@ Unrecognized `v` or missing fields → hard error (`parseEnvelope`).
 | `currencyLocale` | always `sk-SK` number style (not Settings-editable; for `Intl` grouping) |
 | `dateFormat` | always `DD/MM/YYYY` (enforced; schema anchor, not Settings-editable) |
 | `partnerAName` / `partnerBName` | `Barney` / `Lucka` (legacy “Partner A/B” remapped on migrate) |
-| `allowanceSplit` | Splits **expenses** and **pocket**: `equal` or `income` (Barney/Lucka ratio; Other excluded) |
+| `allowanceSplit` | Splits **expenses** (Pays) and **Net** (Net share): `equal` (both 50/50) · `income` (both ∝ salaries; Other excluded) · `incomeEqualNet` (Pays by income, Net share 50/50) |
 | `categories` | `DEFAULT_CATEGORIES` |
 | `banks` | `[]` — `{ id, name }` issuers; each has its own expense-label taxonomy |
 | `cards` | `[]` — `{ id, name, bankId, owner: partnerA\|partnerB\|common }` entry sources |
@@ -68,17 +68,22 @@ Missing / all-zero on older months and demo samples → no settlement UI (do not
 X = totalInflow = sum(incomes)
 Y = totalOutflow = sum(expenses)
 Z = leftoverAfterExpenses = X − Y
-discretionarySurplus = Z   // “keeps” pool / analytics “pocket”
+discretionarySurplus = Z   // household leftover pool (UI: Net)
 
-Toggle (allowanceSplit) splits Y and Z:
-  equal  → 50/50
-  income → ∝ partnerASalary : partnerBIncome (Other excluded from ratio)
+Preset (allowanceSplit) splits Y and Z (ratios may differ):
+  equal           → Y 50/50, Z 50/50
+  income          → Y and Z ∝ partnerASalary : partnerBIncome (Other excluded)
+  incomeEqualNet  → Y by income, Z 50/50
+
+Helpers: `expenseSplitRatio` / `netShareSplitRatio` in `finance.ts`.
 
 expenseSharePartnerA / B          // fair “Pays” share of Y
-personalAllowancePartnerA / B     // each partner’s share of Z (“Keeps”)
+personalAllowancePartnerA / B     // each partner’s fair “Net share” of Z
+                                  // (fairness target on combined leftover —
+                                  //  not what’s left in that partner’s account)
 ```
 
-**Settlement** (derived in `settleExpenseShares`, not stored): effective paid = personal bucket + that partner’s split of `common` (same `splitByMode`). Net = effectivePaid − expenseShare. Positive for A ⇒ transfer B → A. Shown on Track footer + Home when `paymentByOwner` has data.
+**Settlement** (derived in `settleExpenseShares`, not stored): effective paid = personal bucket + that partner’s split of `common` (uses **expense** ratio from the preset). Net = effectivePaid − expenseShare. Positive for A ⇒ transfer B → A. Shown on Track footer + Home when `paymentByOwner` has data. Settle only equalises **expense** over/underpayment — it does **not** move money to match Net-share targets when incomes differ.
 
 All money values rounded with `round2`.
 
@@ -97,7 +102,7 @@ All money values rounded with `round2`.
 | Category trend | OLS slope €/month over the range |
 | Month outlook | Trailing means for income, expenses, leftover/net (Z); `totalPocket` = sum of Z over the range (UI: **Net**); looking-ahead **Net** tile shows avg € and `(Z/X)%` — one baseline (no stamped multi-month projection rows). Captions: left after expenses / short this month (`netCaption`) |
 
-**Not in the model:** partner bank balances / cash-on-hand. Months are cashflow (in/out), not a balance sheet. Range **Net** is Σ(income − expenses) since tracking in that slice — opening cash and untracked movements are invisible. A current as-of snapshot could live in Settings later for runway; it must not be projected onto past month keys.
+**Not in the model:** partner bank balances / cash-on-hand. Months are cashflow (in/out), not a balance sheet. **Net share** is each partner’s fair slice of household Net — not what remains in their account after salary − Pays. Range **Net** is Σ(income − expenses) since tracking in that slice — opening cash and untracked movements are invisible. A current as-of snapshot could live in Settings later for runway; it must not be projected onto past month keys.
 
 Focus month defaults to the current calendar month (`toMonthKey()`). If that month is already in `history`, Outlook shows deltas vs the trailing average.
 

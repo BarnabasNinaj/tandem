@@ -5,6 +5,7 @@ import type {
   CategoryExpense,
   MonthlyRecord,
   PaymentByOwner,
+  SplitRatio,
   TandemSettings,
   TandemState,
 } from '@/types/tandem'
@@ -76,7 +77,7 @@ export function settleExpenseShares(
   const commonSplit = splitByMode(
     paymentByOwner.common,
     inflows,
-    allowanceSplit,
+    expenseSplitRatio(allowanceSplit),
   )
   const effectivePaidA = round2(paymentByOwner.partnerA + commonSplit.partnerA)
   const effectivePaidB = round2(paymentByOwner.partnerB + commonSplit.partnerB)
@@ -120,14 +121,24 @@ export function sumOutflows(outflows: CategoryExpense[]): number {
   return round2(outflows.reduce((acc, o) => acc + (o.amount || 0), 0))
 }
 
+/** Pays / expense side of the household split preset. */
+export function expenseSplitRatio(split: AllowanceSplit): SplitRatio {
+  return split === 'equal' ? 'equal' : 'income'
+}
+
+/** Net-share side of the household split preset. */
+export function netShareSplitRatio(split: AllowanceSplit): SplitRatio {
+  return split === 'income' ? 'income' : 'equal'
+}
+
 /**
- * Split an amount by mode.
+ * Split an amount by ratio.
  * `income` uses Barney:Lucka incomes only (Other excluded from the ratio).
  */
 export function splitByMode(
   amount: number,
   inflows: MonthlyRecord['inflows'],
-  mode: AllowanceSplit,
+  mode: SplitRatio,
 ): { partnerA: number; partnerB: number } {
   if (mode === 'equal') {
     const each = round2(amount / 2)
@@ -149,7 +160,7 @@ export function splitByMode(
 export function splitPersonalAllowances(
   surplus: number,
   inflows: MonthlyRecord['inflows'],
-  mode: AllowanceSplit,
+  mode: SplitRatio,
 ): { partnerA: number; partnerB: number } {
   return splitByMode(surplus, inflows, mode)
 }
@@ -157,7 +168,7 @@ export function splitPersonalAllowances(
 /**
  * Product math:
  *   X = incomes, Y = expenses, Z = X − Y
- *   Toggle splits Y (expense shares) and Z (keeps).
+ *   Preset splits Y (Pays) and Z (Net share) — possibly with different ratios.
  */
 export function computeMonthly(
   inflows: MonthlyRecord['inflows'],
@@ -169,11 +180,15 @@ export function computeMonthly(
   const leftoverAfterExpenses = round2(totalInflow - totalOutflow)
   const discretionarySurplus = leftoverAfterExpenses
 
-  const expenseShares = splitByMode(totalOutflow, inflows, allowanceSplit)
+  const expenseShares = splitByMode(
+    totalOutflow,
+    inflows,
+    expenseSplitRatio(allowanceSplit),
+  )
   const pocketShares = splitByMode(
     discretionarySurplus,
     inflows,
-    allowanceSplit,
+    netShareSplitRatio(allowanceSplit),
   )
 
   return {

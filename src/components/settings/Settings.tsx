@@ -21,11 +21,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { OwnerBadge } from '@/components/ui/owner-badge'
 import { Select } from '@/components/ui/select'
+import { ALLOWANCE_SPLIT_OPTIONS } from '@/lib/allowance-split'
 import { mappingsForBank, normalizeBankLabel } from '@/lib/card-expenses'
 import { formatDateTimeDDMMYYYY } from '@/lib/dates'
 import { nextOwner } from '@/lib/partners'
 import { useTandemStore } from '@/store/tandem-store'
 import type {
+  AllowanceSplit,
   CardOwner,
   ExpenseBank,
   ExpenseCard,
@@ -458,14 +460,9 @@ export function Settings() {
             />
           </Field>
           <div className="space-y-1.5 sm:col-span-2">
-            <Label>Expense & pocket split</Label>
+            <Label>Expense & Net-share split</Label>
             <div className="flex gap-1 rounded-lg bg-stone-100 p-1 dark:bg-stone-800">
-              {(
-                [
-                  { id: 'equal' as const, label: '50/50' },
-                  { id: 'income' as const, label: 'By income' },
-                ] as const
-              ).map(({ id, label }) => (
+              {ALLOWANCE_SPLIT_OPTIONS.map(({ id, label }) => (
                 <button
                   key={id}
                   type="button"
@@ -475,7 +472,7 @@ export function Settings() {
                       settings: { ...s.settings, allowanceSplit: id },
                     }))
                   }
-                  className={`cursor-pointer flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                  className={`cursor-pointer flex-1 rounded-md px-2 py-1.5 text-[11px] font-medium transition-colors sm:px-3 sm:text-xs ${
                     state.settings.allowanceSplit === id
                       ? 'bg-white text-stone-900 shadow-sm dark:bg-stone-700 dark:text-stone-50'
                       : 'text-stone-700 dark:text-stone-400'
@@ -485,12 +482,11 @@ export function Settings() {
                 </button>
               ))}
             </div>
-            <p className="text-xs text-stone-700 dark:text-stone-400">
-              How you share bills and leftover pocket money each month. Example:
-              €3,000 left with 50/50 → each keeps €1,500. “By income” uses
-              Barney/Lucka salaries only — Other income still adds to the
-              leftover, but not the split ratio.
-            </p>
+            <SplitModeNote
+              mode={state.settings.allowanceSplit}
+              partnerAName={state.settings.partnerAName}
+              partnerBName={state.settings.partnerBName}
+            />
           </div>
         </div>
         <Button onClick={() => void saveSettings()}>Save & sync</Button>
@@ -1148,6 +1144,209 @@ export function Settings() {
       )}
       </div>
     </PageShell>
+  )
+}
+
+function SplitModeNote({
+  mode,
+  partnerAName,
+  partnerBName,
+}: {
+  mode: AllowanceSplit
+  partnerAName: string
+  partnerBName: string
+}) {
+  return (
+    <div className="rounded-lg border border-stone-200 bg-stone-50 px-3 py-2.5 text-xs leading-relaxed text-stone-700 dark:border-stone-700 dark:bg-stone-900/50 dark:text-stone-400">
+      {mode === 'equal' ? (
+        <div className="space-y-2">
+          <p>
+            <span className="font-medium text-stone-800 dark:text-stone-200">
+              50/50
+            </span>{' '}
+            — treat the household as one pot: expenses and leftover are split
+            evenly, even when incomes differ.
+          </p>
+          <ul className="list-disc space-y-1 pl-4 text-stone-600 dark:text-stone-500">
+            <li>
+              <span className="font-medium text-stone-700 dark:text-stone-300">
+                Pays
+              </span>{' '}
+              — each should cover half the expenses
+            </li>
+            <li>
+              <span className="font-medium text-stone-700 dark:text-stone-300">
+                Net share
+              </span>{' '}
+              — each is entitled to half of household Net (all incomes −
+              expenses). That is a fairness claim on the combined leftover, not
+              “what landed in my account this month.”
+            </li>
+          </ul>
+          <div className="rounded-md bg-white/80 px-2.5 py-2 dark:bg-stone-950/40">
+            <p className="font-medium text-stone-800 dark:text-stone-200">
+              Example ({partnerBName} earns more)
+            </p>
+            <p className="mt-1 text-stone-600 dark:text-stone-500">
+              {partnerAName} €1,000 · {partnerBName} €3,000 · expenses €1,000 →
+              household Net €3,000
+            </p>
+            <ul className="mt-1.5 space-y-0.5 tabular-nums">
+              <li>
+                Each Pays{' '}
+                <span className="font-medium text-stone-800 dark:text-stone-200">
+                  €500
+                </span>
+              </li>
+              <li>
+                Each Net share{' '}
+                <span className="font-medium text-stone-800 dark:text-stone-200">
+                  €1,500
+                </span>{' '}
+                <span className="text-stone-500 dark:text-stone-500">
+                  (half of €3,000)
+                </span>
+              </li>
+            </ul>
+            <p className="mt-1.5 text-stone-600 dark:text-stone-500">
+              If each pays their €500 from their own pay, {partnerAName} has
+              about €500 left and {partnerBName} about €2,500 — together still
+              €3,000. Under 50/50, the idea is that leftover belongs
+              half-and-half (€1,500 each). Getting there when incomes differ
+              means sharing some of that cash between you; the Net share number
+              is the target, not a snapshot of either account.
+            </p>
+          </div>
+        </div>
+      ) : mode === 'income' ? (
+        <div className="space-y-2">
+          <p>
+            <span className="font-medium text-stone-800 dark:text-stone-200">
+              By income
+            </span>{' '}
+            — expenses and leftover follow how much each partner earned that
+            month. Higher earner covers a larger share of expenses and is
+            entitled to a larger slice of household Net.
+          </p>
+          <ul className="list-disc space-y-1 pl-4 text-stone-600 dark:text-stone-500">
+            <li>
+              <span className="font-medium text-stone-700 dark:text-stone-300">
+                Pays
+              </span>{' '}
+              — fair share of household expenses, in salary proportion
+            </li>
+            <li>
+              <span className="font-medium text-stone-700 dark:text-stone-300">
+                Net share
+              </span>{' '}
+              — fair share of household Net (all incomes − expenses), in the
+              same proportion. Again a claim on the combined leftover, not a
+              bank-balance readout.
+            </li>
+          </ul>
+          <div className="rounded-md bg-white/80 px-2.5 py-2 dark:bg-stone-950/40">
+            <p className="font-medium text-stone-800 dark:text-stone-200">
+              Example ({partnerBName} earns more · 1∶2)
+            </p>
+            <p className="mt-1 text-stone-600 dark:text-stone-500">
+              {partnerAName} €1,000 · {partnerBName} €2,000 · Other €300 ·
+              expenses €900 → €3,300 in, household Net €2,400
+            </p>
+            <ul className="mt-1.5 space-y-0.5 tabular-nums">
+              <li>
+                {partnerAName} Pays{' '}
+                <span className="font-medium text-stone-800 dark:text-stone-200">
+                  €300
+                </span>
+                , Net share{' '}
+                <span className="font-medium text-stone-800 dark:text-stone-200">
+                  €800
+                </span>
+              </li>
+              <li>
+                {partnerBName} Pays{' '}
+                <span className="font-medium text-stone-800 dark:text-stone-200">
+                  €600
+                </span>
+                , Net share{' '}
+                <span className="font-medium text-stone-800 dark:text-stone-200">
+                  €1,600
+                </span>
+              </li>
+            </ul>
+            <p className="mt-1.5 text-stone-600 dark:text-stone-500">
+              The ratio uses only {partnerAName}’s and {partnerBName}’s
+              salaries. Other income still fattens household Net (so both Net
+              shares grow), but it does not change who gets the bigger slice. If
+              both salaries are €0 that month, the split falls back to 50/50.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <p>
+            <span className="font-medium text-stone-800 dark:text-stone-200">
+              Income · equal Net
+            </span>{' '}
+            — expenses follow salary capacity; leftover is shared evenly. Useful
+            when incomes are temporarily uneven (for example parental leave)
+            but you still want equal claim on what’s left.
+          </p>
+          <ul className="list-disc space-y-1 pl-4 text-stone-600 dark:text-stone-500">
+            <li>
+              <span className="font-medium text-stone-700 dark:text-stone-300">
+                Pays
+              </span>{' '}
+              — fair share of household expenses, in salary proportion
+            </li>
+            <li>
+              <span className="font-medium text-stone-700 dark:text-stone-300">
+                Net share
+              </span>{' '}
+              — each is entitled to half of household Net, even if Pays were
+              uneven. Still a fairness claim on the combined leftover, not a
+              bank-balance readout.
+            </li>
+          </ul>
+          <div className="rounded-md bg-white/80 px-2.5 py-2 dark:bg-stone-950/40">
+            <p className="font-medium text-stone-800 dark:text-stone-200">
+              Example ({partnerBName} earns more · 1∶2 Pays, equal Net)
+            </p>
+            <p className="mt-1 text-stone-600 dark:text-stone-500">
+              {partnerAName} €1,000 · {partnerBName} €2,000 · Other €300 ·
+              expenses €900 → €3,300 in, household Net €2,400
+            </p>
+            <ul className="mt-1.5 space-y-0.5 tabular-nums">
+              <li>
+                {partnerAName} Pays{' '}
+                <span className="font-medium text-stone-800 dark:text-stone-200">
+                  €300
+                </span>
+                , Net share{' '}
+                <span className="font-medium text-stone-800 dark:text-stone-200">
+                  €1,200
+                </span>
+              </li>
+              <li>
+                {partnerBName} Pays{' '}
+                <span className="font-medium text-stone-800 dark:text-stone-200">
+                  €600
+                </span>
+                , Net share{' '}
+                <span className="font-medium text-stone-800 dark:text-stone-200">
+                  €1,200
+                </span>
+              </li>
+            </ul>
+            <p className="mt-1.5 text-stone-600 dark:text-stone-500">
+              Higher earner covers more of the expenses; both still get the same
+              Net share. Other income fattens Net but not the Pays ratio. If
+              both salaries are €0 that month, Pays falls back to 50/50 too.
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
 

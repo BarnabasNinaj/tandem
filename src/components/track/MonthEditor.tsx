@@ -12,6 +12,7 @@ import {
   CardExpenses,
   type CardExpensesHandle,
 } from '@/components/track/CardExpenses'
+import { ALLOWANCE_SPLIT_OPTIONS } from '@/lib/allowance-split'
 import { formatMonthKey, listRecentMonthKeys } from '@/lib/dates'
 import { registerCardSheetFlush } from '@/lib/card-sheet'
 import {
@@ -25,6 +26,7 @@ import {
 } from '@/lib/finance'
 import { formatMoney, netCaption } from '@/lib/number'
 import { useTandemStore } from '@/store/tandem-store'
+import type { AllowanceSplit } from '@/types/tandem'
 
 export function MonthEditor() {
   const state = useTandemStore((s) => s.state)!
@@ -81,7 +83,7 @@ export function MonthEditor() {
     ],
   )
 
-  const setAllowanceSplit = (mode: 'equal' | 'income') => {
+  const setAllowanceSplit = (mode: AllowanceSplit) => {
     updateState((s) => ({
       ...s,
       settings: { ...s.settings, allowanceSplit: mode },
@@ -294,13 +296,13 @@ export function MonthEditor() {
               titleColor="var(--partner-a)"
               metrics={[
                 {
-                  label: 'Fair share of bills',
+                  label: 'Fair share of expenses',
                   shortLabel: 'Pays',
                   value: money(computed.expenseSharePartnerA),
                 },
                 {
-                  label: 'Keeps',
-                  shortLabel: 'Keeps',
+                  label: 'Fair share of Net',
+                  shortLabel: 'Net share',
                   value: money(computed.personalAllowancePartnerA),
                 },
               ]}
@@ -310,13 +312,13 @@ export function MonthEditor() {
               titleColor="var(--partner-b)"
               metrics={[
                 {
-                  label: 'Fair share of bills',
+                  label: 'Fair share of expenses',
                   shortLabel: 'Pays',
                   value: money(computed.expenseSharePartnerB),
                 },
                 {
-                  label: 'Keeps',
-                  shortLabel: 'Keeps',
+                  label: 'Fair share of Net',
+                  shortLabel: 'Net share',
                   value: money(computed.personalAllowancePartnerB),
                 },
               ]}
@@ -326,7 +328,7 @@ export function MonthEditor() {
           {settlement.hasPaymentData ? (
             <p
               className="text-center text-xs text-stone-600 dark:text-stone-400"
-              title="Card entry (who paid) vs fair share of bills — common-card spend is split like expenses"
+              title="Card entry (who paid) vs fair share of expenses — common-card spend is split like expenses"
             >
               {settlement.direction === 'settled' ? (
                 <>Settled — card payments match fair shares</>
@@ -353,29 +355,25 @@ export function MonthEditor() {
           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-stone-200 pt-1.5 sm:pt-3 dark:border-stone-700">
             <div
               className="flex items-center gap-1.5"
-              title="How Pays and Keeps are shared — Pays is fair share of bills, not what a card charged. Change the household default in Settings"
+              title="How Pays and Net share are split — Pays is fair share of expenses; Net share is fair share of household leftover (not each person’s bank balance). Change the default in Settings"
             >
               <span className="text-[11px] text-stone-600 dark:text-stone-400">
                 Split
               </span>
               <div className="flex gap-0.5 rounded-md bg-stone-200/80 p-0.5 dark:bg-stone-800">
-                {(
-                  [
-                    { id: 'equal', label: '50/50' },
-                    { id: 'income', label: 'By income' },
-                  ] as const
-                ).map(({ id, label }) => (
+                {ALLOWANCE_SPLIT_OPTIONS.map(({ id, label, shortLabel }) => (
                   <button
                     key={id}
                     type="button"
+                    title={label}
                     onClick={() => setAllowanceSplit(id)}
-                    className={`cursor-pointer rounded px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                    className={`cursor-pointer rounded px-2 py-1 text-[11px] font-medium transition-colors sm:px-2.5 ${
                       allowanceSplit === id
                         ? 'bg-[var(--surface)] text-stone-900 shadow-sm dark:bg-stone-700 dark:text-stone-50'
                         : 'text-stone-600 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100'
                     }`}
                   >
-                    {label}
+                    {shortLabel}
                   </button>
                 ))}
               </div>

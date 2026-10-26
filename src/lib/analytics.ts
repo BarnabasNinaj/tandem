@@ -232,10 +232,10 @@ export interface HomeMonthSnap {
   /** Partner salaries (Income) — Other excluded. */
   incomeA: number | null
   incomeB: number | null
-  /** Fair share of bills (Pays). */
+  /** Fair share of expenses (Pays). */
   paysA: number | null
   paysB: number | null
-  /** Fair share of leftover (Keeps). */
+  /** Fair share of household Net (Net share) — not bank balance. */
   pocketA: number | null
   pocketB: number | null
   /** Card-paid vs fair share — only when paymentByOwner has data. */
@@ -407,7 +407,7 @@ export interface KeepsPoint {
   partnerB: number
 }
 
-/** Fair-share leftover (Keeps) per partner over the range. */
+/** Fair Net share per partner over the range (not bank balances). */
 export function keepsOverTime(records: MonthlyRecord[]): KeepsPoint[] {
   return records.map((r) => ({
     month: formatMonthKey(r.monthKey),

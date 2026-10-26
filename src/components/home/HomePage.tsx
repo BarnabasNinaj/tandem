@@ -534,8 +534,11 @@ function MonthCard({
                   {money(snap.paysA!)}
                 </span>
               </p>
-              <p className="mt-0.5 text-xs text-stone-600 dark:text-stone-400">
-                Keeps{' '}
+              <p
+                className="mt-0.5 text-xs text-stone-600 dark:text-stone-400"
+                title="Fair share of household Net (all incomes − expenses) — not what’s left in this person’s account"
+              >
+                Net share{' '}
                 <span
                   className={cn(
                     'font-medium tabular-nums',
@@ -567,8 +570,11 @@ function MonthCard({
                   {money(snap.paysB!)}
                 </span>
               </p>
-              <p className="mt-0.5 text-xs text-stone-600 dark:text-stone-400">
-                Keeps{' '}
+              <p
+                className="mt-0.5 text-xs text-stone-600 dark:text-stone-400"
+                title="Fair share of household Net (all incomes − expenses) — not what’s left in this person’s account"
+              >
+                Net share{' '}
                 <span
                   className={cn(
                     'font-medium tabular-nums',

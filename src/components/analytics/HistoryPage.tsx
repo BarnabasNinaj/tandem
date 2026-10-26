@@ -104,14 +104,14 @@ export function HistoryPage() {
       header={
         <AnalyticsPageHeader
           title="History"
-          subtitle="How income, spend, Net, and Keeps moved — dashed bars are a simple continuation"
+          subtitle="How income, spend, Net, and Net share moved — dashed bars are a simple continuation"
           range={range}
           onRangeChange={setRange}
         />
       }
     >
       {records.length === 0 ? (
-        <AnalyticsEmpty blurb="No months yet. Track a month (or load 2026 samples) to see flow, Net, Keeps, category lines, and expense mix." />
+        <AnalyticsEmpty blurb="No months yet. Track a month (or load 2026 samples) to see flow, Net, Net share, category lines, and expense mix." />
       ) : (
         <>
           <Card>
@@ -205,9 +205,11 @@ export function HistoryPage() {
           </Card>
 
           <Card>
-            <CardTitle>Keeps</CardTitle>
+            <CardTitle>Net share</CardTitle>
             <p className="mt-1 text-xs text-stone-600 dark:text-stone-400">
-              Fair share of Net each partner keeps after bills
+              Each partner’s fair slice of household Net (all incomes −
+              expenses) — a fairness target, not what’s left in their own
+              account
             </p>
             <div className="mt-4 h-64">
               <ResponsiveContainer width="100%" height="100%">

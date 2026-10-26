@@ -69,7 +69,8 @@ export function normalizeInflows(
 }
 
 function normalizeAllowanceSplit(raw: unknown): AllowanceSplit {
-  return raw === 'income' ? 'income' : 'equal'
+  if (raw === 'income' || raw === 'incomeEqualNet') return raw
+  return 'equal'
 }
 
 function normalizeHistory(

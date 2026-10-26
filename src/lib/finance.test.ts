@@ -79,6 +79,32 @@ describe('computeMonthly', () => {
     expect(computed.personalAllowancePartnerB).toBe(700)
     expect(computed.allowanceSplit).toBe('income')
   })
+
+  it('incomeEqualNet: Pays by income, Net share 50/50 (Other excluded from Pays ratio)', () => {
+    // X=3300, Y=900, Z=2400; earned 1000:2000 → 1:2 Pays; Net half each
+    const computed = computeMonthly(
+      {
+        partnerASalary: 1000,
+        partnerBIncome: 2000,
+        otherInflows: 300,
+      },
+      [
+        {
+          categoryId: 'housing',
+          categoryName: 'Housing',
+          amount: 900,
+        },
+      ],
+      'incomeEqualNet',
+    )
+
+    expect(computed.leftoverAfterExpenses).toBe(2400)
+    expect(computed.expenseSharePartnerA).toBe(300)
+    expect(computed.expenseSharePartnerB).toBe(600)
+    expect(computed.personalAllowancePartnerA).toBe(1200)
+    expect(computed.personalAllowancePartnerB).toBe(1200)
+    expect(computed.allowanceSplit).toBe('incomeEqualNet')
+  })
 })
 
 describe('buildMonthlyRecord / savings', () => {
@@ -168,6 +194,19 @@ describe('settleExpenseShares / bumpPaymentByOwner', () => {
     expect(s.effectivePaidB).toBe(300)
     expect(s.direction).toBe('settled')
     expect(s.transferAmount).toBe(0)
+  })
+
+  it('incomeEqualNet settles common cards by income (Pays side)', () => {
+    const s = settleExpenseShares(
+      { partnerA: 0, partnerB: 0, common: 900 },
+      { partnerASalary: 1000, partnerBIncome: 2000, otherInflows: 0 },
+      300,
+      600,
+      'incomeEqualNet',
+    )
+    expect(s.effectivePaidA).toBe(300)
+    expect(s.effectivePaidB).toBe(600)
+    expect(s.direction).toBe('settled')
   })
 })
 
