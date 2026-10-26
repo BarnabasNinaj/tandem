@@ -4,7 +4,7 @@ import {
   buildMonthOutlook,
   categoryStats,
   expenseGrid,
-  incomeExpenseWithProjection,
+  incomeExpenseOverTime,
   incomeMonths,
   keepsOverTime,
   linearSlope,
@@ -221,15 +221,21 @@ describe('expenseGrid', () => {
   })
 })
 
-describe('incomeExpenseWithProjection', () => {
-  it('appends projected points after actuals', () => {
-    const records = [month('2026-01', 900, 300), month('2026-02', 900, 300)]
-    const series = incomeExpenseWithProjection(records, 2)
-    expect(series).toHaveLength(4)
-    expect(series[0]!.kind).toBe('actual')
-    expect(series[2]!.kind).toBe('projected')
-    expect(series[2]!.income).toBeNull()
-    expect(series[2]!.projectedExpense).toBe(1200)
+describe('incomeExpenseOverTime', () => {
+  it('returns tracked income and expense only', () => {
+    const records = [month('2026-01', 900, 300), month('2026-02', 900, 400)]
+    const series = incomeExpenseOverTime(records)
+    expect(series).toHaveLength(2)
+    expect(series[0]).toMatchObject({
+      monthKey: '2026-01',
+      income: 3000,
+      expense: 1200,
+    })
+    expect(series[1]).toMatchObject({
+      monthKey: '2026-02',
+      income: 3000,
+      expense: 1300,
+    })
   })
 })
 

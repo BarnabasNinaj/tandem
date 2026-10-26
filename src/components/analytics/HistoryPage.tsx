@@ -30,7 +30,7 @@ import {
   type AnalyticsRange,
   categoryStats,
   categoryTrendSeries,
-  incomeExpenseWithProjection,
+  incomeExpenseOverTime,
   keepsOverTime,
   netOverTime,
   sliceHistory,
@@ -68,7 +68,7 @@ export function HistoryPage() {
   )
 
   const flowSeries = useMemo(
-    () => incomeExpenseWithProjection(records, 3),
+    () => incomeExpenseOverTime(records),
     [records],
   )
 
@@ -104,7 +104,7 @@ export function HistoryPage() {
       header={
         <AnalyticsPageHeader
           title="History"
-          subtitle="How income, spend, Net, and Net share moved — dashed bars are a simple continuation"
+          subtitle="How income, spend, Net, and Net share moved"
           range={range}
           onRangeChange={setRange}
         />
@@ -117,8 +117,7 @@ export function HistoryPage() {
           <Card>
             <CardTitle>Income vs expense</CardTitle>
             <p className="mt-1 text-xs text-stone-600 dark:text-stone-400">
-              Solid green/orange = tracked · sage/sand with dashed outline =
-              average projection
+              Tracked months in this range
             </p>
             <div className="mt-4 h-64">
               <ResponsiveContainer width="100%" height="100%">
@@ -147,26 +146,6 @@ export function HistoryPage() {
                     name="Expense"
                     hide={flowLegend.isHidden('expense')}
                     fill={CHART.expense}
-                    radius={[4, 4, 0, 0]}
-                  />
-                  <Bar
-                    dataKey="projectedIncome"
-                    name="Projected income"
-                    hide={flowLegend.isHidden('projectedIncome')}
-                    fill={CHART.projectedIncome}
-                    stroke={CHART.income}
-                    strokeWidth={1.5}
-                    strokeDasharray="4 3"
-                    radius={[4, 4, 0, 0]}
-                  />
-                  <Bar
-                    dataKey="projectedExpense"
-                    name="Projected expense"
-                    hide={flowLegend.isHidden('projectedExpense')}
-                    fill={CHART.projectedExpense}
-                    stroke={CHART.expense}
-                    strokeWidth={1.5}
-                    strokeDasharray="4 3"
                     radius={[4, 4, 0, 0]}
                   />
                 </BarChart>

@@ -420,51 +420,18 @@ export function keepsOverTime(records: MonthlyRecord[]): KeepsPoint[] {
 export interface FlowPoint {
   month: string
   monthKey: string
-  income: number | null
-  expense: number | null
-  projectedIncome?: number | null
-  projectedExpense?: number | null
-  kind: 'actual' | 'projected'
+  income: number
+  expense: number
 }
 
-/** Income/expense bars plus trailing average projections. */
-export function incomeExpenseWithProjection(
-  records: MonthlyRecord[],
-  projectMonths = 3,
-): FlowPoint[] {
-  if (records.length === 0) return []
-  const avgIncome = mean(records.map((r) => r.computed.totalInflow))
-  const avgExpense = mean(records.map((r) => r.computed.totalOutflow))
-
-  const actual: FlowPoint[] = records.map((r) => ({
+/** Income vs expense bars for tracked months (no forward projections). */
+export function incomeExpenseOverTime(records: MonthlyRecord[]): FlowPoint[] {
+  return records.map((r) => ({
     month: formatMonthKey(r.monthKey),
     monthKey: r.monthKey,
     income: r.computed.totalInflow,
     expense: r.computed.totalOutflow,
-    projectedIncome: null,
-    projectedExpense: null,
-    kind: 'actual',
   }))
-
-  // Bridge point: last actual also carries projected values for a continuous line
-  const last = actual[actual.length - 1]!
-  last.projectedIncome = last.income
-  last.projectedExpense = last.expense
-
-  let cursor = last.monthKey
-  for (let i = 0; i < projectMonths; i++) {
-    cursor = shiftMonthKey(cursor, 1)
-    actual.push({
-      month: formatMonthKey(cursor),
-      monthKey: cursor,
-      income: null,
-      expense: null,
-      projectedIncome: avgIncome,
-      projectedExpense: avgExpense,
-      kind: 'projected',
-    })
-  }
-  return actual
 }
 
 export interface IncomeMonth {

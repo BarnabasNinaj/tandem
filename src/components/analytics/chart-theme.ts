@@ -5,9 +5,6 @@ export const CHART = {
   netWorth: '#0369a1',
   income: '#15803d',
   expense: '#c2410c',
-  /** Forecast bars — related family, clearly not the solid actuals. */
-  projectedIncome: '#9cb8a5',
-  projectedExpense: '#d4a574',
   projected: '#78716c',
 } as const
 
