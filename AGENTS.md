@@ -46,7 +46,7 @@ Do not treat the data repo as “optional secrets.” It **is** the sync store.
 | Routes / phases | `src/App.tsx` (`/` Home, `/track`, `/history`, `/incomes`, `/expenses`, `/outlook`, `/settings`) |
 | Home (`/` — logo + nav) | `src/components/home/HomePage.tsx` + `buildHomeOverview` in `analytics.ts` |
 | Track (month entry) | `src/components/track/TrackPage.tsx` + `MonthEditor.tsx` + `CardExpenses.tsx` (card-first expense entry) |
-| History / Incomes / Expenses / Outlook UI | `src/components/analytics/` (legend click: `use-legend-filter.ts`; pies: `PieBreakdown.tsx`) |
+| History / Incomes / Expenses / Outlook UI | `src/components/analytics/` (legend click: `use-legend-filter.ts`; pies: `PieBreakdown.tsx`; range hero: `RangeHero.tsx`) |
 
 ## Commands
 

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { AnalyticsEmpty } from '@/components/analytics/AnalyticsEmpty'
 import { AnalyticsPageHeader } from '@/components/analytics/AnalyticsPageHeader'
 import { CAT_COLORS } from '@/components/analytics/chart-theme'
+import { RangeHero } from '@/components/analytics/RangeHero'
 import { PageShell } from '@/components/layout/PageShell'
 import {
   MetaLabel,
@@ -171,15 +172,8 @@ export function OutlookPage() {
           <>
             {outlook && (
               <>
-                <section
-                  className="relative overflow-hidden border-y border-stone-300 px-4 py-4 dark:border-stone-700 sm:px-5"
-                  style={{
-                    background:
-                      'linear-gradient(135deg, color-mix(in oklab, var(--logo) 8%, transparent), transparent 55%)',
-                  }}
-                >
-                  <SectionHeading title="In this range" />
-                  <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
+                <RangeHero>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
                     <div className="min-w-0 shrink-0">
                       <p
                         className={cn(
@@ -207,7 +201,7 @@ export function OutlookPage() {
                     </div>
                     <MonthPocketBars records={records} />
                   </div>
-                </section>
+                </RangeHero>
 
                 <section className="space-y-6 animate-[fadeUp_0.5s_ease-out]">
                   <SectionHeading

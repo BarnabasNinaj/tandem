@@ -17,8 +17,8 @@ import {
   axisTick,
   tipProps,
 } from '@/components/analytics/chart-theme'
-import { MetricStrip } from '@/components/analytics/MetricStrip'
 import { PieBreakdown } from '@/components/analytics/PieBreakdown'
+import { RangeHero } from '@/components/analytics/RangeHero'
 import { useLegendFilter } from '@/components/analytics/use-legend-filter'
 import { Button } from '@/components/ui/button'
 import { Card, CardTitle } from '@/components/ui/card'
@@ -88,8 +88,8 @@ export function IncomesPage() {
           <AnalyticsEmpty blurb="No months yet. Track incomes (or load 2026 samples) to see the breakdown." />
         ) : (
           <>
-            <MetricStrip
-              items={[
+            <RangeHero
+              metrics={[
                 { label: 'Avg / mo', value: money(summary.avgTotal) },
                 {
                   label: partnerAName,
