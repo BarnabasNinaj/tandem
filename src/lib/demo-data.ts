@@ -56,7 +56,7 @@ type MonthSpec = {
  * Amounts are keyed by category **id** (not list index) so Settings renames stick.
  *
  * Story shape (for chart interest, not realism claims):
- * - Wide income swings (A bonuses / quiet months; B mid-year leave then recovery)
+ * - A salary wobbles month to month (OT / quiet weeks) plus Apr/Dec bonuses; B mid-year leave then recovery
  * - Several months finish **negative** (spend > income) — summer travel, back-to-school, Dec gifts
  * - Strong surplus months in spring / autumn for contrast
  * - Other = gifts, refunds, side work (sporadic)
@@ -65,7 +65,7 @@ type MonthSpec = {
 const YEAR_SPECS: MonthSpec[] = [
   {
     monthKey: '2026-01',
-    partnerASalary: 2680,
+    partnerASalary: 2520,
     partnerBIncome: 2320,
     otherInflows: 0,
     housing: 940,
@@ -82,7 +82,7 @@ const YEAR_SPECS: MonthSpec[] = [
   },
   {
     monthKey: '2026-02',
-    partnerASalary: 2680,
+    partnerASalary: 2810,
     partnerBIncome: 2320,
     otherInflows: 280,
     housing: 940,
@@ -99,7 +99,7 @@ const YEAR_SPECS: MonthSpec[] = [
   },
   {
     monthKey: '2026-03',
-    partnerASalary: 2500,
+    partnerASalary: 2380,
     partnerBIncome: 1650,
     otherInflows: 0,
     housing: 940,
@@ -133,7 +133,7 @@ const YEAR_SPECS: MonthSpec[] = [
   },
   {
     monthKey: '2026-05',
-    partnerASalary: 2750,
+    partnerASalary: 2690,
     partnerBIncome: 1450,
     otherInflows: 0,
     housing: 1020,
@@ -150,7 +150,7 @@ const YEAR_SPECS: MonthSpec[] = [
   },
   {
     monthKey: '2026-06',
-    partnerASalary: 2700,
+    partnerASalary: 2910,
     partnerBIncome: 550,
     otherInflows: 100,
     housing: 1020,
@@ -167,7 +167,7 @@ const YEAR_SPECS: MonthSpec[] = [
   },
   {
     monthKey: '2026-07',
-    partnerASalary: 2700,
+    partnerASalary: 2480,
     partnerBIncome: 350,
     otherInflows: 0,
     housing: 1020,
@@ -184,7 +184,7 @@ const YEAR_SPECS: MonthSpec[] = [
   },
   {
     monthKey: '2026-08',
-    partnerASalary: 2700,
+    partnerASalary: 2730,
     partnerBIncome: 350,
     otherInflows: 80,
     housing: 1020,
@@ -201,7 +201,7 @@ const YEAR_SPECS: MonthSpec[] = [
   },
   {
     monthKey: '2026-09',
-    partnerASalary: 2800,
+    partnerASalary: 2590,
     partnerBIncome: 750,
     otherInflows: 0,
     housing: 1020,
@@ -218,7 +218,7 @@ const YEAR_SPECS: MonthSpec[] = [
   },
   {
     monthKey: '2026-10',
-    partnerASalary: 2900,
+    partnerASalary: 3080,
     partnerBIncome: 2050,
     otherInflows: 40,
     housing: 1020,
@@ -235,7 +235,7 @@ const YEAR_SPECS: MonthSpec[] = [
   },
   {
     monthKey: '2026-11',
-    partnerASalary: 3000,
+    partnerASalary: 2860,
     partnerBIncome: 2200,
     otherInflows: 0,
     housing: 1020,

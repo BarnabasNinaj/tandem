@@ -260,7 +260,9 @@ export function OutlookPage() {
                 <table className="w-full min-w-[32rem] text-left text-sm">
                   <thead>
                     <tr className="text-xs tracking-wide text-stone-600 uppercase dark:text-stone-400">
-                      <th className="pb-2.5 pr-4 font-medium">Category</th>
+                      <th className="analytics-sticky-label pb-2.5 pr-4 font-medium">
+                        Category
+                      </th>
                       <th className="px-3 pb-2.5 font-medium text-right">
                         Average
                       </th>
@@ -280,7 +282,7 @@ export function OutlookPage() {
                           key={c.categoryId}
                           className="border-t border-stone-200 dark:border-stone-800"
                         >
-                          <td className="py-2.5 pr-4">
+                          <td className="analytics-sticky-label py-2.5 pr-4">
                             <span className="flex items-center gap-2">
                               <span
                                 className="h-2.5 w-2.5 shrink-0 rounded-full"

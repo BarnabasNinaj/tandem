@@ -40,7 +40,7 @@ describe('demo-data', () => {
       (k) =>
         history[k]!.outflows.find((o) => o.categoryId === 'housing')!.amount,
     )
-    expect(new Set(aSalaries).size).toBeGreaterThan(3)
+    expect(new Set(aSalaries).size).toBeGreaterThan(8)
     expect(new Set(bIncomes).size).toBeGreaterThan(5)
     expect(new Set(groceries).size).toBeGreaterThan(8)
     expect(new Set(housing).size).toBeGreaterThan(1)

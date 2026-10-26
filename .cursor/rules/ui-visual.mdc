@@ -40,6 +40,7 @@ Never show formula letters (X / Y / Z) in UI copy — use plain words (income, e
 - Chart legends: click toggles series visibility (`useLegendFilter`); dim/strike hidden labels; reset when range changes
 - Pie charts: `PieBreakdown` (donut left, €/% rows fill remaining width; two columns when ≥5 slices); same card layout on History + Expenses mix; do not rely on Recharts Legend for pie filter (shared `dataKey: "value"`)
 - Expenses table: category rows × month columns (not the reverse)
+- Analytics tables (Expenses / Incomes / Outlook): first label column uses `.analytics-sticky-label` (`sticky left-0` + opaque `--bg`) so names stay visible while month/metric columns scroll horizontally
 - History/Incomes/Expenses/Outlook range toggle sticks under the app header while scrolling (`PageHeader` + `overflow-x: clip`)
 - Prefer existing Button/Card/Input/Select patterns and stone/teal Tailwind usage
 - Dropdowns: always `Select` from `src/components/ui/select.tsx` (appearance-none + inset ChevronDown) — no raw browser `<select>`

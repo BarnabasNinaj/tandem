@@ -168,7 +168,9 @@ export function IncomesPage() {
                 <table className="w-full min-w-[28rem] text-left text-sm">
                   <thead>
                     <tr className="text-xs tracking-wide text-stone-600 uppercase dark:text-stone-400">
-                      <th className="py-2 font-medium">Month</th>
+                      <th className="analytics-sticky-label py-2 pr-3 font-medium">
+                        Month
+                      </th>
                       <th
                         className="py-2 font-medium text-right"
                         style={{ color: 'var(--partner-a)' }}
@@ -197,7 +199,7 @@ export function IncomesPage() {
                         key={r.monthKey}
                         className="border-t border-stone-200 dark:border-stone-800"
                       >
-                        <td className="py-2 text-stone-800 dark:text-stone-200">
+                        <td className="analytics-sticky-label py-2 pr-3 text-stone-800 dark:text-stone-200">
                           {r.label}
                         </td>
                         <td className="py-2 text-right tabular-nums">
@@ -237,7 +239,9 @@ export function IncomesPage() {
                   </tbody>
                   <tfoot>
                     <tr className="border-t border-stone-300 font-medium dark:border-stone-600">
-                      <td className="py-2">Average</td>
+                      <td className="analytics-sticky-label py-2 pr-3">
+                        Average
+                      </td>
                       <td className="py-2 text-right tabular-nums">
                         {money(summary.avgPartnerA)}
                       </td>

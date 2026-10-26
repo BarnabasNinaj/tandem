@@ -158,7 +158,9 @@ export function ExpensesPage() {
               <table className="w-full min-w-[40rem] text-left text-sm">
                 <thead>
                   <tr className="text-xs tracking-wide text-stone-600 uppercase dark:text-stone-400">
-                    <th className="py-2 pr-3 font-medium">Category</th>
+                    <th className="analytics-sticky-label py-2 pr-3 font-medium">
+                      Category
+                    </th>
                     {grid.rows.map((r) => (
                       <th
                         key={r.monthKey}
@@ -176,7 +178,7 @@ export function ExpensesPage() {
                       key={c.id}
                       className="border-t border-stone-200 dark:border-stone-800"
                     >
-                      <td className="py-2 pr-3 whitespace-nowrap text-stone-800 dark:text-stone-200">
+                      <td className="analytics-sticky-label py-2 pr-3 whitespace-nowrap text-stone-800 dark:text-stone-200">
                         {c.name}
                       </td>
                       {grid.rows.map((r) => (
@@ -195,7 +197,7 @@ export function ExpensesPage() {
                 </tbody>
                 <tfoot>
                   <tr className="border-t border-stone-300 font-medium dark:border-stone-600">
-                    <td className="py-2 pr-3">Total</td>
+                    <td className="analytics-sticky-label py-2 pr-3">Total</td>
                     {grid.rows.map((r) => (
                       <td
                         key={r.monthKey}
@@ -209,7 +211,7 @@ export function ExpensesPage() {
                     </td>
                   </tr>
                   <tr className="border-t border-stone-200 dark:border-stone-800">
-                    <td className="py-2 pr-3" />
+                    <td className="analytics-sticky-label py-2 pr-3" />
                     {grid.rows.map((r) => (
                       <td key={r.monthKey} className="py-2 pr-3 text-right">
                         <Button

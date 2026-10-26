@@ -139,3 +139,19 @@ body {
 .recharts-sector {
   stroke: none;
 }
+
+/*
+ * Analytics month grids: keep the label column readable while months scroll.
+ * Opaque --bg so cells don’t show through; light edge shadow hints more content.
+ */
+.analytics-sticky-label {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--bg);
+  box-shadow: 4px 0 8px -6px rgb(28 25 23 / 0.16);
+}
+
+.dark .analytics-sticky-label {
+  box-shadow: 4px 0 8px -6px rgb(0 0 0 / 0.55);
+}
