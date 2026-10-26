@@ -10,7 +10,7 @@ import {
 } from '@/lib/analytics'
 import { formatMonthKey, toMonthKey } from '@/lib/dates'
 import { draftForMonth } from '@/lib/finance'
-import { formatMoney } from '@/lib/number'
+import { formatMoney, netCaption } from '@/lib/number'
 import { cn } from '@/lib/utils'
 import { useTandemStore } from '@/store/tandem-store'
 
@@ -456,22 +456,23 @@ function MonthCard({
           : 'border-stone-300/80 bg-[var(--surface)] dark:border-stone-700 dark:bg-stone-900/40',
       )}
     >
-      {statusLabel ? (
-        <p className="text-[10px] font-medium tracking-[0.14em] text-stone-600 uppercase dark:text-stone-400">
-          {statusLabel}
+      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+        <p
+          className={cn(
+            'font-[family-name:var(--font-display)] text-lg font-semibold tracking-tight sm:text-xl',
+            snap.isCalendar
+              ? 'text-teal-800 dark:text-teal-300'
+              : 'text-stone-600 dark:text-stone-400',
+          )}
+        >
+          {snap.label}
         </p>
-      ) : null}
-      <p
-        className={cn(
-          'font-[family-name:var(--font-display)] text-lg font-semibold tracking-tight sm:text-xl',
-          statusLabel ? 'mt-1' : null,
-          snap.isCalendar
-            ? 'text-teal-800 dark:text-teal-300'
-            : 'text-stone-600 dark:text-stone-400',
-        )}
-      >
-        {snap.label}
-      </p>
+        {statusLabel ? (
+          <p className="text-[10px] font-medium tracking-[0.14em] text-stone-600 uppercase dark:text-stone-400">
+            {statusLabel}
+          </p>
+        ) : null}
+      </div>
 
       {snap.leftover === null ? (
         <p className="mt-6 text-sm text-stone-600 dark:text-stone-400">
@@ -491,7 +492,7 @@ function MonthCard({
             {money(snap.leftover)}
           </p>
           <p className="mt-1 text-xs text-stone-600 dark:text-stone-400">
-            left after expenses
+            {netCaption(snap.leftover)}
           </p>
 
           <div className="mt-5 grid grid-cols-2 gap-3 text-sm">

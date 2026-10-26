@@ -23,7 +23,7 @@ import {
   settleExpenseShares,
   type WizardDraft,
 } from '@/lib/finance'
-import { formatMoney } from '@/lib/number'
+import { formatMoney, netCaption } from '@/lib/number'
 import { useTandemStore } from '@/store/tandem-store'
 
 export function MonthEditor() {
@@ -282,8 +282,8 @@ export function MonthEditor() {
                   value: money(computed.totalOutflow),
                 },
                 {
-                  label: 'Left after expenses',
-                  shortLabel: 'Left',
+                  label: netCaption(computed.leftoverAfterExpenses, 'label'),
+                  shortLabel: 'Net',
                   value: money(computed.leftoverAfterExpenses),
                   negative: leftoverNegative,
                 },

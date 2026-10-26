@@ -47,3 +47,16 @@ export function formatMoney(amount: number): string {
     return `${CURRENCY_SYMBOL}${round2(amount).toFixed(2)}`
   }
 }
+
+/**
+ * Copy for a month’s net (income − expenses).
+ * `caption` = under a figure; `label` = sentence case (e.g. Track footer).
+ */
+export function netCaption(
+  amount: number,
+  style: 'caption' | 'label' = 'caption',
+): string {
+  const raw = amount < 0 ? 'short this month' : 'left after expenses'
+  if (style === 'label') return raw.charAt(0).toUpperCase() + raw.slice(1)
+  return raw
+}

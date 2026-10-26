@@ -14,7 +14,7 @@ import {
   sliceHistory,
 } from '@/lib/analytics'
 import { formatMonthKey } from '@/lib/dates'
-import { formatMoney, round2 } from '@/lib/number'
+import { formatMoney, netCaption, round2 } from '@/lib/number'
 import { cn } from '@/lib/utils'
 import { useTandemStore } from '@/store/tandem-store'
 import type { MonthlyRecord } from '@/types/tandem'
@@ -55,7 +55,7 @@ function MonthPocketBars({ records }: { records: MonthlyRecord[] }) {
     <div
       className="flex min-w-0 flex-1 items-end gap-1 sm:max-w-md sm:gap-1.5"
       role="img"
-      aria-label="Leftover by month in this range"
+      aria-label="Net by month in this range"
     >
       {records.map((r, i) => {
         const v = values[i]!
@@ -192,11 +192,16 @@ export function OutlookPage() {
                         {money(outlook.totalPocket)}
                       </p>
                       <p className="mt-1 text-xs text-stone-600 dark:text-stone-400">
-                        Left over · {outlook.sampleSize} mo ·{' '}
+                        Net · {outlook.sampleSize} mo ·{' '}
                         {money(outlook.avgPocket)}/mo
                         <span className="text-stone-500">
                           {' '}
-                          · what months kept after expenses
+                          ·{' '}
+                          {outlook.sampleSize === 1
+                            ? netCaption(outlook.totalPocket)
+                            : outlook.totalPocket < 0
+                              ? 'short across these months'
+                              : 'left after expenses'}
                         </span>
                       </p>
                     </div>
@@ -240,7 +245,7 @@ export function OutlookPage() {
                       }
                     />
                     <AheadMetric
-                      label="Pocket"
+                      label="Net"
                       value={money(outlook.avgPocket)}
                       secondary={`${outlook.avgSavingsRate}%`}
                       hint="of income"

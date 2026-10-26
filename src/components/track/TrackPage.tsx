@@ -257,7 +257,7 @@ function TrackHub() {
                     </span>
                     <span className="flex min-w-0 flex-col items-start text-left sm:w-24">
                       <span className="text-[10px] font-medium tracking-wide text-stone-600 uppercase dark:text-stone-400">
-                        Left
+                        Net
                       </span>
                       <span
                         className={cn(

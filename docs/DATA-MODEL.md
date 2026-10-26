@@ -95,9 +95,9 @@ All money values rounded with `round2`.
 | Range slice | Last 3 / 6 / 12 months or all |
 | Category average | Mean monthly spend (missing month = €0) |
 | Category trend | OLS slope €/month over the range |
-| Month outlook | Trailing means for income, expenses, leftover/pocket (Z); `totalPocket` = sum of Z over the range (UI: “Left over”); Pocket tile shows avg € and `(Z/X)%` — one looking-ahead baseline (no stamped multi-month projection rows) |
+| Month outlook | Trailing means for income, expenses, leftover/net (Z); `totalPocket` = sum of Z over the range (UI: **Net**); looking-ahead **Net** tile shows avg € and `(Z/X)%` — one baseline (no stamped multi-month projection rows). Captions: left after expenses / short this month (`netCaption`) |
 
-**Not in the model:** partner bank balances / cash-on-hand. Months are cashflow (in/out), not a balance sheet. Range “Left over” is Σ(income − expenses) since tracking in that slice — opening cash and untracked movements are invisible. A current as-of snapshot could live in Settings later for runway; it must not be projected onto past month keys.
+**Not in the model:** partner bank balances / cash-on-hand. Months are cashflow (in/out), not a balance sheet. Range **Net** is Σ(income − expenses) since tracking in that slice — opening cash and untracked movements are invisible. A current as-of snapshot could live in Settings later for runway; it must not be projected onto past month keys.
 
 Focus month defaults to the current calendar month (`toMonthKey()`). If that month is already in `history`, Outlook shows deltas vs the trailing average.
 
