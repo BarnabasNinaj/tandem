@@ -3,9 +3,11 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
   Legend,
   Line,
   LineChart,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -29,17 +31,25 @@ import {
   categoryStats,
   categoryTrendSeries,
   incomeExpenseWithProjection,
+  keepsOverTime,
+  netOverTime,
   sliceHistory,
 } from '@/lib/analytics'
 import { formatMoney } from '@/lib/number'
+import { PARTNER_COLOR } from '@/lib/partners'
 import { useTandemStore } from '@/store/tandem-store'
+
+const NET_POS = 'var(--logo)'
+const NET_NEG = '#c2410c'
 
 export function HistoryPage() {
   const state = useTandemStore((s) => s.state)!
   const [range, setRange] = useState<AnalyticsRange>('6M')
   const money = formatMoney
+  const { partnerAName, partnerBName } = state.settings
   const catLegend = useLegendFilter(range)
   const flowLegend = useLegendFilter(range)
+  const keepsLegend = useLegendFilter(range)
   const mixLegend = useLegendFilter(range)
 
   const records = useMemo(
@@ -62,6 +72,13 @@ export function HistoryPage() {
     [records],
   )
 
+  const { points: netPoints, totalNet } = useMemo(
+    () => netOverTime(records),
+    [records],
+  )
+
+  const keepsSeries = useMemo(() => keepsOverTime(records), [records])
+
   const mixSlices = useMemo(
     () =>
       cats.map((c, i) => ({
@@ -72,59 +89,31 @@ export function HistoryPage() {
     [cats],
   )
 
+  const netRangeCaption =
+    records.length === 1
+      ? totalNet < 0
+        ? 'short this month'
+        : 'left after expenses'
+      : totalNet < 0
+        ? 'short across these months'
+        : 'left after expenses'
+
   return (
     <PageShell
       bodyClassName="space-y-6"
       header={
         <AnalyticsPageHeader
           title="History"
-          subtitle="How income and spend moved over time — dashed lines are a simple continuation"
+          subtitle="How income, spend, Net, and Keeps moved — dashed bars are a simple continuation"
           range={range}
           onRangeChange={setRange}
         />
       }
     >
       {records.length === 0 ? (
-        <AnalyticsEmpty blurb="No months yet. Track a month (or load 2026 samples) to see category lines, flow, and expense mix." />
+        <AnalyticsEmpty blurb="No months yet. Track a month (or load 2026 samples) to see flow, Net, Keeps, category lines, and expense mix." />
       ) : (
         <>
-          <Card>
-            <CardTitle>Category trends</CardTitle>
-            <p className="mt-1 text-xs text-stone-600 dark:text-stone-400">
-              Top categories by average spend
-            </p>
-            <div className="mt-4 h-72">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={catSeries}>
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                  <XAxis
-                    dataKey="month"
-                    tick={axisTick}
-                    tickFormatter={(v: string) => formatChartMonth(v)}
-                  />
-                  <YAxis tick={axisTick} width={56} />
-                  <Tooltip
-                    {...tipProps}
-                    formatter={(v) => money(Number(v))}
-                  />
-                  <Legend {...catLegend.legendProps} />
-                  {topCatNames.map((name, i) => (
-                    <Line
-                      key={name}
-                      type="monotone"
-                      dataKey={name}
-                      hide={catLegend.isHidden(name)}
-                      stroke={CAT_COLORS[i % CAT_COLORS.length]}
-                      strokeWidth={2}
-                      dot={{ r: 2.5 }}
-                      activeDot={{ r: 4 }}
-                    />
-                  ))}
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-
           <Card>
             <CardTitle>Income vs expense</CardTitle>
             <p className="mt-1 text-xs text-stone-600 dark:text-stone-400">
@@ -181,6 +170,115 @@ export function HistoryPage() {
                     radius={[4, 4, 0, 0]}
                   />
                 </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+
+          <Card>
+            <CardTitle>Net</CardTitle>
+            <p className="mt-1 text-xs text-stone-600 dark:text-stone-400">
+              Income − expenses by month · {money(totalNet)} cumulative ·{' '}
+              {netRangeCaption}
+            </p>
+            <div className="mt-4 h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={netPoints}>
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                  <XAxis dataKey="month" tick={axisTick} />
+                  <YAxis tick={axisTick} width={56} />
+                  <ReferenceLine y={0} stroke="var(--border)" />
+                  <Tooltip
+                    {...tipProps}
+                    formatter={(v) => money(Number(v))}
+                  />
+                  <Bar dataKey="net" name="Net" radius={[4, 4, 0, 0]}>
+                    {netPoints.map((p) => (
+                      <Cell
+                        key={p.monthKey}
+                        fill={p.net < 0 ? NET_NEG : NET_POS}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+
+          <Card>
+            <CardTitle>Keeps</CardTitle>
+            <p className="mt-1 text-xs text-stone-600 dark:text-stone-400">
+              Fair share of Net each partner keeps after bills
+            </p>
+            <div className="mt-4 h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={keepsSeries}>
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                  <XAxis dataKey="month" tick={axisTick} />
+                  <YAxis tick={axisTick} width={56} />
+                  <ReferenceLine y={0} stroke="var(--border)" />
+                  <Tooltip
+                    {...tipProps}
+                    formatter={(v) => money(Number(v))}
+                  />
+                  <Legend {...keepsLegend.legendProps} />
+                  <Line
+                    type="monotone"
+                    dataKey="partnerA"
+                    name={partnerAName}
+                    hide={keepsLegend.isHidden('partnerA')}
+                    stroke={PARTNER_COLOR.partnerA}
+                    strokeWidth={2}
+                    dot={{ r: 2.5 }}
+                    activeDot={{ r: 4 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="partnerB"
+                    name={partnerBName}
+                    hide={keepsLegend.isHidden('partnerB')}
+                    stroke={PARTNER_COLOR.partnerB}
+                    strokeWidth={2}
+                    dot={{ r: 2.5 }}
+                    activeDot={{ r: 4 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+
+          <Card>
+            <CardTitle>Category trends</CardTitle>
+            <p className="mt-1 text-xs text-stone-600 dark:text-stone-400">
+              Top categories by average spend
+            </p>
+            <div className="mt-4 h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={catSeries}>
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                  <XAxis
+                    dataKey="month"
+                    tick={axisTick}
+                    tickFormatter={(v: string) => formatChartMonth(v)}
+                  />
+                  <YAxis tick={axisTick} width={56} />
+                  <Tooltip
+                    {...tipProps}
+                    formatter={(v) => money(Number(v))}
+                  />
+                  <Legend {...catLegend.legendProps} />
+                  {topCatNames.map((name, i) => (
+                    <Line
+                      key={name}
+                      type="monotone"
+                      dataKey={name}
+                      hide={catLegend.isHidden(name)}
+                      stroke={CAT_COLORS[i % CAT_COLORS.length]}
+                      strokeWidth={2}
+                      dot={{ r: 2.5 }}
+                      activeDot={{ r: 4 }}
+                    />
+                  ))}
+                </LineChart>
               </ResponsiveContainer>
             </div>
           </Card>

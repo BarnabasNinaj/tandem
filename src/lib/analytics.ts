@@ -374,6 +374,49 @@ export function buildHomeOverview(
   return { months, focusMonthKey: calendarMonthKey }
 }
 
+export interface NetPoint {
+  month: string
+  monthKey: string
+  net: number
+  cumulative: number
+}
+
+/** Month Net (Z) plus running sum over the range. */
+export function netOverTime(records: MonthlyRecord[]): {
+  points: NetPoint[]
+  totalNet: number
+} {
+  let cumulative = 0
+  const points = records.map((r) => {
+    const net = r.computed.discretionarySurplus
+    cumulative = round2(cumulative + net)
+    return {
+      month: formatMonthKey(r.monthKey),
+      monthKey: r.monthKey,
+      net,
+      cumulative,
+    }
+  })
+  return { points, totalNet: cumulative }
+}
+
+export interface KeepsPoint {
+  month: string
+  monthKey: string
+  partnerA: number
+  partnerB: number
+}
+
+/** Fair-share leftover (Keeps) per partner over the range. */
+export function keepsOverTime(records: MonthlyRecord[]): KeepsPoint[] {
+  return records.map((r) => ({
+    month: formatMonthKey(r.monthKey),
+    monthKey: r.monthKey,
+    partnerA: r.computed.personalAllowancePartnerA,
+    partnerB: r.computed.personalAllowancePartnerB,
+  }))
+}
+
 export interface FlowPoint {
   month: string
   monthKey: string

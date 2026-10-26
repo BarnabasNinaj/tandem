@@ -6,7 +6,9 @@ import {
   expenseGrid,
   incomeExpenseWithProjection,
   incomeMonths,
+  keepsOverTime,
   linearSlope,
+  netOverTime,
   shiftMonthKey,
   sliceHistory,
   summarizeIncomes,
@@ -228,5 +230,26 @@ describe('incomeExpenseWithProjection', () => {
     expect(series[2]!.kind).toBe('projected')
     expect(series[2]!.income).toBeNull()
     expect(series[2]!.projectedExpense).toBe(1200)
+  })
+})
+
+describe('netOverTime', () => {
+  it('tracks month Net and cumulative leftover', () => {
+    // 3000 − 1200 = 1800; 3000 − 1300 = 1700
+    const { points, totalNet } = netOverTime([
+      month('2026-01', 900, 300),
+      month('2026-02', 900, 400),
+    ])
+    expect(points.map((p) => p.net)).toEqual([1800, 1700])
+    expect(points[1]?.cumulative).toBe(3500)
+    expect(totalNet).toBe(3500)
+  })
+})
+
+describe('keepsOverTime', () => {
+  it('splits Net equally under equal allowance', () => {
+    const series = keepsOverTime([month('2026-01', 900, 300)])
+    expect(series[0]?.partnerA).toBe(900)
+    expect(series[0]?.partnerB).toBe(900)
   })
 })
