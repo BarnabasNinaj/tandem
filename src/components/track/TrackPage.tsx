@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowRight, Pencil, Trash2 } from 'lucide-react'
+import { ArrowRight, Check, Pencil, Trash2 } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { PageShell } from '@/components/layout/PageShell'
 import { SectionHeading } from '@/components/layout/SectionHeading'
@@ -41,6 +41,8 @@ function TrackHub() {
 
   const [resumeDraft, setResumeDraft] = useState<WizardDraft | null>(null)
   const [deletingKey, setDeletingKey] = useState<string | null>(null)
+  /** List edit mode — pencil on the section; trash / open only while editing (like Settings → Banks). */
+  const [listEditing, setListEditing] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -70,6 +72,7 @@ function TrackHub() {
     try {
       await deleteMonth(monthKey)
       setResumeDraft((d) => (d?.monthKey === monthKey ? null : d))
+      if (months.length <= 1) setListEditing(false)
     } finally {
       setDeletingKey(null)
     }
@@ -135,7 +138,36 @@ function TrackHub() {
       </section>
 
       <section>
-        <SectionHeading title="Tracked months" />
+        <div className="flex items-center justify-between gap-2">
+          <SectionHeading title="Tracked months" />
+          {months.length > 0 ? (
+            listEditing ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 shrink-0"
+                aria-label="Done editing months"
+                title="Done"
+                onClick={() => setListEditing(false)}
+              >
+                <Check className="h-3.5 w-3.5 text-teal-800 dark:text-teal-300" />
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 shrink-0"
+                aria-label="Edit tracked months"
+                title="Edit months"
+                onClick={() => setListEditing(true)}
+              >
+                <Pencil className="h-3.5 w-3.5 text-stone-600 dark:text-stone-400" />
+              </Button>
+            )
+          ) : null}
+        </div>
         {months.length === 0 ? (
           <p className="mt-4 border-t border-stone-300 pt-6 text-sm text-stone-600 dark:border-stone-700 dark:text-stone-400">
             No months yet. Track {formatMonthKey(currentKey)}, or load 2026 samples
@@ -149,7 +181,12 @@ function TrackHub() {
               return (
                 <li
                   key={record.monthKey}
-                  className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-2 py-3 sm:flex sm:gap-4 sm:py-2.5"
+                  className={cn(
+                    'items-center gap-x-2 gap-y-2 py-3 sm:flex sm:gap-4 sm:py-2.5',
+                    listEditing
+                      ? 'grid grid-cols-[minmax(0,1fr)_auto]'
+                      : 'grid grid-cols-1',
+                  )}
                 >
                   <div className="flex min-w-0 items-center gap-2 sm:flex-1 sm:gap-3">
                     <span
@@ -167,34 +204,41 @@ function TrackHub() {
                     </span>
                   </div>
 
-                  <div className="flex shrink-0 items-center gap-0.5 sm:order-last">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      title={`Edit ${formatMonthKey(record.monthKey)}`}
-                      aria-label={`Edit ${formatMonthKey(record.monthKey)}`}
-                      disabled={busy}
-                      onClick={() => openMonth(record.monthKey)}
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-stone-600 hover:text-red-700 dark:text-stone-400 dark:hover:text-red-400"
-                      title={`Delete ${formatMonthKey(record.monthKey)}`}
-                      aria-label={`Delete ${formatMonthKey(record.monthKey)}`}
-                      disabled={busy}
-                      onClick={() => void onDelete(record.monthKey)}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
+                  {listEditing ? (
+                    <div className="flex shrink-0 items-center gap-0.5 sm:order-last">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        title={`Edit ${formatMonthKey(record.monthKey)}`}
+                        aria-label={`Edit ${formatMonthKey(record.monthKey)}`}
+                        disabled={busy}
+                        onClick={() => openMonth(record.monthKey)}
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-stone-600 hover:text-red-700 dark:text-stone-400 dark:hover:text-red-400"
+                        title={`Delete ${formatMonthKey(record.monthKey)}`}
+                        aria-label={`Delete ${formatMonthKey(record.monthKey)}`}
+                        disabled={busy}
+                        onClick={() => void onDelete(record.monthKey)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  ) : null}
 
-                  <div className="col-span-2 grid grid-cols-3 gap-2 text-sm tabular-nums sm:col-span-1 sm:flex sm:w-auto sm:shrink-0 sm:gap-5">
+                  <div
+                    className={cn(
+                      'grid grid-cols-3 gap-2 text-sm tabular-nums sm:flex sm:w-auto sm:shrink-0 sm:gap-5',
+                      listEditing ? 'col-span-2 sm:col-span-1' : 'col-span-1',
+                    )}
+                  >
                     <span className="flex min-w-0 flex-col items-start text-left sm:w-24">
                       <span className="text-[10px] font-medium tracking-wide text-stone-600 uppercase dark:text-stone-400">
                         In

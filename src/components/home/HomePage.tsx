@@ -436,14 +436,14 @@ function MonthCard({
   partnerBName: string
   money: (n: number) => string
 }) {
-  // Top meta on every card (no empty reserved slot). Calendar month is teal —
-  // no separate “Current” label.
+  // Only label non-recorded cards — “Tracked” adds no signal on a filled month.
+  // Calendar month is teal on the title (no separate “Current” label).
   const statusLabel =
-    snap.status === 'recorded'
-      ? 'Tracked'
-      : snap.status === 'projected'
-        ? 'Estimate'
-        : 'Not tracked'
+    snap.status === 'projected'
+      ? 'Estimate'
+      : snap.status === 'untracked'
+        ? 'Not tracked'
+        : null
 
   return (
     <article
@@ -456,15 +456,18 @@ function MonthCard({
           : 'border-stone-300/80 bg-[var(--surface)] dark:border-stone-700 dark:bg-stone-900/40',
       )}
     >
-      <p className="text-[10px] font-medium tracking-[0.14em] text-stone-600 uppercase dark:text-stone-400">
-        {statusLabel}
-      </p>
+      {statusLabel ? (
+        <p className="text-[10px] font-medium tracking-[0.14em] text-stone-600 uppercase dark:text-stone-400">
+          {statusLabel}
+        </p>
+      ) : null}
       <p
         className={cn(
-          'mt-1 font-[family-name:var(--font-display)] text-xl font-semibold tracking-tight sm:text-2xl',
+          'font-[family-name:var(--font-display)] text-lg font-semibold tracking-tight sm:text-xl',
+          statusLabel ? 'mt-1' : null,
           snap.isCalendar
-            ? 'text-stone-950 dark:text-stone-50'
-            : 'text-stone-800 dark:text-stone-100',
+            ? 'text-teal-800 dark:text-teal-300'
+            : 'text-stone-600 dark:text-stone-400',
         )}
       >
         {snap.label}
