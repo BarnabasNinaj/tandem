@@ -1,10 +1,9 @@
 import { useRef, useState } from 'react'
 import {
-  ArrowDown,
   ArrowRight,
-  ArrowUp,
   Check,
   Download,
+  GripVertical,
   Landmark,
   Pencil,
   Plus,
@@ -102,6 +101,18 @@ export function Settings() {
   const [expandedCatLabels, setExpandedCatLabels] = useState<
     Record<string, boolean>
   >({})
+  /** Lifted category row that follows the pointer while reordering. */
+  const [catDrag, setCatDrag] = useState<{
+    id: string
+    name: string
+    width: number
+    height: number
+    offsetX: number
+    offsetY: number
+    x: number
+    y: number
+  } | null>(null)
+  const draggingCatIdRef = useRef<string | null>(null)
 
   const saveSettings = async () => {
     await push('chore: update settings')
@@ -128,15 +139,83 @@ export function Settings() {
   const cards = state.settings.cards ?? []
   const mappings = state.settings.categoryMappings ?? []
 
-  const moveCat = (index: number, dir: -1 | 1) => {
-    const next = [...categories]
-    const j = index + dir
-    if (j < 0 || j >= next.length) return
-    ;[next[index], next[j]] = [next[j]!, next[index]!]
-    updateState((s) => ({
-      ...s,
-      settings: { ...s.settings, categories: next },
-    }))
+  const reorderCat = (fromId: string, toId: string) => {
+    if (fromId === toId) return
+    updateState((s) => {
+      const list = s.settings.categories
+      const from = list.findIndex((c) => c.id === fromId)
+      const to = list.findIndex((c) => c.id === toId)
+      if (from < 0 || to < 0 || from === to) return s
+      const next = [...list]
+      const [item] = next.splice(from, 1)
+      if (!item) return s
+      next.splice(to, 0, item)
+      return {
+        ...s,
+        settings: { ...s.settings, categories: next },
+      }
+    })
+  }
+
+  const onCatDragPointerDown = (
+    e: React.PointerEvent<HTMLButtonElement>,
+    id: string,
+    name: string,
+  ) => {
+    if (e.button !== 0) return
+    e.preventDefault()
+    const row = e.currentTarget.closest('[data-cat-row]') as HTMLElement | null
+    if (!row) return
+    const rect = row.getBoundingClientRect()
+    const pointerId = e.pointerId
+    const offsetX = e.clientX - rect.left
+    const offsetY = e.clientY - rect.top
+    draggingCatIdRef.current = id
+    setExpandedCatLabels((prev) =>
+      prev[id] ? { ...prev, [id]: false } : prev,
+    )
+    setCatDrag({
+      id,
+      name,
+      width: rect.width,
+      height: rect.height,
+      offsetX,
+      offsetY,
+      x: rect.left,
+      y: rect.top,
+    })
+
+    const onMove = (ev: PointerEvent) => {
+      if (ev.pointerId !== pointerId) return
+      const fromId = draggingCatIdRef.current
+      if (!fromId) return
+      setCatDrag((prev) =>
+        prev
+          ? {
+              ...prev,
+              x: ev.clientX - offsetX,
+              y: ev.clientY - offsetY,
+            }
+          : prev,
+      )
+      const el = document.elementFromPoint(ev.clientX, ev.clientY)
+      const over = el?.closest('[data-cat-id]') as HTMLElement | null
+      const overId = over?.dataset.catId
+      if (overId && overId !== fromId) reorderCat(fromId, overId)
+    }
+
+    const onUp = (ev: PointerEvent) => {
+      if (ev.pointerId !== pointerId) return
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onUp)
+      window.removeEventListener('pointercancel', onUp)
+      draggingCatIdRef.current = null
+      setCatDrag(null)
+    }
+
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerup', onUp)
+    window.addEventListener('pointercancel', onUp)
   }
 
   const removeCat = (id: string) => {
@@ -504,14 +583,15 @@ export function Settings() {
           <CardTitle>Expense categories</CardTitle>
           <p className="mt-0.5 text-xs text-stone-700 dark:text-stone-400">
             Household buckets for spend — groceries, rent, travel, and so on.
-            Tap the tags icon on a category to review bank labels mapped here;
-            remap under Banks if something looks wrong.
+            Drag the grip to reorder. Tap the tags icon to review bank labels
+            mapped here; remap under Banks if something looks wrong.
           </p>
         </div>
         <ul className="space-y-2">
-          {categories.map((c, i) => {
+          {categories.map((c) => {
             const catMaps = mappingsForCategory(mappings, c.id)
             const open = Boolean(expandedCatLabels[c.id])
+            const dragging = catDrag?.id === c.id
             const bankName = (bankId: string) =>
               banks.find((b) => b.id === bankId)?.name ?? bankId
             const labelsByBank = catMaps.reduce<
@@ -526,95 +606,122 @@ export function Settings() {
               return groups
             }, [])
             return (
-              <li key={c.id} className="space-y-1.5">
-                <div className="flex items-center gap-2">
-                  <Input
-                    value={c.name}
-                    onChange={(e) => renameCat(c.id, e.target.value)}
+              <li key={c.id} data-cat-id={c.id} className="space-y-1.5">
+                {dragging && catDrag ? (
+                  <div
+                    className="rounded-lg border border-dashed border-stone-300 dark:border-stone-600"
+                    style={{ height: catDrag.height }}
+                    aria-hidden
                   />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    type="button"
-                    className={
-                      open
-                        ? 'text-teal-800 dark:text-teal-300'
-                        : 'text-stone-600 dark:text-stone-400'
-                    }
-                    onClick={() =>
-                      setExpandedCatLabels((prev) => ({
-                        ...prev,
-                        [c.id]: !prev[c.id],
-                      }))
-                    }
-                    aria-expanded={open}
-                    aria-label={
-                      catMaps.length
-                        ? `Bank labels (${catMaps.length})`
-                        : 'Bank labels'
-                    }
-                    title={
-                      catMaps.length
-                        ? `${catMaps.length} bank labels`
-                        : 'No bank labels yet'
-                    }
-                  >
-                    <Tags className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    type="button"
-                    onClick={() => moveCat(i, -1)}
-                    aria-label="Move up"
-                  >
-                    <ArrowUp className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    type="button"
-                    onClick={() => moveCat(i, 1)}
-                    aria-label="Move down"
-                  >
-                    <ArrowDown className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    type="button"
-                    onClick={() => removeCat(c.id)}
-                    aria-label="Delete"
-                  >
-                    <Trash2 className="h-4 w-4 text-red-600" />
-                  </Button>
-                </div>
-                {open ? (
-                  <div className="rounded-lg bg-stone-100 px-3 py-2.5 dark:bg-stone-800/55">
-                    {catMaps.length === 0 ? (
-                      <p className="text-xs text-stone-600 dark:text-stone-400">
-                        No bank labels map here yet — add them under Banks.
-                      </p>
-                    ) : (
-                      <ul className="space-y-2">
-                        {labelsByBank.map((group) => (
-                          <li key={group.bankId}>
-                            <p className="text-[10px] font-semibold tracking-[0.12em] text-stone-500 uppercase dark:text-stone-400">
-                              {bankName(group.bankId)}
-                            </p>
-                            <p className="text-sm leading-snug text-stone-800 dark:text-stone-100">
-                              {group.labels.join(' · ')}
-                            </p>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                ) : null}
+                ) : (
+                  <>
+                    <div
+                      data-cat-row
+                      className="flex items-center gap-1.5 sm:gap-2"
+                    >
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        type="button"
+                        className="h-10 w-8 shrink-0 cursor-grab touch-none text-stone-500 active:cursor-grabbing dark:text-stone-400"
+                        aria-label={`Drag to reorder ${c.name}`}
+                        title="Drag to reorder"
+                        onPointerDown={(e) =>
+                          onCatDragPointerDown(e, c.id, c.name)
+                        }
+                      >
+                        <GripVertical className="h-4 w-4" />
+                      </Button>
+                      <Input
+                        value={c.name}
+                        onChange={(e) => renameCat(c.id, e.target.value)}
+                      />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        type="button"
+                        className={
+                          open
+                            ? 'text-teal-800 dark:text-teal-300'
+                            : 'text-stone-600 dark:text-stone-400'
+                        }
+                        onClick={() =>
+                          setExpandedCatLabels((prev) => ({
+                            ...prev,
+                            [c.id]: !prev[c.id],
+                          }))
+                        }
+                        aria-expanded={open}
+                        aria-label={
+                          catMaps.length
+                            ? `Bank labels (${catMaps.length})`
+                            : 'Bank labels'
+                        }
+                        title={
+                          catMaps.length
+                            ? `${catMaps.length} bank labels`
+                            : 'No bank labels yet'
+                        }
+                      >
+                        <Tags className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        type="button"
+                        onClick={() => removeCat(c.id)}
+                        aria-label="Delete"
+                      >
+                        <Trash2 className="h-4 w-4 text-red-600" />
+                      </Button>
+                    </div>
+                    {open ? (
+                      <div className="ml-8 rounded-lg bg-stone-100 px-3 py-2.5 dark:bg-stone-800/55 sm:ml-10">
+                        {catMaps.length === 0 ? (
+                          <p className="text-xs text-stone-600 dark:text-stone-400">
+                            No bank labels map here yet — add them under Banks.
+                          </p>
+                        ) : (
+                          <ul className="space-y-2">
+                            {labelsByBank.map((group) => (
+                              <li key={group.bankId}>
+                                <p className="text-[10px] font-semibold tracking-[0.12em] text-stone-500 uppercase dark:text-stone-400">
+                                  {bankName(group.bankId)}
+                                </p>
+                                <p className="text-sm leading-snug text-stone-800 dark:text-stone-100">
+                                  {group.labels.join(' · ')}
+                                </p>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    ) : null}
+                  </>
+                )}
               </li>
             )
           })}
         </ul>
+        {catDrag ? (
+          <div
+            className="pointer-events-none fixed z-[80] flex items-center gap-1.5 rounded-lg border border-stone-300 bg-[var(--surface)] px-1 shadow-lg ring-1 ring-black/5 sm:gap-2 dark:border-stone-600 dark:ring-white/10"
+            style={{
+              left: catDrag.x,
+              top: catDrag.y,
+              width: catDrag.width,
+              height: catDrag.height,
+              transform: 'scale(1.02)',
+            }}
+          >
+            <span className="flex h-10 w-8 shrink-0 items-center justify-center text-stone-500 dark:text-stone-400">
+              <GripVertical className="h-4 w-4" />
+            </span>
+            <span className="min-w-0 flex-1 truncate px-3 text-sm font-medium text-stone-900 dark:text-stone-50">
+              {catDrag.name}
+            </span>
+          </div>
+        ) : null}
         <div className="flex gap-2">
           <Input
             placeholder="New category"
