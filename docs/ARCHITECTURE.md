@@ -53,7 +53,7 @@ Defined in `src/store/tandem-store.ts` / gated in `src/App.tsx`:
 | `/breakdown` | Redirect → `/history` |
 | `/settings` | `Settings` |
 
-Global overlays in `AppShell`: `ConflictDialog` only. Month entry lives on Track (`MonthEditor`), not a modal.
+Global overlays in `AppShell`: `ConflictDialog` only. Header also shows an unsaved (`localDirty`) amber strip and runs quiet pull on tab visibility via `useVisibilityPull`. Month entry lives on Track (`MonthEditor`), not a modal.
 
 ## Layering
 

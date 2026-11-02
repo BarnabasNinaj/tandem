@@ -36,6 +36,8 @@ Do not treat the data repo as “optional secrets.” It **is** the sync store.
 | Split presets (Pays / Net share) | `src/lib/allowance-split.ts` + `allowanceSplit` (`equal` \| `income` \| `incomeEqualNet`) |
 | Analytics (averages, trends, outlook) | `src/lib/analytics.ts` |
 | Bank label mappings + card merge | `src/lib/card-expenses.ts` |
+| Conflict month-key / timestamp diff | `src/lib/conflict-summary.ts` + `ConflictDialog` |
+| Quiet pull on tab focus | `src/hooks/use-visibility-pull.ts` → `pull({ quiet: true })` |
 | Partner / owner colors | `src/lib/partners.ts`, `OwnerBadge` |
 | Migrations | `src/lib/migration.ts` |
 | Device invite | `src/lib/device-invite.ts` |

@@ -15,6 +15,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { ConflictDialog } from '@/components/sync/ConflictDialog'
 import { useTheme } from '@/hooks/use-theme'
+import { useVisibilityPull } from '@/hooks/use-visibility-pull'
 import { formatDateTimeDDMMYYYY } from '@/lib/dates'
 import { cn } from '@/lib/utils'
 import { useTandemStore } from '@/store/tandem-store'
@@ -53,6 +54,17 @@ export function AppShell() {
   const lastSyncedAt = useTandemStore((s) => s.lastSyncedAt)
   const error = useTandemStore((s) => s.error)
   const { theme, toggle } = useTheme()
+  useVisibilityPull()
+
+  const onLock = () => {
+    if (localDirty) {
+      const ok = window.confirm(
+        'You have unsaved changes that will be lost when you lock. Lock anyway?',
+      )
+      if (!ok) return
+    }
+    lock()
+  }
 
   return (
     // No overflow-x-clip here — nested clip + sticky leaves 1px compositor seams
@@ -113,6 +125,7 @@ export function AppShell() {
             <Button
               variant="ghost"
               size="icon"
+              className="relative"
               onClick={() => void pull()}
               disabled={syncing}
               title={
@@ -137,8 +150,18 @@ export function AppShell() {
               }
             >
               <RefreshCw
-                className={cn('h-4 w-4', syncing && 'animate-spin')}
+                className={cn(
+                  'h-4 w-4',
+                  syncing && 'animate-spin',
+                  localDirty && !syncing && 'text-amber-700 dark:text-amber-400',
+                )}
               />
+              {localDirty && !syncing ? (
+                <span
+                  className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-amber-600 dark:bg-amber-400"
+                  aria-hidden
+                />
+              ) : null}
             </Button>
             <Button
               variant="ghost"
@@ -158,14 +181,24 @@ export function AppShell() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={lock}
-              title="Lock"
+              onClick={onLock}
+              title={
+                localDirty
+                  ? 'Lock (unsaved changes will be lost)'
+                  : 'Lock'
+              }
               aria-label="Lock vault"
             >
               <Lock className="h-4 w-4" />
             </Button>
           </div>
         </div>
+        {localDirty && !error ? (
+          <div className="border-t border-amber-200/80 bg-amber-50 px-5 py-1.5 text-center text-xs text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-100 sm:px-8">
+            Unsaved changes on this device — Save &amp; sync in Settings, or tap
+            sync to push then pull. Locking will discard them.
+          </div>
+        ) : null}
         {error && (
           <div className="border-t border-red-200 bg-red-50 px-5 py-1.5 text-center text-xs text-red-800 dark:border-red-900 dark:bg-red-950/50 dark:text-red-300 sm:px-8">
             {error}

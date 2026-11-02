@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   mappingsForBank,
+  mappingsForCategory,
   mergeCardLinesIntoOutflows,
   normalizeBankLabel,
   upsertBankMappings,
@@ -56,6 +57,54 @@ describe('upsertBankMappings + mappingsForBank', () => {
     expect(mappingsForBank(next, 'b2')).toEqual([
       { bankId: 'b2', key: 'fuel', label: 'Fuel', categoryId: 'misc' },
     ])
+  })
+})
+
+describe('mappingsForCategory', () => {
+  it('lists labels for one household category across banks', () => {
+    const mappings = [
+      {
+        bankId: 'b2',
+        key: 'fuel',
+        label: 'Fuel',
+        categoryId: 'transport',
+      },
+      {
+        bankId: 'b1',
+        key: 'petrol',
+        label: 'Petrol',
+        categoryId: 'transport',
+      },
+      {
+        bankId: 'b1',
+        key: 'restaurant',
+        label: 'Restaurant',
+        categoryId: 'dining',
+      },
+    ]
+    expect(mappingsForCategory(mappings, 'transport')).toEqual([
+      {
+        bankId: 'b1',
+        key: 'petrol',
+        label: 'Petrol',
+        categoryId: 'transport',
+      },
+      {
+        bankId: 'b2',
+        key: 'fuel',
+        label: 'Fuel',
+        categoryId: 'transport',
+      },
+    ])
+    expect(mappingsForCategory(mappings, 'dining')).toEqual([
+      {
+        bankId: 'b1',
+        key: 'restaurant',
+        label: 'Restaurant',
+        categoryId: 'dining',
+      },
+    ])
+    expect(mappingsForCategory(mappings, 'misc')).toEqual([])
   })
 })
 

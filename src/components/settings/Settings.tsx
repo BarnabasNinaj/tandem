@@ -22,7 +22,11 @@ import { Label } from '@/components/ui/label'
 import { OwnerBadge } from '@/components/ui/owner-badge'
 import { Select } from '@/components/ui/select'
 import { ALLOWANCE_SPLIT_OPTIONS } from '@/lib/allowance-split'
-import { mappingsForBank, normalizeBankLabel } from '@/lib/card-expenses'
+import {
+  mappingsForBank,
+  mappingsForCategory,
+  normalizeBankLabel,
+} from '@/lib/card-expenses'
 import { formatDateTimeDDMMYYYY } from '@/lib/dates'
 import { nextOwner } from '@/lib/partners'
 import { useTandemStore } from '@/store/tandem-store'
@@ -94,6 +98,10 @@ export function Settings() {
     Record<string, { label: string; categoryId: string }>
   >({})
   const [tab, setTab] = useState<SettingsTab>('household')
+  /** categoryId → show bank labels mapped to that category */
+  const [expandedCatLabels, setExpandedCatLabels] = useState<
+    Record<string, boolean>
+  >({})
 
   const saveSettings = async () => {
     await push('chore: update settings')
@@ -499,45 +507,116 @@ export function Settings() {
           <CardTitle>Expense categories</CardTitle>
           <p className="mt-0.5 text-xs text-stone-700 dark:text-stone-400">
             Household buckets for spend — groceries, rent, travel, and so on.
-            Bank labels map onto these under Banks.
+            Tap the tags icon on a category to review bank labels mapped here;
+            remap under Banks if something looks wrong.
           </p>
         </div>
         <ul className="space-y-2">
-          {categories.map((c, i) => (
-            <li key={c.id} className="flex items-center gap-2">
-              <Input
-                value={c.name}
-                onChange={(e) => renameCat(c.id, e.target.value)}
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                type="button"
-                onClick={() => moveCat(i, -1)}
-                aria-label="Move up"
-              >
-                <ArrowUp className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                type="button"
-                onClick={() => moveCat(i, 1)}
-                aria-label="Move down"
-              >
-                <ArrowDown className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                type="button"
-                onClick={() => removeCat(c.id)}
-                aria-label="Delete"
-              >
-                <Trash2 className="h-4 w-4 text-red-600" />
-              </Button>
-            </li>
-          ))}
+          {categories.map((c, i) => {
+            const catMaps = mappingsForCategory(mappings, c.id)
+            const open = Boolean(expandedCatLabels[c.id])
+            const bankName = (bankId: string) =>
+              banks.find((b) => b.id === bankId)?.name ?? bankId
+            const labelsByBank = catMaps.reduce<
+              { bankId: string; labels: string[] }[]
+            >((groups, m) => {
+              const last = groups[groups.length - 1]
+              if (last && last.bankId === m.bankId) {
+                last.labels.push(m.label)
+              } else {
+                groups.push({ bankId: m.bankId, labels: [m.label] })
+              }
+              return groups
+            }, [])
+            return (
+              <li key={c.id} className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={c.name}
+                    onChange={(e) => renameCat(c.id, e.target.value)}
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    type="button"
+                    className={
+                      open
+                        ? 'text-teal-800 dark:text-teal-300'
+                        : 'text-stone-600 dark:text-stone-400'
+                    }
+                    onClick={() =>
+                      setExpandedCatLabels((prev) => ({
+                        ...prev,
+                        [c.id]: !prev[c.id],
+                      }))
+                    }
+                    aria-expanded={open}
+                    aria-label={
+                      catMaps.length
+                        ? `Bank labels (${catMaps.length})`
+                        : 'Bank labels'
+                    }
+                    title={
+                      catMaps.length
+                        ? `${catMaps.length} bank labels`
+                        : 'No bank labels yet'
+                    }
+                  >
+                    <Tags className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    type="button"
+                    onClick={() => moveCat(i, -1)}
+                    aria-label="Move up"
+                  >
+                    <ArrowUp className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    type="button"
+                    onClick={() => moveCat(i, 1)}
+                    aria-label="Move down"
+                  >
+                    <ArrowDown className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    type="button"
+                    onClick={() => removeCat(c.id)}
+                    aria-label="Delete"
+                  >
+                    <Trash2 className="h-4 w-4 text-red-600" />
+                  </Button>
+                </div>
+                {open ? (
+                  <div className="rounded-lg bg-stone-100 px-3 py-2.5 dark:bg-stone-800/55">
+                    {catMaps.length === 0 ? (
+                      <p className="text-xs text-stone-600 dark:text-stone-400">
+                        No bank labels map here yet — add them under Banks.
+                      </p>
+                    ) : (
+                      <ul className="space-y-2">
+                        {labelsByBank.map((group) => (
+                          <li key={group.bankId}>
+                            <p className="text-[10px] font-semibold tracking-[0.12em] text-stone-500 uppercase dark:text-stone-400">
+                              {bankName(group.bankId)}
+                            </p>
+                            <p className="text-sm leading-snug text-stone-800 dark:text-stone-100">
+                              {group.labels.join(' · ')}
+                            </p>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ) : null}
+              </li>
+            )
+          })}
         </ul>
         <div className="flex gap-2">
           <Input

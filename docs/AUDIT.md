@@ -22,13 +22,13 @@ The design matches the product claim: **static PWA + encrypted GitHub vault**, c
 
 Was: `createInitialState()` seeded demo months by default. **Now:** empty history by default; `completeSetup` / empty-remote unlock pass `withDemoData: false`; samples only via Settings or `withDemoData: true`.
 
-#### C2 — Unsynced Settings can vanish (Medium) — **mitigated (C2A)**
+#### C2 — Unsynced Settings can vanish (Medium) — **mitigated (C2A + dirty banner)**
 
-Was: pull / background refresh could wipe in-memory Settings (cards, categories, etc.). **Now:** `localDirty` after `updateState`; pull pushes local first when dirty; quiet-unlock background refresh skips while dirty; Categories/Banks tabs have **Save & sync**. **Still open:** lock without Save & sync still drops unsynced memory — dirty banner on lock would close the rest.
+Was: pull / background refresh could wipe in-memory Settings (cards, categories, etc.). **Now:** `localDirty` after `updateState`; pull pushes local first when dirty; quiet-unlock + visibility pulls skip while dirty; Categories/Banks tabs have **Save & sync**; amber unsaved banner + sync marker; lock confirms before discarding memory.
 
-#### C1 — Conflicts are pull or overwrite (Medium)
+#### C1 — Conflicts are pull or overwrite (Medium) — **dialog enriched**
 
-One encrypted blob + SHA locking is correct; there is no per-month merge. Overwrite replaces the entire remote vault. Impact: two partners closing different months can lose one side’s work on force overwrite. **Fix (near-term):** show `updatedAt` + month-key set diff in `ConflictDialog`. **Later:** merge `history` by month key only if this actually bites.
+One encrypted blob + SHA locking is correct; there is no per-month merge. Overwrite replaces the entire remote vault. Impact: two partners closing different months can lose one side’s work on force overwrite. **Done (near-term):** `ConflictDialog` shows local vs remote `updatedAt` + month-key set diff when remote ciphertext decrypts (`summarizeVaultConflict`). **Later:** merge `history` by month key only if this actually bites. **Bugfix:** conflict pull clears dirty before pull so the dialog is not stuck. Dialog copy explains discard-local vs overwrite-remote.
 
 #### S1 — XSS on app origin (High, inherent)
 
@@ -53,10 +53,9 @@ Finance math, crypto round-trip, migrations, and invite codec have no unit cover
 
 ### Next
 
-1. C2 — dirty banner / warn on lock (pull overwrite mitigated in C2A).
-2. C1 — richer conflict dialog (month keys / timestamps).
-3. T1 — unit tests for finance, crypto, migrate, invite.
-4. S1/S8 — self-host fonts; optional CSP headers on Vercel.
+1. T1 — keep lib suite green; optional CI.
+2. S1/S8 — optional CSP headers on Vercel (fonts already self-hosted).
+3. C2B — debounced Settings autopush (only if banner still isn’t enough).
 
 ### Later (only if pain)
 
@@ -127,8 +126,8 @@ Goal: catch vault/math regressions without a heavyweight QA program.
 
 | ID | Severity | Finding |
 |----|----------|---------|
-| C1 | Medium | No merge of month histories — overwrite discards remote |
-| C2 | Medium | Unsynced Settings lost on pull/background refresh — **mitigated (C2A)** (`localDirty`, push-before-pull); lock without Save still drops memory |
+| C1 | Medium | No merge of month histories — overwrite discards remote; dialog now shows timestamps + month-key diff |
+| C2 | Medium | Unsynced Settings lost on pull/background refresh — **mitigated** (`localDirty`, push-before-pull, dirty banner, lock confirm, quiet pulls skip dirty) |
 | C3 | Low | ~~defaults to demo months~~ → **C3A done:** empty history by default; demo via Settings / `withDemoData: true` |
 | C4 | Low | GitHub `atob` decode path vs `btoa(unescape(encodeURIComponent))` encode — OK for ASCII JSON envelope; watch if envelope ever gains non-Latin1 outside JSON.stringify norms |
 | C5 | Info | Retries don’t handle secondary rate-limit UX beyond generic errors |
@@ -162,10 +161,9 @@ Goal: catch vault/math regressions without a heavyweight QA program.
 ## Recommended follow-ups (optional product work)
 
 1. **First vault:** `createInitialState({ withDemoData: false })` in `completeSetup` / empty-remote unlock; keep demo behind Settings only.
-2. **Settings:** auto-push on blur or dirty banner if unsynced.
-3. **Tests:** `finance.computeMonthly`, `migrateState`, `parseEnvelope` / round-trip encrypt, `decodeDeviceInvite`.
-4. **CSP / drop remote fonts** if hardening the deploy origin.
-5. **Conflict UX:** show remote vs local `updatedAt` / month keys before overwrite.
+2. **Settings:** optional debounced autopush (C2B) if dirty banner isn’t enough.
+3. **Tests:** keep expanding lib suite; optional CI.
+4. **CSP** if hardening the deploy origin further.
 
 ## Doc & rules coverage after this audit
 

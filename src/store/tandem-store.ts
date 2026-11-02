@@ -7,6 +7,10 @@ import {
   decryptJsonWithPassword,
 } from '@/lib/crypto'
 import {
+  summarizeVaultConflict,
+  type ConflictSummary,
+} from '@/lib/conflict-summary'
+import {
   fetchRemoteVault,
   pushRemoteVault,
   GitHubConflictError,
@@ -47,6 +51,8 @@ interface ConflictState {
   remoteSha: string
   pendingContent: string
   pendingMessage: string
+  /** Local vs remote month keys / timestamps when decrypt succeeded. */
+  summary: ConflictSummary | null
 }
 
 interface TandemStore {
@@ -70,7 +76,7 @@ interface TandemStore {
   }) => Promise<void>
   unlock: (password: string, opts?: { quiet?: boolean }) => Promise<void>
   lock: () => void
-  pull: () => Promise<void>
+  pull: (opts?: { quiet?: boolean }) => Promise<void>
   push: (message?: string) => Promise<void>
   resolveConflict: (action: 'pull' | 'overwrite') => Promise<void>
   updateState: (updater: (s: TandemState) => TandemState) => void
@@ -304,10 +310,54 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
     })
   },
 
-  pull: async () => {
+  pull: async (opts) => {
     const { github } = get()
     const password = getSessionPassword()
     if (!github || !password) return
+
+    // Focus / visibility refresh: never auto-push; skip when busy or dirty.
+    if (opts?.quiet) {
+      if (
+        get().phase !== 'ready' ||
+        get().localDirty ||
+        get().syncing ||
+        get().conflict
+      ) {
+        return
+      }
+      set({ syncing: true })
+      try {
+        const remote = await fetchRemoteVault(github)
+        if (!remote || get().localDirty || get().conflict) {
+          set({ syncing: false })
+          return
+        }
+        if (remote.sha === get().remoteSha) {
+          set({ syncing: false })
+          return
+        }
+        const decrypted = migrateState(
+          await decryptEnvelope(parseEnvelope(remote.content), password),
+        )
+        if (get().localDirty || get().conflict) {
+          set({ syncing: false })
+          return
+        }
+        saveSessionVaultCache(remote.content, remote.sha)
+        set({
+          state: decrypted,
+          remoteSha: remote.sha,
+          syncing: false,
+          localDirty: false,
+          lastSyncedAt: new Date().toISOString(),
+          conflict: null,
+        })
+      } catch {
+        set({ syncing: false })
+      }
+      return
+    }
+
     // Header “sync” is a pull — push unsaved local edits first so cards /
     // categories / household tweaks are not wiped by an older remote vault.
     if (get().localDirty) {
@@ -360,6 +410,20 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
         })
       } catch (e) {
         if (e instanceof GitHubConflictError) {
+          let summary: ConflictSummary | null = null
+          if (e.remoteContent) {
+            try {
+              const remoteState = migrateState(
+                await decryptEnvelope(
+                  parseEnvelope(e.remoteContent),
+                  password,
+                ),
+              )
+              summary = summarizeVaultConflict(next, remoteState)
+            } catch {
+              /* remote decrypt failed — dialog still usable without summary */
+            }
+          }
           set({
             syncing: false,
             conflict: {
@@ -367,6 +431,7 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
               remoteSha: e.remoteSha,
               pendingContent: content,
               pendingMessage: message,
+              summary,
             },
           })
           return
@@ -386,10 +451,14 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
     const password = getSessionPassword()
     if (!conflict || !github || !password) return
     if (action === 'pull') {
+      // Conflict is from a failed push while local was dirty. A normal pull()
+      // would push-first and re-hit the same conflict — discard pending local
+      // and load the remote vault as source of truth.
+      set({ localDirty: false, conflict: null, error: null })
       await get().pull()
       return
     }
-    set({ syncing: true })
+    set({ syncing: true, error: null })
     try {
       const sha = await pushRemoteVault(
         github,

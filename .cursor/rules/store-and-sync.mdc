@@ -12,7 +12,13 @@ All unlock / pull / push / conflict / password / import flows go through `useTan
 
 ## Conflicts
 
-On `GitHubConflictError`, set `conflict` and let `ConflictDialog` choose **pull** or **overwrite**. No silent merge of `history` months.
+On `GitHubConflictError`, set `conflict` (include `summary` from `summarizeVaultConflict` when remote ciphertext decrypts) and let `ConflictDialog` choose **pull** or **overwrite**. No silent merge of `history` months.
+
+Conflict **pull** must clear `localDirty` (and `conflict`) before `pull()` — a dirty-first re-push would recreate the same conflict and leave the dialog stuck.
+
+## Quiet pull
+
+`pull({ quiet: true })` (visibility/focus + unlock background): never auto-push; no-op when dirty/syncing/conflicted; swallow network errors. Manual header pull still pushes dirty first.
 
 ## Vault file
 

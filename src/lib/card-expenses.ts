@@ -19,6 +19,19 @@ export function mappingsForBank(
     .sort((a, b) => a.label.localeCompare(b.label))
 }
 
+/** All bank labels mapped onto one household category (for Settings overview). */
+export function mappingsForCategory(
+  mappings: BankCategoryMapping[],
+  categoryId: string,
+): BankCategoryMapping[] {
+  return mappings
+    .filter((m) => m.categoryId === categoryId)
+    .sort((a, b) => {
+      const bank = a.bankId.localeCompare(b.bankId)
+      return bank !== 0 ? bank : a.label.localeCompare(b.label)
+    })
+}
+
 /** Upsert mapping rules for one bank from confirmed label lines. */
 export function upsertBankMappings(
   existing: BankCategoryMapping[],

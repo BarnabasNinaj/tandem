@@ -23,9 +23,16 @@ Optimistic locking on Git blob SHA:
 1. Client remembers `remoteSha` after pull/unlock/push.
 2. Before push (when SHA known), re-fetches; mismatch → `GitHubConflictError`.
 3. HTTP 409/422 also mapped to conflict.
-4. UI (`ConflictDialog`): **Pull remote** (discard local pending) or **Force overwrite** (push pending with remote SHA).
+4. UI (`ConflictDialog`): **Pull remote** (discard local pending) or **Force overwrite** (push pending with remote SHA). When remote ciphertext is available, dialog shows local vs remote `updatedAt` and month-key set diff (`summarizeVaultConflict` in `conflict-summary.ts`).
+5. Conflict **pull** must clear `localDirty` + `conflict` before calling `pull()` — otherwise pull’s dirty-first push re-hits the same conflict and the button appears dead.
 
 There is **no automatic merge** of `history` months. Last writer wins on overwrite.
+
+### Quiet / opportunistic pull
+
+- Unlock quiet restore: session cache first, then background GitHub refresh (skips if `localDirty`).
+- Tab **visibility / focus** (`useVisibilityPull`): `pull({ quiet: true })` with ~15s cooldown — skips when dirty, syncing, or conflicted; ignores network errors; no auto-push.
+- Manual header sync remains the explicit path (dirty → push then pull).
 
 ## Store sync actions (`tandem-store.ts`)
 
@@ -33,8 +40,8 @@ There is **no automatic merge** of `history` months. Last writer wins on overwri
 |--------|--------|
 | `completeSetup` | Save config; pull existing vault or create+push initial |
 | `unlock` | Fetch (or session cache); decrypt; optional background refresh |
-| `pull` | If `localDirty`, push first; then remote → decrypt → replace state |
-| `push` | Encrypt state → PUT; clears `localDirty`; may set `conflict` |
+| `pull` | If `localDirty`, push first; then remote → decrypt → replace state. `pull({ quiet: true })` never auto-pushes; no-ops when dirty/busy |
+| `push` | Encrypt state → PUT; clears `localDirty`; may set `conflict` (+ optional `summary`) |
 | `saveMonth` | Write history key → push with `feat: track data …` |
 | `changePassword` | Re-encrypt → push |
 | `importJson` | Replace state → push |
@@ -42,6 +49,8 @@ There is **no automatic merge** of `history` months. Last writer wins on overwri
 | `clearDemoData` | Remove sample month keys → push |
 
 Quiet unlock (`boot` with session password): prefer `sessionStorage` vault cache, then refresh GitHub in background (network errors ignored). Background refresh **skips** if `localDirty` so unsynced settings are not wiped.
+
+**Unsaved cue:** `localDirty` shows an amber header strip + sync-icon marker; lock confirms before discarding memory.
 
 ## Commit message conventions (vault repo)
 

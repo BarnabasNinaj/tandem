@@ -5,10 +5,17 @@ const BASE_DELAY_MS = 400
 
 export class GitHubConflictError extends Error {
   remoteSha: string
-  constructor(message: string, remoteSha: string) {
+  /** Ciphertext envelope JSON when available (for conflict UI summary). */
+  remoteContent: string | null
+  constructor(
+    message: string,
+    remoteSha: string,
+    remoteContent: string | null = null,
+  ) {
     super(message)
     this.name = 'GitHubConflictError'
     this.remoteSha = remoteSha
+    this.remoteContent = remoteContent
   }
 }
 
@@ -108,6 +115,7 @@ export async function pushRemoteVault(
         throw new GitHubConflictError(
           'Remote data is newer. Pull remote updates or force overwrite?',
           current.sha,
+          current.content,
         )
       }
     }
@@ -139,6 +147,7 @@ export async function pushRemoteVault(
       throw new GitHubConflictError(
         'Remote data is newer. Pull remote updates or force overwrite?',
         remote?.sha ?? '',
+        remote?.content ?? null,
       )
     }
 
