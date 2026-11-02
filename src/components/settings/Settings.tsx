@@ -105,7 +105,6 @@ export function Settings() {
 
   const saveSettings = async () => {
     await push('chore: update settings')
-    setMsg('Settings synced.')
   }
 
   const saveGithub = () => {
@@ -119,7 +118,6 @@ export function Settings() {
       await changePassword(curPw, newPw)
       setCurPw('')
       setNewPw('')
-      setMsg('Password rotated and vault re-encrypted.')
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'Password change failed')
     }
@@ -381,7 +379,6 @@ export function Settings() {
   const onImportFile = async (file: File) => {
     const text = await file.text()
     await importJson(text)
-    setMsg('Backup imported and synced.')
   }
 
   return (
@@ -1147,7 +1144,6 @@ export function Settings() {
               void (async () => {
                 try {
                   await loadDemoData()
-                  setMsg('2026 sample months loaded and synced.')
                 } catch (e) {
                   setErr(
                     e instanceof Error ? e.message : 'Failed to load demo data',
@@ -1173,7 +1169,6 @@ export function Settings() {
               void (async () => {
                 try {
                   await clearDemoData()
-                  setMsg('Sample months removed and synced.')
                 } catch (e) {
                   setErr(
                     e instanceof Error

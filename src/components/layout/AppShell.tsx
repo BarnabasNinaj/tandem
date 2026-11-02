@@ -13,6 +13,7 @@ import {
   Wallet,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { ToastHost } from '@/components/ui/toast'
 import { ConflictDialog } from '@/components/sync/ConflictDialog'
 import { useTheme } from '@/hooks/use-theme'
 import { useVisibilityPull } from '@/hooks/use-visibility-pull'
@@ -237,6 +238,7 @@ export function AppShell() {
       </nav>
 
       <ConflictDialog />
+      <ToastHost />
     </div>
   )
 }

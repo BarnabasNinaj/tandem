@@ -68,6 +68,7 @@ UI primitives: `src/components/ui/*` (button, input, select, card, label, money-
 - Header icon tooltips: Settings, sync/pull (Last Synced; notes unsaved local edits), theme (Switch to light/dark), lock (Lock; confirms if unsaved)
 - Unsaved local edits: amber header banner + amber sync icon marker; lock warns before discarding
 - Quiet pull on tab focus/visibility when clean (cooldown; never auto-pushes dirty work)
+- Sync toasts (`ToastHost`): pull/push/conflict outcomes (Saved / Updated / Already up to date / conflict hint / errors); quiet pull toasts only when the vault actually changed
 - Conflict dialog: local vs remote timestamps + month-key diff when decryptable; Pull discards pending / Force overwrite replaces remote
 - Settings **Save & sync** on Household / Categories / Banks / Security (auto-lock); header sync pushes dirty local edits before pull
 - Month labels: **MM/YYYY** from `YYYY-MM` keys (compact); Home cards + Track hub list titles use **MMMM YYYY** (`formatMonthName`)

@@ -15,6 +15,7 @@ import {
   pushRemoteVault,
   GitHubConflictError,
 } from '@/lib/github'
+import { toast, toastMessageForPush } from '@/store/toast-store'
 import { buildDemoHistory, stripDemoMonths } from '@/lib/demo-data'
 import { createInitialState, migrateState } from '@/lib/migration'
 import {
@@ -76,7 +77,7 @@ interface TandemStore {
   }) => Promise<void>
   unlock: (password: string, opts?: { quiet?: boolean }) => Promise<void>
   lock: () => void
-  pull: (opts?: { quiet?: boolean }) => Promise<void>
+  pull: (opts?: { quiet?: boolean; afterConflict?: boolean }) => Promise<void>
   push: (message?: string) => Promise<void>
   resolveConflict: (action: 'pull' | 'overwrite') => Promise<void>
   updateState: (updater: (s: TandemState) => TandemState) => void
@@ -352,6 +353,7 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
           lastSyncedAt: new Date().toISOString(),
           conflict: null,
         })
+        toast('Vault updated', 'info')
       } catch {
         set({ syncing: false })
       }
@@ -360,10 +362,13 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
 
     // Header “sync” is a pull — push unsaved local edits first so cards /
     // categories / household tweaks are not wiped by an older remote vault.
+    let pushedFirst = false
     if (get().localDirty) {
       await get().push('chore: save local edits before pull')
       if (get().conflict || get().error) return
+      pushedFirst = true
     }
+    const prevSha = get().remoteSha
     set({ syncing: true, error: null })
     try {
       const remote = await fetchRemoteVault(github)
@@ -380,11 +385,14 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
         lastSyncedAt: new Date().toISOString(),
         conflict: null,
       })
+      if (opts?.afterConflict) toast('Loaded remote vault')
+      else if (pushedFirst) toast('Synced')
+      else if (remote.sha === prevSha) toast('Already up to date', 'info')
+      else toast('Vault updated')
     } catch (e) {
-      set({
-        syncing: false,
-        error: e instanceof Error ? e.message : 'Pull failed',
-      })
+      const message = e instanceof Error ? e.message : 'Pull failed'
+      set({ syncing: false, error: message })
+      toast(message, 'error')
     }
   },
 
@@ -408,6 +416,8 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
           lastSyncedAt: new Date().toISOString(),
           conflict: null,
         })
+        const ok = toastMessageForPush(message)
+        if (ok) toast(ok)
       } catch (e) {
         if (e instanceof GitHubConflictError) {
           let summary: ConflictSummary | null = null
@@ -434,15 +444,15 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
               summary,
             },
           })
+          toast('Sync conflict — choose how to resolve', 'info')
           return
         }
         throw e
       }
     } catch (e) {
-      set({
-        syncing: false,
-        error: e instanceof Error ? e.message : 'Push failed',
-      })
+      const errMsg = e instanceof Error ? e.message : 'Push failed'
+      set({ syncing: false, error: errMsg })
+      toast(errMsg, 'error')
     }
   },
 
@@ -455,7 +465,7 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
       // would push-first and re-hit the same conflict — discard pending local
       // and load the remote vault as source of truth.
       set({ localDirty: false, conflict: null, error: null })
-      await get().pull()
+      await get().pull({ afterConflict: true })
       return
     }
     set({ syncing: true, error: null })
@@ -480,11 +490,11 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
         conflict: null,
         lastSyncedAt: new Date().toISOString(),
       })
+      toast('Remote vault overwritten')
     } catch (e) {
-      set({
-        syncing: false,
-        error: e instanceof Error ? e.message : 'Overwrite failed',
-      })
+      const errMsg = e instanceof Error ? e.message : 'Overwrite failed'
+      set({ syncing: false, error: errMsg })
+      toast(errMsg, 'error')
     }
   },
 
@@ -605,6 +615,7 @@ export const useTandemStore = create<TandemStore>((set, get) => ({
       localDirty: false,
       lastSyncedAt: new Date().toISOString(),
     })
+    toast('Password updated')
   },
 
   exportJson: () => {

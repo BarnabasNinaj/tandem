@@ -52,6 +52,8 @@ Quiet unlock (`boot` with session password): prefer `sessionStorage` vault cache
 
 **Unsaved cue:** `localDirty` shows an amber header strip + sync-icon marker; lock confirms before discarding memory.
 
+**Toasts:** `toast-store` + `ToastHost` — success/info/error for push, pull, conflict resolve, and quiet pull when SHA changes. Intermediate “save before pull” pushes stay silent.
+
 ## Commit message conventions (vault repo)
 
 Used as GitHub commit messages on the **data** repo, not this app repo:
