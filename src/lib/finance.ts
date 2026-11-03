@@ -276,12 +276,19 @@ export function alignOutflowsToCategories(
   outflows: CategoryExpense[],
   categories: TandemSettings['categories'],
 ): CategoryExpense[] {
-  const byId = new Map(outflows.map((o) => [o.categoryId, o.amount]))
-  return categories.map((c) => ({
-    categoryId: c.id,
-    categoryName: c.name,
-    amount: byId.get(c.id) ?? 0,
-  }))
+  const byId = new Map(outflows.map((o) => [o.categoryId, o] as const))
+  return categories.map((c) => {
+    const prev = byId.get(c.id)
+    const paidBy = normalizePaymentByOwner(prev?.paidBy)
+    const hasPaid =
+      paidBy.partnerA > 0 || paidBy.partnerB > 0 || paidBy.common > 0
+    return {
+      categoryId: c.id,
+      categoryName: c.name,
+      amount: prev?.amount ?? 0,
+      ...(hasPaid ? { paidBy } : {}),
+    }
+  })
 }
 
 function outflowsMatchCategories(

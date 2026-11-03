@@ -4,6 +4,7 @@ import {
   settleExpenseShares,
   type SettlementDirection,
 } from './finance'
+import { displayOutflows } from './investment-split'
 import { round2 } from './number'
 import type { MonthlyRecord } from '@/types/tandem'
 
@@ -71,9 +72,17 @@ export interface CategoryStats {
   slope: number
 }
 
-function outflowByCategory(record: MonthlyRecord): Map<string, number> {
+function outflowByCategory(
+  record: MonthlyRecord,
+  partnerAName: string,
+  partnerBName: string,
+): Map<string, number> {
   const map = new Map<string, number>()
-  for (const o of record.outflows) {
+  for (const o of displayOutflows(
+    record.outflows,
+    partnerAName,
+    partnerBName,
+  )) {
     const key = o.categoryId || o.categoryName
     map.set(key, round2((map.get(key) ?? 0) + (o.amount || 0)))
   }
@@ -81,12 +90,20 @@ function outflowByCategory(record: MonthlyRecord): Map<string, number> {
 }
 
 /** Per-category averages, last amount, and trend slope over the range. */
-export function categoryStats(records: MonthlyRecord[]): CategoryStats[] {
+export function categoryStats(
+  records: MonthlyRecord[],
+  partnerAName = 'Partner A',
+  partnerBName = 'Partner B',
+): CategoryStats[] {
   if (records.length === 0) return []
 
   const meta = new Map<string, { categoryId: string; categoryName: string }>()
   for (const r of records) {
-    for (const o of r.outflows) {
+    for (const o of displayOutflows(
+      r.outflows,
+      partnerAName,
+      partnerBName,
+    )) {
       const key = o.categoryId || o.categoryName
       meta.set(key, {
         categoryId: o.categoryId,
@@ -96,7 +113,9 @@ export function categoryStats(records: MonthlyRecord[]): CategoryStats[] {
   }
 
   const n = records.length
-  const perMonth = records.map(outflowByCategory)
+  const perMonth = records.map((r) =>
+    outflowByCategory(r, partnerAName, partnerBName),
+  )
 
   return Array.from(meta.entries())
     .map(([key, m]) => {
@@ -119,13 +138,19 @@ export function categoryStats(records: MonthlyRecord[]): CategoryStats[] {
 export function categoryTrendSeries(
   records: MonthlyRecord[],
   categoryNames: string[],
+  partnerAName = 'Partner A',
+  partnerBName = 'Partner B',
 ): Array<Record<string, string | number>> {
   return records.map((r) => {
     const byName = new Map<string, number>()
-    for (const o of r.outflows) {
+    for (const o of displayOutflows(
+      r.outflows,
+      partnerAName,
+      partnerBName,
+    )) {
       byName.set(
         o.categoryName,
-        round2((byName.get(o.categoryName) ?? 0) + (o.amount || 0)),
+        round2((byName.get(o.categoryName) ?? 0) + o.amount),
       )
     }
     const row: Record<string, string | number> = {
@@ -497,19 +522,28 @@ export interface ExpenseGrid {
 
 /**
  * Expenses only: categories + per-month amounts.
+ * Investments with card `paidBy` appear as separate partner series.
  * UI table: category rows × month columns (see ExpensesPage).
  */
-export function expenseGrid(records: MonthlyRecord[]): ExpenseGrid {
+export function expenseGrid(
+  records: MonthlyRecord[],
+  partnerAName = 'Partner A',
+  partnerBName = 'Partner B',
+): ExpenseGrid {
   const totals = new Map<string, { name: string; total: number }>()
   const rows = records.map((r) => {
     const byCategory: Record<string, number> = {}
-    for (const o of r.outflows) {
+    for (const o of displayOutflows(
+      r.outflows,
+      partnerAName,
+      partnerBName,
+    )) {
       const id = o.categoryId || o.categoryName
-      byCategory[id] = round2((byCategory[id] ?? 0) + (o.amount || 0))
+      byCategory[id] = round2((byCategory[id] ?? 0) + o.amount)
       const prev = totals.get(id)
       totals.set(id, {
         name: o.categoryName,
-        total: round2((prev?.total ?? 0) + (o.amount || 0)),
+        total: round2((prev?.total ?? 0) + o.amount),
       })
     }
     return {

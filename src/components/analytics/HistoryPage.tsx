@@ -57,14 +57,18 @@ export function HistoryPage() {
     [state.history, range],
   )
 
-  const cats = useMemo(() => categoryStats(records), [records])
+  const cats = useMemo(
+    () => categoryStats(records, partnerAName, partnerBName),
+    [records, partnerAName, partnerBName],
+  )
   const topCatNames = useMemo(
     () => cats.slice(0, 6).map((c) => c.categoryName),
     [cats],
   )
   const catSeries = useMemo(
-    () => categoryTrendSeries(records, topCatNames),
-    [records, topCatNames],
+    () =>
+      categoryTrendSeries(records, topCatNames, partnerAName, partnerBName),
+    [records, topCatNames, partnerAName, partnerBName],
   )
 
   const flowSeries = useMemo(

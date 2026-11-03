@@ -123,9 +123,42 @@ describe('mergeCardLinesIntoOutflows', () => {
         { categoryId: 'dining', amount: 0 },
       ],
       DEFAULT_CATEGORIES,
+      'partnerA',
     )
     expect(merged.find((o) => o.categoryId === 'groceries')?.amount).toBe(150)
     expect(merged.find((o) => o.categoryId === 'transport')?.amount).toBe(40)
     expect(merged.find((o) => o.categoryId === 'dining')?.amount).toBe(0)
+    expect(merged.find((o) => o.categoryId === 'groceries')?.paidBy).toEqual({
+      partnerA: 100,
+      partnerB: 0,
+      common: 0,
+    })
+  })
+
+  it('accumulates paidBy per card owner for the same category', () => {
+    const outflows = DEFAULT_CATEGORIES.map((c) => ({
+      categoryId: c.id,
+      categoryName: c.name,
+      amount: 0,
+    }))
+    const afterA = mergeCardLinesIntoOutflows(
+      outflows,
+      [{ categoryId: 'investments', amount: 200 }],
+      DEFAULT_CATEGORIES,
+      'partnerA',
+    )
+    const afterB = mergeCardLinesIntoOutflows(
+      afterA,
+      [{ categoryId: 'investments', amount: 150 }],
+      DEFAULT_CATEGORIES,
+      'partnerB',
+    )
+    const inv = afterB.find((o) => o.categoryId === 'investments')
+    expect(inv?.amount).toBe(350)
+    expect(inv?.paidBy).toEqual({
+      partnerA: 200,
+      partnerB: 150,
+      common: 0,
+    })
   })
 })

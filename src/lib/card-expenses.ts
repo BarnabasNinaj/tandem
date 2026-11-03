@@ -1,6 +1,8 @@
+import { normalizePaymentByOwner } from './finance'
 import { round2 } from './number'
 import type {
   BankCategoryMapping,
+  CardOwner,
   CategoryExpense,
   ExpenseCategory,
 } from '@/types/tandem'
@@ -64,29 +66,38 @@ export function upsertBankMappings(
 
 /**
  * Add mapped card amounts into the month’s outflows (merge, don’t replace).
- * Zero amounts are skipped.
+ * Zero amounts are skipped. Bumps per-category `paidBy` for the card owner
+ * so Investments (and any category) can show partner split from cards used.
  */
 export function mergeCardLinesIntoOutflows(
   outflows: CategoryExpense[],
   lines: Array<{ categoryId: string; amount: number }>,
   categories: ExpenseCategory[],
+  owner: CardOwner,
 ): CategoryExpense[] {
-  const amounts = new Map(
-    outflows.map((o) => [o.categoryId, o.amount] as const),
-  )
+  const byId = new Map(outflows.map((o) => [o.categoryId, o] as const))
   for (const line of lines) {
     if (!line.categoryId || line.amount === 0) continue
-    amounts.set(
-      line.categoryId,
-      round2((amounts.get(line.categoryId) ?? 0) + line.amount),
-    )
+    const prev = byId.get(line.categoryId)
+    const paidBy = normalizePaymentByOwner(prev?.paidBy)
+    paidBy[owner] = round2(paidBy[owner] + line.amount)
+    byId.set(line.categoryId, {
+      categoryId: line.categoryId,
+      categoryName: prev?.categoryName ?? '',
+      amount: round2((prev?.amount ?? 0) + line.amount),
+      paidBy,
+    })
   }
   return categories.map((c) => {
-    const prev = outflows.find((o) => o.categoryId === c.id)
+    const prev = byId.get(c.id)
+    const paidBy = normalizePaymentByOwner(prev?.paidBy)
+    const hasPaid =
+      paidBy.partnerA > 0 || paidBy.partnerB > 0 || paidBy.common > 0
     return {
       categoryId: c.id,
-      categoryName: prev?.categoryName ?? c.name,
-      amount: amounts.get(c.id) ?? 0,
+      categoryName: prev?.categoryName || c.name,
+      amount: prev?.amount ?? 0,
+      ...(hasPaid ? { paidBy } : {}),
     }
   })
 }

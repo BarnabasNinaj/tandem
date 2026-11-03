@@ -5,10 +5,10 @@ import {
   type CardOwner,
   type ExpenseBank,
   type ExpenseCard,
-  type ExpenseCategory,
   type MonthlyRecord,
   type TandemState,
 } from '@/types/tandem'
+import { ensureDefaultCategories } from './categories'
 import { normalizeBankLabel } from './card-expenses'
 import { generateSalt } from './crypto'
 import { buildDemoHistory } from './demo-data'
@@ -19,15 +19,7 @@ import {
 } from './finance'
 import { CURRENCY_LOCALE, CURRENCY_SYMBOL, round2 } from './number'
 
-/** Keep household order; append any missing stock defaults (e.g. Investments). */
-export function ensureDefaultCategories(
-  categories: ExpenseCategory[],
-): ExpenseCategory[] {
-  if (!categories.length) return [...DEFAULT_CATEGORIES]
-  const have = new Set(categories.map((c) => c.id))
-  const missing = DEFAULT_CATEGORIES.filter((c) => !have.has(c.id))
-  return missing.length ? [...categories, ...missing] : categories
-}
+export { ensureDefaultCategories } from './categories'
 
 type AnyState = Record<string, unknown>
 
@@ -83,7 +75,18 @@ function normalizeHistory(
     const inflows = normalizeInflows(
       record.inflows as LegacyInflows | undefined,
     )
-    const outflows = record.outflows ?? []
+    const outflows = (record.outflows ?? []).map((o) => {
+      const amount = round2(o.amount || 0)
+      const paidBy = normalizePaymentByOwner(o.paidBy)
+      const hasPaid =
+        paidBy.partnerA > 0 || paidBy.partnerB > 0 || paidBy.common > 0
+      return {
+        categoryId: o.categoryId,
+        categoryName: o.categoryName,
+        amount,
+        ...(hasPaid ? { paidBy } : {}),
+      }
+    })
     const split = normalizeAllowanceSplit(
       record.computed?.allowanceSplit ?? allowanceSplit,
     )

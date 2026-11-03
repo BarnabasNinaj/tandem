@@ -583,8 +583,9 @@ export function Settings() {
           <CardTitle>Expense categories</CardTitle>
           <p className="mt-0.5 text-xs text-stone-700 dark:text-stone-400">
             Household buckets for spend — groceries, rent, travel, and so on.
-            Drag the grip to reorder. Tap the tags icon to review bank labels
-            mapped here; remap under Banks if something looks wrong.
+            Investments stay one category; enter each partner’s transfers from
+            their own card to see the split. Drag the grip to reorder; tap tags
+            to review bank labels; remap under Banks if needed.
           </p>
         </div>
         <ul className="space-y-2">

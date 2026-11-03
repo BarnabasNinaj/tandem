@@ -19,6 +19,7 @@ import {
   normalizeBankLabel,
   upsertBankMappings,
 } from '@/lib/card-expenses'
+import { displayOutflows } from '@/lib/investment-split'
 import { formatMoney } from '@/lib/number'
 import { cn } from '@/lib/utils'
 import type {
@@ -194,7 +195,12 @@ export const CardExpenses = forwardRef<
     if (lines.length === 0) return false
 
     onApply({
-      outflows: mergeCardLinesIntoOutflows(outflows, lines, categories),
+      outflows: mergeCardLinesIntoOutflows(
+        outflows,
+        lines,
+        categories,
+        card.owner,
+      ),
       mappings,
       payment: { owner: card.owner, amount: sheetTotal },
     })
@@ -373,7 +379,7 @@ export const CardExpenses = forwardRef<
           </p>
         </div>
         <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 sm:grid-cols-3">
-          {outflows.map((o) => (
+          {displayOutflows(outflows, partnerAName, partnerBName).map((o) => (
             <div
               key={o.categoryId}
               className={cn('min-w-0', o.amount === 0 && 'opacity-45')}

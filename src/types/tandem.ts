@@ -2,6 +2,11 @@ export interface CategoryExpense {
   categoryId: string
   categoryName: string
   amount: number
+  /**
+   * Who paid this category via Track cards (bumped on Add to month).
+   * Omitted / empty on older months and non-card edits — then only `amount` is known.
+   */
+  paidBy?: PaymentByOwner
 }
 
 /**

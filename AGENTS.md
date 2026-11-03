@@ -36,6 +36,8 @@ Do not treat the data repo as “optional secrets.” It **is** the sync store.
 | Split presets (Pays / Net share) | `src/lib/allowance-split.ts` + `allowanceSplit` (`equal` \| `income` \| `incomeEqualNet`) |
 | Analytics (averages, trends, outlook) | `src/lib/analytics.ts` |
 | Bank label mappings + card merge | `src/lib/card-expenses.ts` |
+| Category defaults | `src/lib/categories.ts` (`ensureDefaultCategories`) |
+| Investments partner display split | `src/lib/investment-split.ts` (`displayOutflows` from card `paidBy`) |
 | Conflict month-key / timestamp diff | `src/lib/conflict-summary.ts` + `ConflictDialog` |
 | Quiet pull on tab focus | `src/hooks/use-visibility-pull.ts` → `pull({ quiet: true })` |
 | Sync / action toasts | `src/store/toast-store.ts` + `ToastHost` in `AppShell` |

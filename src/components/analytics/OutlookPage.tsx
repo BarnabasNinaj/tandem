@@ -147,7 +147,11 @@ export function OutlookPage() {
 
   const outlook = useMemo(() => buildMonthOutlook(records), [records])
 
-  const cats = useMemo(() => categoryStats(records), [records])
+  const { partnerAName, partnerBName } = state.settings
+  const cats = useMemo(
+    () => categoryStats(records, partnerAName, partnerBName),
+    [records, partnerAName, partnerBName],
+  )
 
   const avgExpenseShare =
     outlook && outlook.avgIncome > 0

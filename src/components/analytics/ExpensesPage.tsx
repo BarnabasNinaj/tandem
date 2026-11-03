@@ -36,6 +36,8 @@ export function ExpensesPage() {
   const navigate = useNavigate()
   const state = useTandemStore((s) => s.state)!
   const startTracking = useTandemStore((s) => s.startTracking)
+  const partnerAName = state.settings.partnerAName
+  const partnerBName = state.settings.partnerBName
   const [range, setRange] = useState<AnalyticsRange>('6M')
   const money = formatMoney
   const barLegend = useLegendFilter(range)
@@ -45,7 +47,10 @@ export function ExpensesPage() {
     () => sliceHistory(state.history, range),
     [state.history, range],
   )
-  const grid = useMemo(() => expenseGrid(records), [records])
+  const grid = useMemo(
+    () => expenseGrid(records, partnerAName, partnerBName),
+    [records, partnerAName, partnerBName],
+  )
 
   const chartRows = useMemo(
     () =>
@@ -81,7 +86,7 @@ export function ExpensesPage() {
       header={
         <AnalyticsPageHeader
           title="Expenses"
-          subtitle="Where the money went by category — groceries, rent, and the rest"
+          subtitle="Where the money went by category — Investments split by whose card paid"
           range={range}
           onRangeChange={setRange}
         />
